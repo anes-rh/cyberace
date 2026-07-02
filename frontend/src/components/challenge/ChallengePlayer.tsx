@@ -1,0 +1,349 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Lightbulb, Lock, Check, X, Flag, Timer as TimerIcon, Trophy, ChevronUp, ChevronDown, ArrowRight, Sparkles,
+} from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { DifficultyBadge } from "@/components/ui/DifficultyBadge";
+import { Markdown } from "@/components/Markdown";
+import { WidgetRenderer } from "@/components/widgets/WidgetRenderer";
+import { useAuth } from "@/context/AuthContext";
+import { api, ApiError } from "@/lib/api";
+import { formatTime, cn } from "@/lib/utils";
+import type { Challenge, Hint, SubmitResult } from "@/lib/types";
+
+export function ChallengePlayer({
+  challenge,
+  nextHref,
+  onSolved,
+}: {
+  challenge: Challenge;
+  nextHref?: string | null;
+  onSolved?: () => void;
+}) {
+  const { user } = useAuth();
+  const [hints, setHints] = useState<Hint[]>(challenge.hints);
+  const [elapsed, setElapsed] = useState(0);
+  const startRef = useRef(Date.now());
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState<SubmitResult | null>(
+    challenge.solved ? { correct: true, alreadySolved: true, explanation: challenge.explanation ?? "" } : null
+  );
+  const [wrong, setWrong] = useState(false);
+  const [error, setError] = useState("");
+
+  // Answer state per type.
+  const [text, setText] = useState("");
+  const [choice, setChoice] = useState<number | null>(null);
+  const [multi, setMulti] = useState<Set<number>>(new Set());
+  const [order, setOrder] = useState<number[]>(challenge.options.map((_, i) => i));
+
+  const solved = result?.correct === true;
+
+  useEffect(() => {
+    if (solved) return;
+    const id = setInterval(() => setElapsed(Date.now() - startRef.current), 1000);
+    return () => clearInterval(id);
+  }, [solved]);
+
+  const revealHint = async (index: number) => {
+    if (!user) return;
+    try {
+      const r = await api.unlockHint(challenge.id, index);
+      setHints((hs) => hs.map((h) => (h.index === index ? { ...h, unlocked: true, text: r.text } : h)));
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Erreur");
+    }
+  };
+
+  const buildAnswer = (): string | number | number[] | null => {
+    switch (challenge.type) {
+      case "text":
+      case "numeric":
+        return text.trim() === "" ? null : text.trim();
+      case "mcq":
+        return choice;
+      case "multi":
+        return multi.size ? [...multi] : null;
+      case "order":
+        return order;
+    }
+  };
+
+  const submit = async () => {
+    if (!user) return;
+    const answer = buildAnswer();
+    if (answer === null) {
+      setError("Saisis une réponse.");
+      return;
+    }
+    setSubmitting(true);
+    setError("");
+    try {
+      const r = await api.submit(challenge.id, answer, Date.now() - startRef.current);
+      if (r.correct) {
+        setResult(r);
+        onSolved?.();
+      } else {
+        setWrong(true);
+        setTimeout(() => setWrong(false), 600);
+      }
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Erreur");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const move = (i: number, dir: -1 | 1) => {
+    setOrder((o) => {
+      const n = [...o];
+      const j = i + dir;
+      if (j < 0 || j >= n.length) return o;
+      [n[i], n[j]] = [n[j], n[i]];
+      return n;
+    });
+  };
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+      {/* Main column */}
+      <div className="space-y-6">
+        <div className="glass rounded-2xl p-6">
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <DifficultyBadge difficulty={challenge.difficulty} />
+            <span className="inline-flex items-center gap-1.5 text-sm text-muted">
+              <Flag className="h-4 w-4 text-primary" /> {challenge.points} pts
+            </span>
+            {challenge.tags.map((t) => (
+              <span key={t} className="rounded-full bg-surface-2 px-2 py-0.5 font-mono text-[11px] text-faint">
+                {t}
+              </span>
+            ))}
+          </div>
+          <h1 className="font-display text-2xl font-bold text-fg">{challenge.title}</h1>
+          <div className="mt-4">
+            <Markdown>{challenge.prompt}</Markdown>
+          </div>
+        </div>
+
+        {challenge.widget && (
+          <div className="glass rounded-2xl p-6">
+            <WidgetRenderer widget={challenge.widget} />
+          </div>
+        )}
+
+        {/* Answer zone */}
+        <motion.div
+          animate={wrong ? { x: [0, -10, 10, -6, 6, 0] } : {}}
+          transition={{ duration: 0.5 }}
+          className={cn("glass rounded-2xl p-6", wrong && "ring-1 ring-danger/60")}
+        >
+          <h2 className="mb-4 font-display text-lg font-semibold text-fg">Ta réponse</h2>
+
+          {!user ? (
+            <div className="rounded-xl border border-line bg-surface/60 p-5 text-center">
+              <p className="text-muted">Connecte-toi pour soumettre ta réponse et marquer des points.</p>
+              <div className="mt-3 flex justify-center gap-2">
+                <Link href="/login"><Button variant="glass" size="sm">Connexion</Button></Link>
+                <Link href="/register"><Button size="sm">Rejoindre la course</Button></Link>
+              </div>
+            </div>
+          ) : solved ? (
+            <SolvedPanel result={result!} nextHref={nextHref} />
+          ) : (
+            <div className="space-y-4">
+              {(challenge.type === "text" || challenge.type === "numeric") && (
+                <input
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && submit()}
+                  inputMode={challenge.type === "numeric" ? "numeric" : "text"}
+                  placeholder={challenge.type === "numeric" ? "Réponse numérique…" : "Saisis le flag / la réponse…"}
+                  className="w-full rounded-lg border border-line bg-void/60 px-4 py-3 font-mono text-fg placeholder:text-faint focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              )}
+
+              {challenge.type === "mcq" && (
+                <div className="space-y-2">
+                  {challenge.options.map((opt, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setChoice(i)}
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors",
+                        choice === i ? "border-primary bg-primary/10 text-fg" : "border-line bg-surface/50 text-muted hover:border-primary/40"
+                      )}
+                    >
+                      <span className={cn("grid h-5 w-5 place-items-center rounded-full border", choice === i ? "border-primary bg-primary text-void" : "border-line")}>
+                        {choice === i && <Check className="h-3 w-3" />}
+                      </span>
+                      <span className="text-sm">{opt}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {challenge.type === "multi" && (
+                <div className="space-y-2">
+                  {challenge.options.map((opt, i) => {
+                    const on = multi.has(i);
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => setMulti((s) => { const n = new Set(s); n.has(i) ? n.delete(i) : n.add(i); return n; })}
+                        className={cn(
+                          "flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors",
+                          on ? "border-primary bg-primary/10 text-fg" : "border-line bg-surface/50 text-muted hover:border-primary/40"
+                        )}
+                      >
+                        <span className={cn("grid h-5 w-5 place-items-center rounded border", on ? "border-primary bg-primary text-void" : "border-line")}>
+                          {on && <Check className="h-3 w-3" />}
+                        </span>
+                        <span className="text-sm">{opt}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {challenge.type === "order" && (
+                <div className="space-y-2">
+                  <p className="text-xs text-faint">Réordonne avec les flèches, du premier au dernier.</p>
+                  {order.map((optIdx, pos) => (
+                    <div key={optIdx} className="flex items-center gap-3 rounded-lg border border-line bg-surface/50 px-4 py-3">
+                      <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/15 font-mono text-xs text-primary">{pos + 1}</span>
+                      <span className="flex-1 text-sm text-fg">{challenge.options[optIdx]}</span>
+                      <div className="flex flex-col">
+                        <button onClick={() => move(pos, -1)} className="text-muted hover:text-primary"><ChevronUp className="h-4 w-4" /></button>
+                        <button onClick={() => move(pos, 1)} className="text-muted hover:text-primary"><ChevronDown className="h-4 w-4" /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {error && <p className="text-sm text-danger">{error}</p>}
+              <AnimatePresence>
+                {wrong && (
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2 text-sm text-danger">
+                    <X className="h-4 w-4" /> Mauvaise réponse — réessaie (un indice peut aider).
+                  </motion.p>
+                )}
+              </AnimatePresence>
+
+              <Button onClick={submit} disabled={submitting} className="w-full" size="lg">
+                {submitting ? "Vérification…" : "Franchir la ligne"}
+              </Button>
+            </div>
+          )}
+        </motion.div>
+      </div>
+
+      {/* Sidebar */}
+      <aside className="space-y-4">
+        <div className="glass rounded-2xl p-5">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-2 text-sm text-muted"><TimerIcon className="h-4 w-4 text-primary" /> Chrono</span>
+            <span className="font-mono text-xl font-bold text-fg tnum">{formatTime(solved ? 0 : elapsed)}</span>
+          </div>
+          <p className="mt-2 text-xs text-faint">
+            Objectif: {formatTime(challenge.timeLimitSec * 1000)} · finir avant = bonus de vitesse.
+          </p>
+        </div>
+
+        <div className="glass rounded-2xl p-5">
+          <h3 className="mb-3 flex items-center gap-2 font-display font-semibold text-fg">
+            <Lightbulb className="h-4 w-4 text-warning" /> Indices
+          </h3>
+          {hints.length === 0 ? (
+            <p className="text-sm text-faint">Aucun indice pour ce défi. À toi de jouer !</p>
+          ) : (
+            <div className="space-y-2">
+              {hints.map((h) => (
+                <div key={h.index} className="rounded-lg border border-line bg-surface/50 p-3">
+                  {h.unlocked ? (
+                    <p className="text-sm text-muted">💡 {h.text}</p>
+                  ) : (
+                    <button
+                      onClick={() => revealHint(h.index)}
+                      disabled={!user || solved}
+                      className="flex w-full items-center justify-between text-sm text-muted hover:text-fg disabled:opacity-50"
+                    >
+                      <span className="flex items-center gap-2"><Lock className="h-3.5 w-3.5" /> Indice {h.index + 1}</span>
+                      <span className="text-warning tnum">-{h.cost} pts</span>
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="mt-3 text-xs text-faint">Chaque indice révélé réduit les points gagnés sur ce défi.</p>
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+function SolvedPanel({ result, nextHref }: { result: SubmitResult; nextHref?: string | null }) {
+  return (
+    <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
+      <div className="flex items-center gap-3 rounded-xl border border-success/40 bg-success/10 p-4">
+        <span className="grid h-11 w-11 place-items-center rounded-full bg-success/20 text-success">
+          <Check className="h-6 w-6" />
+        </span>
+        <div>
+          <p className="font-display text-lg font-bold text-success">Défi résolu !</p>
+          {result.alreadySolved ? (
+            <p className="text-sm text-muted">Déjà validé — {result.awarded ?? ""} pts acquis.</p>
+          ) : (
+            <p className="text-sm text-muted tnum">+{result.awarded} XP gagnés</p>
+          )}
+        </div>
+      </div>
+
+      {result.breakdown && (
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <Stat label="Base" value={`${result.breakdown.base}`} />
+          <Stat label="Bonus vitesse" value={`+${result.breakdown.speedBonus}`} accent="text-success" />
+          <Stat label="Indices" value={`-${result.breakdown.hintPenalty}`} accent="text-warning" />
+        </div>
+      )}
+
+      {result.newBadge && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4">
+          <Trophy className="h-6 w-6 text-warning" />
+          <div>
+            <p className="font-display font-semibold text-warning">Badge débloqué : {result.newBadge.name}</p>
+            <p className="text-sm text-muted">{result.newBadge.description}</p>
+          </div>
+        </motion.div>
+      )}
+
+      {result.explanation && (
+        <div className="rounded-xl border border-line bg-surface/50 p-4">
+          <p className="mb-1 flex items-center gap-2 text-sm font-medium text-secondary"><Sparkles className="h-4 w-4" /> Explication</p>
+          <p className="text-sm text-muted">{result.explanation}</p>
+        </div>
+      )}
+
+      {nextHref && (
+        <Link href={nextHref}>
+          <Button className="w-full" size="lg">Défi suivant <ArrowRight className="h-4 w-4" /></Button>
+        </Link>
+      )}
+    </motion.div>
+  );
+}
+
+function Stat({ label, value, accent }: { label: string; value: string; accent?: string }) {
+  return (
+    <div className="rounded-lg border border-line bg-surface/50 p-3">
+      <div className={cn("font-display text-lg font-bold tnum", accent ?? "text-fg")}>{value}</div>
+      <div className="text-[11px] text-faint">{label}</div>
+    </div>
+  );
+}

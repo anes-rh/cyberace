@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+/* ── CyberAce design system ───────────────────────────────────────
+   Aesthetic: dark "cyber-racing" — deep navy void, neon circuit
+   accents (cyan + violet + magenta), characterful techy typography.
+   Intentionally NOT the cliché "matrix green".                     */
+
+@theme {
+  --color-void: #05070e;
+  --color-bg: #070a13;
+  --color-surface: #0c1120;
+  --color-surface-2: #121a2e;
+  --color-line: #1e2743;
+
+  --color-fg: #e8ecf8;
+  --color-muted: #97a3c4;
+  --color-faint: #5b6688;
+
+  --color-primary: #22d3ee;   /* cyan  */
+  --color-secondary: #8b5cf6; /* violet */
+  --color-magenta: #f0398b;   /* magenta */
+  --color-success: #34d399;
+  --color-warning: #f59e0b;
+  --color-danger: #fb7185;
+
+  --font-display: var(--font-chakra), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --radius-xl: 1.1rem;
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-shimmer: shimmer 2.4s linear infinite;
+  --animate-pulse-glow: pulseGlow 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+@keyframes gridDrift {
+  from { background-position: 0 0; }
+  to { background-position: 0 48px; }
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* Lenis smooth-scroll baseline */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: clip; }
+
+/* Atmospheric backdrop: radial glows + faint circuit grid */
+.app-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(60rem 60rem at 15% -10%, rgba(34, 211, 238, 0.12), transparent 60%),
+    radial-gradient(50rem 50rem at 100% 0%, rgba(139, 92, 246, 0.12), transparent 55%),
+    radial-gradient(40rem 40rem at 50% 120%, rgba(240, 57, 139, 0.08), transparent 60%);
+}
+.app-grid {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(to right, rgba(30, 39, 67, 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(30, 39, 67, 0.35) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  animation: gridDrift 8s linear infinite;
+}
+
+/* Glass surface */
+.glass {
+  background: linear-gradient(160deg, rgba(18, 26, 46, 0.75), rgba(12, 17, 32, 0.6));
+  border: 1px solid var(--color-line);
+  backdrop-filter: blur(10px);
+}
+
+.neon-border {
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.35), 0 0 24px -6px rgba(34, 211, 238, 0.5);
+}
+
+.text-glow { text-shadow: 0 0 24px rgba(34, 211, 238, 0.35); }
+
+/* Animated gradient headline */
+.gradient-text {
+  background: linear-gradient(100deg, #22d3ee, #8b5cf6 45%, #f0398b 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hairline { border-color: var(--color-line); }
+
+/* Tabular figures for timers/scores */
+.tnum { font-variant-numeric: tabular-nums; }
+
+::selection { background: rgba(34, 211, 238, 0.3); color: #fff; }
+
+/* Custom scrollbar */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: var(--color-bg); }
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--color-secondary), var(--color-primary));
+  border-radius: 9999px;
+  border: 2px solid var(--color-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; }
+  .app-grid { animation: none; }
+}
