@@ -8,6 +8,7 @@ import { UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input, Field } from "@/components/ui/Input";
 import { useAuth } from "@/context/AuthContext";
+import { AuthLayout } from "@/components/AuthLayout";
 import { ApiError } from "@/lib/api";
 
 export default function RegisterPage() {
@@ -44,8 +45,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-[85vh] max-w-md items-center px-5 py-10">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full glass rounded-2xl p-8">
+    <AuthLayout>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full glass rounded-3xl p-8">
         <div className="mb-6 text-center">
           <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-xl bg-secondary/10 text-secondary">
             <UserPlus className="h-6 w-6" />
@@ -80,6 +81,6 @@ export default function RegisterPage() {
           <Link href="/login" className="text-primary hover:underline">Se connecter</Link>
         </p>
       </motion.div>
-    </div>
+    </AuthLayout>
   );
 }

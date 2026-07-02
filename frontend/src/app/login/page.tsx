@@ -8,6 +8,7 @@ import { LogIn } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input, Field } from "@/components/ui/Input";
 import { useAuth } from "@/context/AuthContext";
+import { AuthLayout } from "@/components/AuthLayout";
 import { ApiError } from "@/lib/api";
 
 export default function LoginPage() {
@@ -37,8 +38,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-[80vh] max-w-md items-center px-5">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full glass rounded-2xl p-8">
+    <AuthLayout>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full glass rounded-3xl p-8">
         <div className="mb-6 text-center">
           <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
             <LogIn className="h-6 w-6" />
@@ -67,6 +68,6 @@ export default function LoginPage() {
           <Link href="/register" className="text-primary hover:underline">Rejoindre la course</Link>
         </p>
       </motion.div>
-    </div>
+    </AuthLayout>
   );
 }

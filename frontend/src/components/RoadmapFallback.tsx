@@ -4,12 +4,12 @@ import type { CheckpointSummary } from "@/lib/types";
 
 // Node anchor points along a hand-drawn winding path (viewBox 0..100 x 0..64).
 const NODES = [
-  { x: 16, y: 50 },
-  { x: 38, y: 34 },
+  { x: 20, y: 48 },
+  { x: 40, y: 33 },
   { x: 60, y: 40 },
-  { x: 84, y: 20 },
+  { x: 79, y: 23 },
 ];
-const PATH = "M 4 60 C 12 48 22 46 30 44 S 40 26 48 30 S 58 46 66 38 S 80 18 96 12";
+const PATH = "M 6 60 C 14 48 24 46 32 43 S 42 26 50 30 S 58 46 66 38 S 74 22 92 15";
 
 export default function RoadmapFallback({
   checkpoints,
@@ -81,7 +81,13 @@ export default function RoadmapFallback({
               <circle r="3.2" fill={locked ? "#c3ccda" : cp.accent} opacity={locked ? 0.6 : 1} />
               <text textAnchor="middle" dy="1.25" fontSize="3.4" fontWeight="700" fill="#fff">{cp.order}</text>
               {completed && <text textAnchor="middle" dy="-5.5" fontSize="3.5" fill={cp.accent}>✓</text>}
-              <text textAnchor="middle" y="8.4" fontSize="2.6" fontWeight="600" fill="#41506a" opacity="0.9">{cp.title}</text>
+              <text
+                textAnchor={i === 0 ? "start" : i === NODES.length - 1 ? "end" : "middle"}
+                x={i === 0 ? -5.5 : i === NODES.length - 1 ? 5.5 : 0}
+                y="8.6" fontSize="2.5" fontWeight="600" fill="#41506a" opacity="0.9"
+              >
+                {cp.title}
+              </text>
             </g>
           );
         })}

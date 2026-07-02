@@ -36,8 +36,9 @@ function DashboardInner() {
   return (
     <div className="mx-auto max-w-6xl px-5 py-10">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-3xl p-7">
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-primary/10 via-surface/80 to-lavender/10 p-7 soft-shadow">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/15 blur-3xl" />
+        <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
             <Avatar seed={user.avatarSeed} name={user.displayName} size={72} />
             <div>
