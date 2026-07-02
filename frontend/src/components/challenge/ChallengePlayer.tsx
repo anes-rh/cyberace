@@ -163,7 +163,7 @@ export function ChallengePlayer({
                   onKeyDown={(e) => e.key === "Enter" && submit()}
                   inputMode={challenge.type === "numeric" ? "numeric" : "text"}
                   placeholder={challenge.type === "numeric" ? "Réponse numérique…" : "Saisis le flag / la réponse…"}
-                  className="w-full rounded-lg border border-line bg-void/60 px-4 py-3 font-mono text-fg placeholder:text-faint focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="w-full rounded-lg border border-line bg-surface-2 px-4 py-3 font-mono text-fg placeholder:text-faint focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
               )}
 

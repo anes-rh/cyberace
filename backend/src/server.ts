@@ -2,6 +2,7 @@ import { createApp } from "./app";
 import { connectDatabase, disconnectDatabase } from "./config/db";
 import { env } from "./config/env";
 import { Course } from "./models/Course";
+import { Checkpoint } from "./models/Checkpoint";
 import { runSeed } from "./data/seed";
 
 async function bootstrap() {
@@ -9,11 +10,18 @@ async function bootstrap() {
   console.log(`[db] ${dbMessage}`);
 
   if (env.autoSeed) {
-    const count = await Course.estimatedDocumentCount();
-    if (count === 0) {
-      console.log("[seed] Base vide — insertion du contenu CyberAce…");
+    const [courseCount, checkpointCount] = await Promise.all([
+      Course.estimatedDocumentCount(),
+      Checkpoint.estimatedDocumentCount(),
+    ]);
+    // Seed when the DB is fresh OR when an iteration-1 DB has no checkpoints yet
+    // (runSeed upserts idempotently and backfills the course.checkpoint field).
+    if (courseCount === 0 || checkpointCount === 0) {
+      console.log("[seed] Insertion / mise à jour du contenu CyberAce…");
       const summary = await runSeed({ reset: false });
-      console.log(`[seed] ${summary.courses} courses, ${summary.challenges} challenges insérés.`);
+      console.log(
+        `[seed] ${summary.checkpoints} checkpoints, ${summary.courses} courses, ${summary.challenges} challenges.`
+      );
     }
   }
 

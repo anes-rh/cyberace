@@ -2,6 +2,8 @@ import type {
   User,
   CourseSummary,
   CourseDetail,
+  CheckpointSummary,
+  CheckpointDetail,
   LabItem,
   Challenge,
   SubmitResult,
@@ -68,6 +70,9 @@ export const api = {
     request<{ token: string; user: User }>("/auth/login", { method: "POST", body: JSON.stringify(body) }),
 
   me: () => request<{ user: User }>("/auth/me"),
+
+  checkpoints: () => request<{ checkpoints: CheckpointSummary[] }>("/checkpoints"),
+  checkpoint: (slug: string) => request<CheckpointDetail>(`/checkpoints/${slug}`),
 
   courses: () => request<{ courses: CourseSummary[] }>("/courses"),
   course: (slug: string) => request<CourseDetail>(`/courses/${slug}`),

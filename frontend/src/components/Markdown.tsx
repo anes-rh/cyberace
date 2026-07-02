@@ -40,7 +40,7 @@ export function Markdown({ children, className }: { children: string; className?
             );
           },
           pre: ({ children }) => (
-            <pre className="overflow-x-auto rounded-xl border border-line bg-void/70 p-4 font-mono text-sm leading-relaxed text-fg">
+            <pre className="overflow-x-auto rounded-xl border border-line bg-surface-2 p-4 font-mono text-sm leading-relaxed text-fg">
               {children}
             </pre>
           ),

@@ -54,7 +54,7 @@ export function LamportSim() {
   };
 
   return (
-    <div className="rounded-xl border border-line bg-void/50 p-4">
+    <div className="rounded-xl border border-line bg-surface-2 p-4">
       <div className="grid grid-cols-2 gap-3">
         {([0, 1] as const).map((p) => (
           <div key={p} className="rounded-lg border border-line bg-surface/60 p-3 text-center">

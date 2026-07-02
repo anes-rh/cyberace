@@ -60,7 +60,7 @@ export default function LeaderboardPage() {
                 >
                   <div className="relative mb-3">
                     <Avatar seed={e.avatarSeed} name={e.displayName} size={order === 0 ? 72 : 56} className={cn("ring-2", s.ring)} />
-                    <span className="absolute -right-1 -top-1 grid h-6 w-6 place-items-center rounded-full bg-void ring-1 ring-line" style={{ color: s.glow }}>
+                    <span className="absolute -right-1 -top-1 grid h-6 w-6 place-items-center rounded-full bg-surface ring-1 ring-line" style={{ color: s.glow }}>
                       <PIcon className="h-3.5 w-3.5" />
                     </span>
                   </div>

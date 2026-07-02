@@ -46,7 +46,7 @@ export function ShamirCalc() {
   };
 
   return (
-    <div className="rounded-xl border border-line bg-void/50 p-4">
+    <div className="rounded-xl border border-line bg-surface-2 p-4">
       <div className="mb-3 flex items-center gap-2">
         <label className="text-xs text-muted">Corps GF(p), p =</label>
         <input

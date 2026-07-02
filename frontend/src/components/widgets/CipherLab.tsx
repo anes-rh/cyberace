@@ -58,7 +58,7 @@ export function CipherLab() {
   }, [tab, input, shift, key]);
 
   return (
-    <div className="rounded-xl border border-line bg-void/50 p-4">
+    <div className="rounded-xl border border-line bg-surface-2 p-4">
       <div className="mb-3 flex flex-wrap gap-1.5">
         {TABS.map((t) => (
           <button

@@ -49,9 +49,27 @@ export interface BadgeSeed {
   description: string;
 }
 
+export type CheckpointStatus = "empty" | "active";
+
+export interface CheckpointSeed {
+  slug: string;
+  title: string;
+  order: number;
+  status: CheckpointStatus;
+  /** lucide-react icon name. */
+  icon: string;
+  /** Pastel accent colour (hex). */
+  accent: string;
+  description: string;
+  /** Short line shown on the roadmap station. */
+  tagline: string;
+}
+
 export interface CourseSeed {
   slug: string;
   title: string;
+  /** Top-level checkpoint this course belongs to (defaults to "cybersecurite"). */
+  checkpoint?: string;
   /** Race-style codename, e.g. "Crypto Circuit". */
   codename: string;
   domain: string;

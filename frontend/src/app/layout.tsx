@@ -1,27 +1,27 @@
 import type { Metadata } from "next";
-import { Chakra_Petch, Manrope, JetBrains_Mono } from "next/font/google";
+import { Fraunces, Manrope, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const chakra = Chakra_Petch({
+const display = Fraunces({
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
-  variable: "--font-chakra",
+  variable: "--font-display-src",
 });
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
 
 export const metadata: Metadata = {
-  title: "CyberAce — Courses de cybersécurité",
+  title: "CyberAce — Parcours d'apprentissage",
   description:
-    "Plateforme gamifiée de challenges de cybersécurité façon course : cryptographie, réseau, Active Directory, forensic, cloud et plus. Programme M1-SSI.",
+    "Un parcours serein à travers 4 checkpoints — Algorithmique, Système d'exploitation, Base de données et Cybersécurité — présenté comme une route paisible traversant une ville.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fr" className={`${chakra.variable} ${manrope.variable} ${jetbrains.variable} antialiased`}>
+    <html lang="fr" className={`${display.variable} ${manrope.variable} ${jetbrains.variable} antialiased`}>
       <body className="min-h-dvh font-sans">
         <div className="app-backdrop" />
         <div className="app-grid" />

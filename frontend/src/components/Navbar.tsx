@@ -10,7 +10,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
-  { href: "/courses", label: "Courses" },
+  { href: "/checkpoints/cybersecurite", label: "Cybersécurité" },
   { href: "/leaderboard", label: "Classement" },
 ];
 

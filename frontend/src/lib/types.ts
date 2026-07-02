@@ -1,5 +1,38 @@
 export type Difficulty = "easy" | "medium" | "hard" | "insane";
 export type ChallengeType = "text" | "mcq" | "multi" | "numeric" | "order";
+export type CheckpointStatus = "empty" | "active";
+
+export interface CheckpointSummary {
+  slug: string;
+  title: string;
+  order: number;
+  status: CheckpointStatus;
+  icon: string;
+  accent: string;
+  description: string;
+  tagline: string;
+  courseCount: number;
+  challengeCount: number;
+  totalPoints: number;
+  solvedCount: number;
+  progress: number;
+  completed: boolean;
+}
+
+export interface CheckpointDetail {
+  checkpoint: {
+    slug: string;
+    title: string;
+    order: number;
+    status: CheckpointStatus;
+    icon: string;
+    accent: string;
+    description: string;
+    tagline: string;
+  };
+  courses: CourseSummary[];
+  progress: { solvedCount: number; total: number; ratio: number };
+}
 
 export interface LevelInfo {
   level: number;

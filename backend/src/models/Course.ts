@@ -4,6 +4,7 @@ import type { BadgeSeed, Difficulty } from "../types";
 export interface CourseDoc extends Document {
   slug: string;
   title: string;
+  checkpoint: string;
   codename: string;
   domain: string;
   theme: string;
@@ -31,6 +32,7 @@ const courseSchema = new Schema<CourseDoc>(
   {
     slug: { type: String, required: true, unique: true },
     title: { type: String, required: true },
+    checkpoint: { type: String, default: "cybersecurite", index: true },
     codename: { type: String, required: true },
     domain: { type: String, required: true },
     theme: { type: String, required: true },

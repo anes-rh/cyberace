@@ -1,0 +1,54 @@
+import type { CheckpointSeed } from "../types";
+
+/**
+ * The 4 top-level checkpoints on the roadmap.
+ * Only "cybersecurite" is active (it holds every existing course/challenge as
+ * an internal sub-module). The other three are structural placeholders — their
+ * content will be authored in a later iteration.
+ */
+export const allCheckpoints: CheckpointSeed[] = [
+  {
+    slug: "algorithmique",
+    title: "Algorithmique",
+    order: 1,
+    status: "empty",
+    icon: "Binary",
+    accent: "#6FA8DC",
+    description: "Fondamentaux des algorithmes, complexité et structures de données.",
+    tagline: "Bientôt disponible",
+  },
+  {
+    slug: "systeme-exploitation",
+    title: "Système d'exploitation",
+    order: 2,
+    status: "empty",
+    icon: "Cpu",
+    accent: "#E8A87C",
+    description: "Processus, mémoire, ordonnancement, systèmes de fichiers et concurrence.",
+    tagline: "Bientôt disponible",
+  },
+  {
+    slug: "base-de-donnees",
+    title: "Base de données",
+    order: 3,
+    status: "empty",
+    icon: "Database",
+    accent: "#93B896",
+    description: "Modélisation, SQL, transactions, indexation et intégrité.",
+    tagline: "Bientôt disponible",
+  },
+  {
+    slug: "cybersecurite",
+    title: "Cybersécurité",
+    order: 4,
+    status: "active",
+    icon: "ShieldCheck",
+    accent: "#9B8CCB",
+    description:
+      "Le grand final : cryptographie, contrôle d'accès, Active Directory, réseau, système, SOC, systèmes distribués, bases de données, paiement, OSINT, forensic, cloud, web et social engineering.",
+    tagline: "Checkpoint final",
+  },
+];
+
+/** Checkpoint every existing course is grouped under. */
+export const CYBER_CHECKPOINT = "cybersecurite";

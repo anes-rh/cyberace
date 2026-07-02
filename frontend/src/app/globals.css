@@ -1,59 +1,54 @@
 @import "tailwindcss";
 
-/* ── CyberAce design system ───────────────────────────────────────
-   Aesthetic: dark "cyber-racing" — deep navy void, neon circuit
-   accents (cyan + violet + magenta), characterful techy typography.
-   Intentionally NOT the cliché "matrix green".                     */
+/* ── CyberAce design system — LIGHT / PEACEFUL ────────────────────
+   Aesthetic: soft daytime "city roadmap" — airy sky, warm light,
+   pastel/natural palette (sky blue, sage, warm beige, coral, lavender).
+   Calm, serene, low-contrast. Not cyberpunk.                        */
 
 @theme {
-  --color-void: #05070e;
-  --color-bg: #070a13;
-  --color-surface: #0c1120;
-  --color-surface-2: #121a2e;
-  --color-line: #1e2743;
+  --color-void: #26313f;      /* deep ink — text on pastel accents */
+  --color-bg: #eef3f9;        /* airy page base */
+  --color-surface: #ffffff;   /* cards */
+  --color-surface-2: #eef2f8; /* inset wells */
+  --color-line: #dde5ef;      /* hairlines */
 
-  --color-fg: #e8ecf8;
-  --color-muted: #97a3c4;
-  --color-faint: #5b6688;
+  --color-fg: #2a3546;        /* primary text (soft slate) */
+  --color-muted: #5c6a80;     /* secondary text */
+  --color-faint: #93a1b7;     /* tertiary text */
 
-  --color-primary: #22d3ee;   /* cyan  */
-  --color-secondary: #8b5cf6; /* violet */
-  --color-magenta: #f0398b;   /* magenta */
-  --color-success: #34d399;
-  --color-warning: #f59e0b;
-  --color-danger: #fb7185;
+  --color-primary: #5e97d6;   /* sky blue */
+  --color-secondary: #86b08a; /* sage green */
+  --color-magenta: #e0956f;   /* warm coral (soft accent) */
+  --color-lavender: #9b8ccb;  /* lavender */
+  --color-success: #6fae8b;
+  --color-warning: #d89a57;
+  --color-danger: #d97b7b;
 
-  --font-display: var(--font-chakra), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display-src), Georgia, serif;
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 
-  --radius-xl: 1.1rem;
+  --radius-xl: 1.25rem;
 
-  --animate-float: float 6s ease-in-out infinite;
-  --animate-shimmer: shimmer 2.4s linear infinite;
-  --animate-pulse-glow: pulseGlow 3s ease-in-out infinite;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-drift: drift 22s ease-in-out infinite;
+  --animate-pulse-soft: pulseSoft 3.5s ease-in-out infinite;
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
 }
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, -18px); }
 }
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 1; }
-}
-@keyframes gridDrift {
-  from { background-position: 0 0; }
-  to { background-position: 0 48px; }
+@keyframes pulseSoft {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
 }
 
-html {
-  -webkit-font-smoothing: antialiased;
-}
+html { -webkit-font-smoothing: antialiased; }
 
 body {
   background-color: var(--color-bg);
@@ -67,63 +62,94 @@ html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-stopped { overflow: clip; }
 
-/* Atmospheric backdrop: radial glows + faint circuit grid */
+/* Peaceful daytime backdrop: soft sky + golden-hour warmth + sage hint */
 .app-backdrop {
   position: fixed;
   inset: 0;
   z-index: -2;
   background:
-    radial-gradient(60rem 60rem at 15% -10%, rgba(34, 211, 238, 0.12), transparent 60%),
-    radial-gradient(50rem 50rem at 100% 0%, rgba(139, 92, 246, 0.12), transparent 55%),
-    radial-gradient(40rem 40rem at 50% 120%, rgba(240, 57, 139, 0.08), transparent 60%);
+    linear-gradient(180deg, #e9f2fb 0%, #eef3f9 42%, #f6f1ea 100%),
+    radial-gradient(48rem 40rem at 12% 0%, rgba(94, 151, 214, 0.16), transparent 60%),
+    radial-gradient(44rem 40rem at 100% 8%, rgba(155, 140, 203, 0.14), transparent 58%),
+    radial-gradient(40rem 36rem at 60% 100%, rgba(134, 176, 138, 0.14), transparent 60%);
+  background-blend-mode: normal;
 }
+/* Soft drifting light "clouds" instead of a harsh grid */
 .app-grid {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background-image:
-    linear-gradient(to right, rgba(30, 39, 67, 0.35) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(30, 39, 67, 0.35) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
-  animation: gridDrift 8s linear infinite;
+  background:
+    radial-gradient(22rem 12rem at 20% 18%, rgba(255, 255, 255, 0.7), transparent 70%),
+    radial-gradient(26rem 14rem at 78% 26%, rgba(255, 255, 255, 0.55), transparent 72%),
+    radial-gradient(18rem 10rem at 55% 8%, rgba(255, 246, 235, 0.6), transparent 70%);
+  filter: blur(4px);
+  animation: drift 22s ease-in-out infinite;
+  pointer-events: none;
 }
 
-/* Glass surface */
+/* Frosted-glass card, light */
 .glass {
-  background: linear-gradient(160deg, rgba(18, 26, 46, 0.75), rgba(12, 17, 32, 0.6));
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.72));
   border: 1px solid var(--color-line);
   backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px -18px rgba(60, 80, 120, 0.35);
 }
+
+.soft-shadow { box-shadow: 0 14px 40px -22px rgba(60, 80, 120, 0.45); }
 
 .neon-border {
-  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.35), 0 0 24px -6px rgba(34, 211, 238, 0.5);
+  box-shadow: 0 0 0 1px rgba(94, 151, 214, 0.35), 0 8px 26px -12px rgba(94, 151, 214, 0.45);
 }
 
-.text-glow { text-shadow: 0 0 24px rgba(34, 211, 238, 0.35); }
+.text-glow { text-shadow: 0 2px 18px rgba(94, 151, 214, 0.25); }
 
-/* Animated gradient headline */
+/* Soft pastel gradient headline */
 .gradient-text {
-  background: linear-gradient(100deg, #22d3ee, #8b5cf6 45%, #f0398b 90%);
+  background: linear-gradient(100deg, #5e97d6, #9b8ccb 48%, #e0956f 92%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .hairline { border-color: var(--color-line); }
-
-/* Tabular figures for timers/scores */
 .tnum { font-variant-numeric: tabular-nums; }
 
-::selection { background: rgba(34, 211, 238, 0.3); color: #fff; }
+/* Floating checkpoint label on the 3D road */
+.roadmap-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid color-mix(in srgb, var(--acc) 45%, #dde5ef);
+  box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--acc) 70%, transparent);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  white-space: nowrap;
+}
+.roadmap-badge:hover { transform: translateY(-3px); box-shadow: 0 16px 30px -12px color-mix(in srgb, var(--acc) 70%, transparent); }
+.roadmap-badge-num {
+  display: grid; place-items: center;
+  width: 26px; height: 26px; border-radius: 9999px;
+  background: var(--acc); color: #fff;
+  font-family: var(--font-display); font-weight: 700; font-size: 14px;
+}
+.roadmap-badge-title { font-family: var(--font-display); font-weight: 600; font-size: 13px; color: var(--color-fg); }
+.roadmap-badge-state { font-size: 10px; letter-spacing: 0.04em; color: color-mix(in srgb, var(--acc) 70%, #55617a); }
+
+::selection { background: rgba(94, 151, 214, 0.22); color: #1c2431; }
 
 /* Custom scrollbar */
 *::-webkit-scrollbar { width: 10px; height: 10px; }
-*::-webkit-scrollbar-track { background: var(--color-bg); }
+*::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb {
-  background: linear-gradient(var(--color-secondary), var(--color-primary));
+  background: linear-gradient(var(--color-primary), var(--color-lavender));
   border-radius: 9999px;
-  border: 2px solid var(--color-bg);
+  border: 3px solid var(--color-bg);
 }
 
 @media (prefers-reduced-motion: reduce) {
