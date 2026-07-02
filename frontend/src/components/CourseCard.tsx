@@ -69,8 +69,8 @@ export function CourseCard({ course, index = 0 }: { course: CourseSummary; index
           <span className="inline-flex items-center gap-1.5 text-xs text-muted">
             <Flag className="h-3.5 w-3.5" /> {course.totalPoints} pts en jeu
           </span>
-          <span className="inline-flex items-center gap-1 font-display text-sm font-medium transition-transform group-hover:translate-x-1" style={{ color: course.accent }}>
-            Courir <ChevronRight className="h-4 w-4" />
+          <span className="inline-flex items-center gap-1 font-sans text-sm font-semibold transition-transform group-hover:translate-x-1" style={{ color: course.accent }}>
+            Ouvrir <ChevronRight className="h-4 w-4" />
           </span>
         </div>
       </Link>

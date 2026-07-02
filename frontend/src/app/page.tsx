@@ -34,7 +34,7 @@ export default function HomePage() {
           {FEATURES.map((f, i) => (
             <Reveal key={f.title} delay={(i % 3) * 0.06}>
               <div className="group h-full rounded-3xl border border-line bg-surface/70 p-6 transition-colors hover:border-primary/40">
-                <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-void">
+                <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
                   <f.icon className="h-5 w-5" />
                 </div>
                 <h3 className="mt-4 font-display text-lg font-semibold text-fg">{f.title}</h3>
