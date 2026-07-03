@@ -4,10 +4,11 @@ import type { CheckpointSummary } from "@/lib/types";
 
 // Node anchor points along a hand-drawn winding path (viewBox 0..100 x 0..64).
 const NODES = [
-  { x: 20, y: 48 },
-  { x: 40, y: 33 },
-  { x: 60, y: 40 },
-  { x: 79, y: 23 },
+  { x: 16, y: 51 },
+  { x: 33, y: 42 },
+  { x: 50, y: 31 },
+  { x: 66, y: 38 },
+  { x: 85, y: 19 },
 ];
 const PATH = "M 6 60 C 14 48 24 46 32 43 S 42 26 50 30 S 58 46 66 38 S 74 22 92 15";
 

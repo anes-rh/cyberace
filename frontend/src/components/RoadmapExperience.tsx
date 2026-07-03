@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Lock, ArrowRight, Sparkles, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lock, ArrowRight, Sparkles, Clock, Check, MapPin } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { Progress } from "@/components/ui/Progress";
 import { buttonVariants } from "@/components/ui/Button";
@@ -69,6 +69,73 @@ export default function RoadmapExperience() {
         </h1>
       </div>
 
+      {/* right checkpoint navigator */}
+      {checkpoints.length > 0 && (
+        <div className="pointer-events-none absolute right-4 top-1/2 z-10 hidden -translate-y-1/2 lg:block xl:right-6">
+          <motion.nav
+            initial={{ opacity: 0, x: 28 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.35 }}
+            aria-label="Navigation des checkpoints"
+            className="pointer-events-auto w-64 rounded-2xl border border-line bg-surface/85 p-3 backdrop-blur-xl soft-shadow"
+          >
+            <p className="flex items-center gap-1.5 px-2 pb-2 pt-1 font-mono text-[10px] uppercase tracking-[0.25em] text-faint">
+              <MapPin className="h-3 w-3" /> Itinéraire
+            </p>
+            <ul className="space-y-1">
+              {checkpoints.map((cp, i) => {
+                const isActive = i === activeIndex;
+                const locked = cp.status === "empty";
+                return (
+                  <motion.li
+                    key={cp.slug}
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.5 + i * 0.07 }}
+                  >
+                    <button
+                      onClick={() => go(i)}
+                      aria-current={isActive ? "step" : undefined}
+                      className={cn(
+                        "group flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-all duration-300",
+                        isActive ? "bg-surface" : "hover:bg-surface-2"
+                      )}
+                      style={isActive ? { boxShadow: `inset 0 0 0 1.5px ${cp.accent}66, 0 10px 22px -14px ${cp.accent}` } : undefined}
+                    >
+                      <span
+                        className="grid h-8 w-8 shrink-0 place-items-center rounded-full font-display text-sm font-bold text-white transition-transform duration-300 group-hover:scale-105"
+                        style={{ background: locked ? `${cp.accent}77` : cp.accent }}
+                      >
+                        {cp.completed ? <Check className="h-4 w-4" /> : cp.order}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className={cn("block truncate text-sm font-semibold transition-colors", isActive ? "text-fg" : "text-muted")}>
+                          {cp.title}
+                        </span>
+                        <span className="block text-[11px] text-faint">
+                          {locked ? "Bientôt" : cp.completed ? "Terminé" : cp.challengeCount > 0 ? `${pct(cp.progress)} complété` : "En cours"}
+                        </span>
+                      </span>
+                      {locked ? (
+                        <Lock className="h-3.5 w-3.5 shrink-0 text-faint" />
+                      ) : (
+                        <ChevronRight
+                          className={cn(
+                            "h-4 w-4 shrink-0 transition-all duration-300",
+                            isActive ? "opacity-100" : "opacity-0 group-hover:opacity-60"
+                          )}
+                          style={{ color: cp.accent }}
+                        />
+                      )}
+                    </button>
+                  </motion.li>
+                );
+              })}
+            </ul>
+          </motion.nav>
+        </div>
+      )}
+
       {/* info panel */}
       <div className="absolute inset-x-0 bottom-0 z-10 p-4 sm:p-6">
         <AnimatePresence mode="wait">
@@ -90,7 +157,7 @@ export default function RoadmapExperience() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs text-faint">Checkpoint {active.order}/4</span>
+                    <span className="font-mono text-xs text-faint">Checkpoint {active.order}/{checkpoints.length}</span>
                     {active.status === "empty" ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-surface-2 px-2 py-0.5 text-[11px] text-faint">
                         <Clock className="h-3 w-3" /> Bientôt

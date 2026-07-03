@@ -8,7 +8,7 @@ import Reveal from "@/components/Reveal";
 import { useAuth } from "@/context/AuthContext";
 
 const FEATURES = [
-  { icon: Route, title: "Une route, quatre checkpoints", desc: "Algorithmique, Système d'exploitation, Base de données, puis Cybersécurité — un chemin clair et sans stress." },
+  { icon: Route, title: "Une route, cinq checkpoints", desc: "Algorithmique, Système d'exploitation, Base de données, Réseaux, puis Cybersécurité — un chemin clair et sans stress." },
   { icon: MapPin, title: "Avance à ton rythme", desc: "Chaque station s'ouvre quand tu es prêt. La caméra t'y emmène en douceur, jamais de rupture brutale." },
   { icon: Trophy, title: "Badges & progression", desc: "Termine les modules d'un checkpoint pour l'illuminer entièrement et débloquer ses badges." },
   { icon: Lightbulb, title: "Indices bienveillants", desc: "Bloqué ? Un indice t'aide — il coûte quelques points, à toi de doser." },

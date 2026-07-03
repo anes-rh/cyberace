@@ -1,9 +1,9 @@
 import type { CheckpointSeed } from "../types";
 
 /**
- * The 4 top-level checkpoints on the roadmap.
+ * The 5 top-level checkpoints on the roadmap.
  * Only "cybersecurite" is active (it holds every existing course/challenge as
- * an internal sub-module). The other three are structural placeholders — their
+ * an internal sub-module). The other four are structural placeholders — their
  * content will be authored in a later iteration.
  */
 export const allCheckpoints: CheckpointSeed[] = [
@@ -38,9 +38,19 @@ export const allCheckpoints: CheckpointSeed[] = [
     tagline: "Bientôt disponible",
   },
   {
+    slug: "reseaux",
+    title: "Réseaux",
+    order: 4,
+    status: "empty",
+    icon: "Network",
+    accent: "#5FB3C6",
+    description: "Modèles OSI et TCP/IP, adressage, routage, commutation et protocoles.",
+    tagline: "Bientôt disponible",
+  },
+  {
     slug: "cybersecurite",
     title: "Cybersécurité",
-    order: 4,
+    order: 5,
     status: "active",
     icon: "ShieldCheck",
     accent: "#9B8CCB",

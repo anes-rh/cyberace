@@ -2,27 +2,33 @@
 
 import { useMemo, useRef, useState, useEffect, type CSSProperties } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Sky, ContactShadows, Html, Float } from "@react-three/drei";
+import { Sky, ContactShadows, Html, Float, Sparkles } from "@react-three/drei";
 import { gsap } from "gsap";
 import * as THREE from "three";
 import type { CheckpointSummary } from "@/lib/types";
 
-/** Normalised positions of the 4 stations along the road curve. */
-const STOPS = [0.1, 0.37, 0.63, 0.9];
 const UP = new THREE.Vector3(0, 1, 0);
+
+/** Evenly spread N stations along the curve (0.08 → 0.92). */
+function useStops(count: number) {
+  return useMemo(() => {
+    if (count <= 1) return [0.5];
+    return Array.from({ length: count }, (_, i) => 0.08 + (i / (count - 1)) * 0.84);
+  }, [count]);
+}
 
 /** The winding elevated road (a gentle S through the city). */
 function useRoadCurve() {
   return useMemo(() => {
     const pts = [
-      new THREE.Vector3(-15, 0.6, 14),
+      new THREE.Vector3(-16, 0.6, 15),
       new THREE.Vector3(-9, 0.6, 8),
       new THREE.Vector3(-11, 0.6, 1),
       new THREE.Vector3(-3, 0.6, -3),
       new THREE.Vector3(4, 0.6, -1),
       new THREE.Vector3(6, 0.6, -8),
       new THREE.Vector3(13, 0.6, -11),
-      new THREE.Vector3(17, 0.6, -18),
+      new THREE.Vector3(18, 0.6, -19),
     ];
     return new THREE.CatmullRomCurve3(pts, false, "catmullrom", 0.5);
   }, []);
@@ -48,39 +54,76 @@ function useWindowCanvas() {
   }, []);
 }
 
+/** Soft street-grid ground texture — reads as tidy city blocks from above. */
+function useGroundTexture() {
+  return useMemo(() => {
+    const c = document.createElement("canvas");
+    c.width = c.height = 256;
+    const ctx = c.getContext("2d")!;
+    ctx.fillStyle = "#dbe6d4";
+    ctx.fillRect(0, 0, 256, 256);
+    // subtle alternating blocks
+    ctx.fillStyle = "rgba(255,255,255,0.16)";
+    for (let x = 0; x < 4; x++)
+      for (let y = 0; y < 4; y++)
+        if ((x + y) % 2 === 0) ctx.fillRect(x * 64 + 5, y * 64 + 5, 54, 54);
+    // streets
+    ctx.strokeStyle = "rgba(190,205,190,0.9)";
+    ctx.lineWidth = 5;
+    for (let i = 0; i <= 4; i++) {
+      ctx.beginPath(); ctx.moveTo(i * 64, 0); ctx.lineTo(i * 64, 256); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, i * 64); ctx.lineTo(256, i * 64); ctx.stroke();
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(10, 10);
+    return tex;
+  }, []);
+}
+
 const BUILDING_COLORS = ["#cfe0f2", "#dcead0", "#e8d3c6", "#dcd3ee", "#cfe6da", "#f0e6d4", "#e6dcef"];
 const ROOF_COLORS = ["#b9c9de", "#c6d5b7", "#d6bda9", "#c3b7de"];
+const GLASS_COLORS = ["#bcd8ee", "#c9e4e2", "#d4d3ef"];
+
+type BuildingKind = "block" | "glass" | "landmark";
 
 function City({ curve }: { curve: THREE.CatmullRomCurve3 }) {
   const winCanvas = useWindowCanvas();
 
   const buildings = useMemo(() => {
     const items: {
+      kind: BuildingKind;
       pos: [number, number, number];
       h: number; w: number; d: number;
-      color: string; roof: string; tex: THREE.CanvasTexture;
+      color: string; roof: string; tex: THREE.CanvasTexture | null;
     }[] = [];
     let seed = 7;
     const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
-    for (let i = 0; i < 32; i++) {
-      const t = (i + 0.5) / 32;
+    for (let i = 0; i < 46; i++) {
+      const t = (i + 0.5) / 46;
       const p = curve.getPointAt(t);
       const tan = curve.getTangentAt(t);
       const side = new THREE.Vector3().crossVectors(tan, UP).normalize();
       const dir = i % 2 === 0 ? 1 : -1;
-      const dist = 3.6 + rnd() * 6;
-      const h = 1.4 + rnd() * 5.5;
-      const w = 1.1 + rnd() * 1.5;
-      const d = 1.1 + rnd() * 1.5;
+      const dist = 3.6 + rnd() * 7;
+      const kindRoll = rnd();
+      const kind: BuildingKind = kindRoll > 0.86 ? "landmark" : kindRoll > 0.58 ? "glass" : "block";
+      const h = kind === "landmark" ? 6.5 + rnd() * 3.5 : kind === "glass" ? 3 + rnd() * 4 : 1.4 + rnd() * 4.5;
+      const w = kind === "landmark" ? 1.3 + rnd() * 0.5 : 1.1 + rnd() * 1.5;
+      const d = kind === "landmark" ? w : 1.1 + rnd() * 1.5;
       const bx = p.x + side.x * dist * dir + (rnd() - 0.5) * 2.4;
       const bz = p.z + side.z * dist * dir + (rnd() - 0.5) * 2.4;
-      const tex = new THREE.CanvasTexture(winCanvas);
-      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-      tex.repeat.set(Math.max(1, Math.round(w)), Math.max(1, Math.round(h * 0.9)));
-      tex.needsUpdate = true;
+      let tex: THREE.CanvasTexture | null = null;
+      if (kind === "block") {
+        tex = new THREE.CanvasTexture(winCanvas);
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(Math.max(1, Math.round(w)), Math.max(1, Math.round(h * 0.9)));
+        tex.needsUpdate = true;
+      }
       items.push({
+        kind,
         pos: [bx, h / 2, bz], h, w, d,
-        color: BUILDING_COLORS[i % BUILDING_COLORS.length],
+        color: kind === "glass" ? GLASS_COLORS[i % GLASS_COLORS.length] : BUILDING_COLORS[i % BUILDING_COLORS.length],
         roof: ROOF_COLORS[i % ROOF_COLORS.length],
         tex,
       });
@@ -93,8 +136,8 @@ function City({ curve }: { curve: THREE.CatmullRomCurve3 }) {
     let seed = 42;
     const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
     const greens = ["#93b892", "#a7c79a", "#86ac83"];
-    for (let i = 0; i < 22; i++) {
-      const t = (i + 0.2) / 22;
+    for (let i = 0; i < 26; i++) {
+      const t = (i + 0.2) / 26;
       const p = curve.getPointAt(t);
       const tan = curve.getTangentAt(t);
       const side = new THREE.Vector3().crossVectors(tan, UP).normalize();
@@ -109,14 +152,57 @@ function City({ curve }: { curve: THREE.CatmullRomCurve3 }) {
     <group>
       {buildings.map((b, i) => (
         <group key={i} position={b.pos}>
-          <mesh castShadow receiveShadow>
-            <boxGeometry args={[b.w, b.h, b.d]} />
-            <meshStandardMaterial color={b.color} map={b.tex} roughness={0.75} />
-          </mesh>
-          <mesh position={[0, b.h / 2 + 0.06, 0]} castShadow>
-            <boxGeometry args={[b.w + 0.12, 0.14, b.d + 0.12]} />
-            <meshStandardMaterial color={b.roof} roughness={0.9} />
-          </mesh>
+          {b.kind === "glass" ? (
+            <>
+              <mesh castShadow receiveShadow>
+                <boxGeometry args={[b.w, b.h, b.d]} />
+                <meshPhysicalMaterial
+                  color={b.color} metalness={0.15} roughness={0.14}
+                  clearcoat={1} clearcoatRoughness={0.25} transparent opacity={0.88}
+                />
+              </mesh>
+              {/* vertical accent fins */}
+              <mesh position={[0, 0, b.d / 2 + 0.02]}>
+                <boxGeometry args={[b.w * 0.86, b.h * 0.94, 0.03]} />
+                <meshStandardMaterial color="#ffffff" roughness={0.5} transparent opacity={0.35} />
+              </mesh>
+              <mesh position={[0, b.h / 2 + 0.05, 0]}>
+                <boxGeometry args={[b.w * 0.7, 0.1, b.d * 0.7]} />
+                <meshStandardMaterial color="#eef4fa" roughness={0.6} />
+              </mesh>
+            </>
+          ) : b.kind === "landmark" ? (
+            <>
+              <mesh castShadow receiveShadow>
+                <cylinderGeometry args={[b.w * 0.55, b.w * 0.8, b.h, 8]} />
+                <meshPhysicalMaterial color={b.color} metalness={0.2} roughness={0.3} clearcoat={0.6} />
+              </mesh>
+              {/* crown ring + antenna */}
+              <mesh position={[0, b.h / 2 + 0.12, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                <torusGeometry args={[b.w * 0.5, 0.05, 8, 24]} />
+                <meshStandardMaterial color="#ffffff" emissive="#cfe4ff" emissiveIntensity={0.7} roughness={0.4} />
+              </mesh>
+              <mesh position={[0, b.h / 2 + 0.65, 0]} castShadow>
+                <cylinderGeometry args={[0.025, 0.025, 1.1, 6]} />
+                <meshStandardMaterial color="#c8cdd6" roughness={0.5} metalness={0.4} />
+              </mesh>
+              <mesh position={[0, b.h / 2 + 1.22, 0]}>
+                <sphereGeometry args={[0.07, 8, 8]} />
+                <meshBasicMaterial color="#ffd98a" toneMapped={false} />
+              </mesh>
+            </>
+          ) : (
+            <>
+              <mesh castShadow receiveShadow>
+                <boxGeometry args={[b.w, b.h, b.d]} />
+                <meshStandardMaterial color={b.color} map={b.tex ?? undefined} roughness={0.75} />
+              </mesh>
+              <mesh position={[0, b.h / 2 + 0.06, 0]} castShadow>
+                <boxGeometry args={[b.w + 0.12, 0.14, b.d + 0.12]} />
+                <meshStandardMaterial color={b.roof} roughness={0.9} />
+              </mesh>
+            </>
+          )}
         </group>
       ))}
       {trees.map((t, i) => (
@@ -135,12 +221,12 @@ function City({ curve }: { curve: THREE.CatmullRomCurve3 }) {
   );
 }
 
-/** Warm street lamps along the road. */
+/** Slim modern light poles with soft warm glow. */
 function Lamps({ curve }: { curve: THREE.CatmullRomCurve3 }) {
   const lamps = useMemo(() => {
     const out: { pos: [number, number, number] }[] = [];
-    for (let i = 0; i < 9; i++) {
-      const t = (i + 0.5) / 9;
+    for (let i = 0; i < 10; i++) {
+      const t = (i + 0.5) / 10;
       const p = curve.getPointAt(t);
       const tan = curve.getTangentAt(t);
       const side = new THREE.Vector3().crossVectors(tan, UP).normalize();
@@ -154,12 +240,12 @@ function Lamps({ curve }: { curve: THREE.CatmullRomCurve3 }) {
       {lamps.map((l, i) => (
         <group key={i} position={l.pos}>
           <mesh position={[0, 0.7, 0]} castShadow>
-            <cylinderGeometry args={[0.04, 0.05, 1.4, 6]} />
-            <meshStandardMaterial color="#c8cdd6" roughness={0.7} metalness={0.2} />
+            <cylinderGeometry args={[0.03, 0.045, 1.4, 6]} />
+            <meshStandardMaterial color="#c8cdd6" roughness={0.6} metalness={0.3} />
           </mesh>
-          <mesh position={[0, 1.42, 0]}>
-            <sphereGeometry args={[0.11, 10, 10]} />
-            <meshStandardMaterial color="#fff4d6" emissive="#ffd98a" emissiveIntensity={1.6} toneMapped={false} />
+          <mesh position={[0, 1.44, 0]}>
+            <capsuleGeometry args={[0.07, 0.18, 4, 8]} />
+            <meshStandardMaterial color="#fff4d6" emissive="#ffd98a" emissiveIntensity={1.8} toneMapped={false} />
           </mesh>
         </group>
       ))}
@@ -167,7 +253,7 @@ function Lamps({ curve }: { curve: THREE.CatmullRomCurve3 }) {
   );
 }
 
-const CAR_COLORS = ["#e0956f", "#5e97d6", "#9b8ccb", "#86b08a", "#e8b04b"];
+const CAR_COLORS = ["#e0956f", "#5e97d6", "#9b8ccb", "#86b08a", "#e8b04b", "#5fb3c6"];
 
 /** Little cars cruising along the viaduct. */
 function Cars({ curve }: { curve: THREE.CatmullRomCurve3 }) {
@@ -203,6 +289,69 @@ function Cars({ curve }: { curve: THREE.CatmullRomCurve3 }) {
             <meshStandardMaterial color="#f3f6fb" roughness={0.25} />
           </mesh>
         </group>
+      ))}
+    </group>
+  );
+}
+
+/** A sleek hover-shuttle gliding above the road — the futuristic signature. */
+function Shuttle({ curve }: { curve: THREE.CatmullRomCurve3 }) {
+  const ref = useRef<THREE.Group>(null);
+  const glowRef = useRef<THREE.Mesh>(null);
+  const state = useRef({ t: 0.35 });
+  const tmp = useMemo(() => ({ p: new THREE.Vector3(), tan: new THREE.Vector3() }), []);
+  useFrame((s, delta) => {
+    state.current.t = (state.current.t + delta * 0.012) % 1;
+    const t = THREE.MathUtils.clamp(state.current.t, 0.001, 0.999);
+    if (!ref.current) return;
+    curve.getPointAt(t, tmp.p);
+    curve.getTangentAt(t, tmp.tan);
+    const bob = Math.sin(s.clock.elapsedTime * 1.4) * 0.12;
+    ref.current.position.set(tmp.p.x, tmp.p.y + 2.6 + bob, tmp.p.z);
+    ref.current.lookAt(tmp.p.x + tmp.tan.x, tmp.p.y + 2.6 + bob, tmp.p.z + tmp.tan.z);
+    if (glowRef.current) {
+      const m = glowRef.current.material as THREE.MeshBasicMaterial;
+      m.opacity = 0.35 + Math.sin(s.clock.elapsedTime * 3) * 0.12;
+    }
+  });
+  return (
+    <group ref={ref}>
+      <mesh castShadow>
+        <capsuleGeometry args={[0.16, 0.7, 4, 12]} />
+        <meshPhysicalMaterial color="#f2f6fb" metalness={0.35} roughness={0.15} clearcoat={1} />
+      </mesh>
+      <mesh position={[0, 0.05, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <capsuleGeometry args={[0.1, 0.5, 4, 10]} />
+        <meshPhysicalMaterial color="#bcd8ee" metalness={0.2} roughness={0.1} transparent opacity={0.8} />
+      </mesh>
+      {/* under-glow */}
+      <mesh ref={glowRef} position={[0, -0.18, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.34, 20]} />
+        <meshBasicMaterial color="#9fc6e8" transparent opacity={0.4} toneMapped={false} depthWrite={false} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Soft floating "data orbs" — gentle ambient life above the city. */
+function DataOrbs() {
+  const orbs = useMemo(
+    () => [
+      { pos: [-10, 5.4, 6], c: "#a8cbe8", s: 0.22 }, { pos: [2, 6.8, -5], c: "#c4b7e6", s: 0.18 },
+      { pos: [10, 5, -12], c: "#9fd0c3", s: 0.2 }, { pos: [-4, 7.4, -1], c: "#f0c9a8", s: 0.16 },
+      { pos: [15, 6.4, -16], c: "#a8cbe8", s: 0.18 }, { pos: [-13, 6, 11], c: "#9fd0c3", s: 0.17 },
+    ] as { pos: [number, number, number]; c: string; s: number }[],
+    []
+  );
+  return (
+    <group>
+      {orbs.map((o, i) => (
+        <Float key={i} speed={1.2 + (i % 3) * 0.4} rotationIntensity={0} floatIntensity={1.6}>
+          <mesh position={o.pos}>
+            <icosahedronGeometry args={[o.s, 1]} />
+            <meshStandardMaterial color={o.c} emissive={o.c} emissiveIntensity={0.55} roughness={0.3} transparent opacity={0.9} />
+          </mesh>
+        </Float>
       ))}
     </group>
   );
@@ -248,6 +397,7 @@ function Clouds() {
 function Road({ curve }: { curve: THREE.CatmullRomCurve3 }) {
   const geom = useMemo(() => new THREE.TubeGeometry(curve, 260, 1.15, 14, false), [curve]);
   const centreGeom = useMemo(() => new THREE.TubeGeometry(curve, 260, 0.07, 6, false), [curve]);
+  const edgeGeom = useMemo(() => new THREE.TubeGeometry(curve, 260, 1.18, 14, false), [curve]);
   const pillars = useMemo(() => {
     const out: THREE.Vector3[] = [];
     for (let i = 0; i <= 14; i++) out.push(curve.getPointAt(i / 14));
@@ -258,6 +408,10 @@ function Road({ curve }: { curve: THREE.CatmullRomCurve3 }) {
       <mesh geometry={geom} scale={[1, 0.16, 1]} castShadow receiveShadow>
         <meshStandardMaterial color="#e4d9c6" roughness={0.9} metalness={0} />
       </mesh>
+      {/* luminous guide edge — subtle futuristic rim */}
+      <mesh geometry={edgeGeom} scale={[1, 0.05, 1]} position={[0, 0.16, 0]}>
+        <meshStandardMaterial color="#ffffff" emissive="#dceafc" emissiveIntensity={0.5} roughness={0.6} transparent opacity={0.65} />
+      </mesh>
       <mesh geometry={centreGeom} position={[0, 0.13, 0]}>
         <meshStandardMaterial color="#f6efe1" roughness={1} />
       </mesh>
@@ -266,6 +420,40 @@ function Road({ curve }: { curve: THREE.CatmullRomCurve3 }) {
           <cylinderGeometry args={[0.22, 0.28, p.y + 0.3, 10]} />
           <meshStandardMaterial color="#d8ccb8" roughness={0.95} />
         </mesh>
+      ))}
+    </group>
+  );
+}
+
+/** Soft holographic arches between stations — waypoints on the route. */
+function EnergyGates({ curve, stops }: { curve: THREE.CatmullRomCurve3; stops: number[] }) {
+  const gates = useMemo(() => {
+    const out: { pos: THREE.Vector3; look: THREE.Vector3 }[] = [];
+    for (let i = 0; i < stops.length - 1; i++) {
+      const t = (stops[i] + stops[i + 1]) / 2;
+      const p = curve.getPointAt(t);
+      const tan = curve.getTangentAt(t);
+      out.push({ pos: p, look: p.clone().add(tan) });
+    }
+    return out;
+  }, [curve, stops]);
+  const refs = useRef<(THREE.Mesh | null)[]>([]);
+  useFrame((s) => {
+    refs.current.forEach((m, i) => {
+      if (!m) return;
+      const mat = m.material as THREE.MeshBasicMaterial;
+      mat.opacity = 0.22 + Math.sin(s.clock.elapsedTime * 1.2 + i * 1.7) * 0.08;
+    });
+  });
+  return (
+    <group>
+      {gates.map((g, i) => (
+        <group key={i} position={g.pos} onUpdate={(self) => self.lookAt(g.look)}>
+          <mesh ref={(el) => { refs.current[i] = el; }} position={[0, 1.1, 0]}>
+            <torusGeometry args={[1.5, 0.045, 8, 40]} />
+            <meshBasicMaterial color="#9fc6e8" transparent opacity={0.25} toneMapped={false} depthWrite={false} />
+          </mesh>
+        </group>
       ))}
     </group>
   );
@@ -296,25 +484,35 @@ function CompletionParticles({ color }: { color: string }) {
   );
 }
 
-function Station({ point, cp, index, active, onSelect }: {
-  point: THREE.Vector3; cp: CheckpointSummary; index: number; active: boolean; onSelect: (i: number) => void;
+function Station({ point, cp, total, index, active, onSelect }: {
+  point: THREE.Vector3; cp: CheckpointSummary; total: number; index: number; active: boolean; onSelect: (i: number) => void;
 }) {
   const [hovered, setHovered] = useState(false);
   const haloRef = useRef<THREE.Mesh>(null);
   const ringRef = useRef<THREE.Mesh>(null);
+  const gemRef = useRef<THREE.Mesh>(null);
+  const beamRef = useRef<THREE.Mesh>(null);
   const locked = cp.status === "empty";
   const completed = cp.completed;
   const color = useMemo(() => new THREE.Color(cp.accent), [cp.accent]);
   const dim = locked ? 0.42 : 1;
 
   useFrame((state) => {
-    const base = completed ? 0.55 : active ? 0.4 : 0.22;
-    const pulse = active || completed ? 0.12 * Math.sin(state.clock.elapsedTime * 2) : 0;
+    const t = state.clock.elapsedTime;
+    const base = completed ? 0.5 : active ? 0.36 : 0.2;
+    const pulse = active || completed ? 0.1 * Math.sin(t * 2) : 0;
     if (haloRef.current) {
-      (haloRef.current.material as THREE.MeshBasicMaterial).opacity = (base + pulse) * dim;
-      haloRef.current.scale.setScalar(hovered ? 1.15 : 1);
+      (haloRef.current.material as THREE.MeshBasicMaterial).opacity = (base + pulse) * dim * 0.55;
+      haloRef.current.scale.setScalar(hovered ? 1.12 : 1);
     }
     if (ringRef.current) ringRef.current.rotation.z += 0.004;
+    if (gemRef.current) {
+      gemRef.current.rotation.y = t * 0.6;
+      gemRef.current.position.y = 1.45 + Math.sin(t * 1.6 + index) * 0.08;
+    }
+    if (beamRef.current) {
+      (beamRef.current.material as THREE.MeshBasicMaterial).opacity = (active ? 0.16 : 0.08) * dim + Math.sin(t * 1.8 + index) * 0.02;
+    }
   });
 
   useEffect(() => {
@@ -329,46 +527,73 @@ function Station({ point, cp, index, active, onSelect }: {
       onPointerOver={(e) => { e.stopPropagation(); setHovered(true); }}
       onPointerOut={() => setHovered(false)}
     >
-      {/* base platform */}
-      <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[1.3, 1.7, 40]} />
-        <meshBasicMaterial color={color} transparent opacity={0.35 * dim} toneMapped={false} />
+      {/* landing platform */}
+      <mesh position={[0, 0.03, 0]}>
+        <cylinderGeometry args={[1.45, 1.55, 0.09, 36]} />
+        <meshPhysicalMaterial color="#fdfdfb" roughness={0.35} clearcoat={0.8} transparent opacity={0.95 * dim} />
       </mesh>
-      {/* portico */}
-      {[-0.9, 0.9].map((x) => (
-        <mesh key={x} position={[x, 0.9, 0]} castShadow>
-          <boxGeometry args={[0.22, 1.8, 0.22]} />
-          <meshStandardMaterial color={color} roughness={0.55} transparent opacity={dim} />
+      <mesh position={[0, 0.09, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[1.32, 1.44, 40]} />
+        <meshBasicMaterial color={color} transparent opacity={0.5 * dim} toneMapped={false} />
+      </mesh>
+
+      {/* tapered pylons */}
+      {[-1.05, 1.05].map((x) => (
+        <mesh key={x} position={[x, 1.05, 0]} castShadow>
+          <cylinderGeometry args={[0.055, 0.12, 2.1, 10]} />
+          <meshPhysicalMaterial color="#f4f6f9" metalness={0.35} roughness={0.3} clearcoat={0.7} transparent opacity={dim} />
         </mesh>
       ))}
-      <mesh position={[0, 1.85, 0]} castShadow>
-        <boxGeometry args={[2.2, 0.24, 0.24]} />
-        <meshStandardMaterial color={color} roughness={0.55} emissive={color} emissiveIntensity={completed ? 0.6 : active ? 0.35 : 0.1} transparent opacity={dim} />
+      {/* crown halo ring */}
+      <mesh position={[0, 2.25, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[1.08, 0.055, 10, 44]} />
+        <meshStandardMaterial
+          color={color} emissive={color}
+          emissiveIntensity={completed ? 0.85 : active ? 0.55 : 0.18}
+          roughness={0.35} transparent opacity={dim}
+        />
       </mesh>
-      {/* halo */}
-      <mesh ref={haloRef} position={[0, 1.1, 0]}>
-        <sphereGeometry args={[1.6, 20, 20]} />
-        <meshBasicMaterial color={color} transparent opacity={0.3} toneMapped={false} depthWrite={false} />
+
+      {/* floating gem beacon */}
+      <mesh ref={gemRef} position={[0, 1.45, 0]} castShadow>
+        <icosahedronGeometry args={[0.3, 0]} />
+        <meshPhysicalMaterial
+          color={color} emissive={color} emissiveIntensity={active ? 0.5 : 0.22}
+          metalness={0.1} roughness={0.2} clearcoat={1} transparent opacity={Math.max(0.55, dim)}
+        />
       </mesh>
+
+      {/* soft light beam */}
+      <mesh ref={beamRef} position={[0, 1.5, 0]}>
+        <cylinderGeometry args={[0.5, 0.95, 2.9, 20, 1, true]} />
+        <meshBasicMaterial color={color} transparent opacity={0.1} toneMapped={false} depthWrite={false} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} />
+      </mesh>
+
+      {/* ambient halo */}
+      <mesh ref={haloRef} position={[0, 1.2, 0]}>
+        <sphereGeometry args={[1.7, 20, 20]} />
+        <meshBasicMaterial color={color} transparent opacity={0.2} toneMapped={false} depthWrite={false} />
+      </mesh>
+
       {/* rotating accent ring for the active station */}
       {active && !locked && (
-        <mesh ref={ringRef} position={[0, 1.1, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[1.9, 0.03, 8, 48]} />
-          <meshBasicMaterial color={color} transparent opacity={0.6} toneMapped={false} />
+        <mesh ref={ringRef} position={[0, 1.2, 0]} rotation={[Math.PI / 2.6, 0, 0]}>
+          <torusGeometry args={[2, 0.03, 8, 48]} />
+          <meshBasicMaterial color={color} transparent opacity={0.55} toneMapped={false} />
         </mesh>
       )}
       {completed && <group position={[0, 1, 0]}><CompletionParticles color={cp.accent} /></group>}
 
       <Float speed={active ? 2 : 1} rotationIntensity={0} floatIntensity={active ? 0.4 : 0.15}>
-        <Html position={[0, 2.7, 0]} center distanceFactor={12} occlude={false}>
+        <Html position={[0, 3.1, 0]} center distanceFactor={12} occlude={false}>
           <button
             onClick={(e) => { e.stopPropagation(); onSelect(index); }}
             className="roadmap-badge"
-            style={{ "--acc": cp.accent, opacity: locked ? 0.7 : 1 } as CSSProperties}
+            style={{ "--acc": cp.accent, opacity: locked ? 0.72 : 1 } as CSSProperties}
           >
             <span className="roadmap-badge-num">{cp.order}</span>
             <span className="roadmap-badge-title">{cp.title}</span>
-            <span className="roadmap-badge-state">{locked ? "Bientôt" : completed ? "Terminé ✓" : "En cours"}</span>
+            <span className="roadmap-badge-state">{locked ? "Bientôt" : completed ? "Terminé ✓" : `Étape ${cp.order}/${total}`}</span>
           </button>
         </Html>
       </Float>
@@ -376,9 +601,9 @@ function Station({ point, cp, index, active, onSelect }: {
   );
 }
 
-function CameraRig({ curve, activeIndex }: { curve: THREE.CatmullRomCurve3; activeIndex: number }) {
+function CameraRig({ curve, stops, activeIndex }: { curve: THREE.CatmullRomCurve3; stops: number[]; activeIndex: number }) {
   const { camera } = useThree();
-  const progress = useRef({ t: STOPS[activeIndex] ?? 0.1 });
+  const progress = useRef({ t: stops[activeIndex] ?? 0.1 });
   const intro = useRef({ v: 0 }); // 0 → 1 establishing fly-in
   const tmp = useMemo(() => ({ point: new THREE.Vector3(), tan: new THREE.Vector3(), look: new THREE.Vector3(), pos: new THREE.Vector3() }), []);
 
@@ -387,10 +612,10 @@ function CameraRig({ curve, activeIndex }: { curve: THREE.CatmullRomCurve3; acti
   }, []);
 
   useEffect(() => {
-    const target = STOPS[activeIndex] ?? 0.1;
+    const target = stops[activeIndex] ?? 0.1;
     const tween = gsap.to(progress.current, { t: target, duration: 2.2, ease: "power2.inOut" });
     return () => { tween.kill(); };
-  }, [activeIndex]);
+  }, [activeIndex, stops]);
 
   useFrame((state) => {
     const t = THREE.MathUtils.clamp(progress.current.t, 0.001, 0.999);
@@ -408,11 +633,34 @@ function CameraRig({ curve, activeIndex }: { curve: THREE.CatmullRomCurve3; acti
   return null;
 }
 
+function Ground() {
+  const tex = useGroundTexture();
+  return (
+    <>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} receiveShadow>
+        <planeGeometry args={[140, 140]} />
+        <meshStandardMaterial map={tex} color="#eef3ea" roughness={1} />
+      </mesh>
+      {[[-8, 6], [9, -6], [2, 12]].map(([x, z], i) => (
+        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0, z]} receiveShadow>
+          <circleGeometry args={[3 + i, 24]} />
+          <meshStandardMaterial color="#cadcbf" roughness={1} />
+        </mesh>
+      ))}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-13, 0.01, -4]}>
+        <circleGeometry args={[2.4, 32]} />
+        <meshStandardMaterial color="#a9cfe0" roughness={0.3} metalness={0.1} transparent opacity={0.9} />
+      </mesh>
+    </>
+  );
+}
+
 export default function RoadmapScene({ checkpoints, activeIndex, onSelect }: {
   checkpoints: CheckpointSummary[]; activeIndex: number; onSelect: (i: number) => void;
 }) {
   const curve = useRoadCurve();
-  const stationPoints = useMemo(() => STOPS.map((t) => curve.getPointAt(t)), [curve]);
+  const stops = useStops(checkpoints.length);
+  const stationPoints = useMemo(() => stops.map((t) => curve.getPointAt(t)), [curve, stops]);
 
   return (
     <Canvas shadows dpr={[1, 1.8]} camera={{ position: [-22, 12, 20], fov: 42 }} gl={{ antialias: true }}>
@@ -425,35 +673,25 @@ export default function RoadmapScene({ checkpoints, activeIndex, onSelect }: {
         shadow-mapSize-width={1024} shadow-mapSize-height={1024}
         shadow-camera-far={70} shadow-camera-left={-34} shadow-camera-right={34} shadow-camera-top={34} shadow-camera-bottom={-34}
       />
+      <directionalLight position={[12, 8, 10]} intensity={0.4} color="#dbe8ff" />
 
-      {/* Ground + park patches + pond */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} receiveShadow>
-        <planeGeometry args={[140, 140]} />
-        <meshStandardMaterial color="#d9e4d2" roughness={1} />
-      </mesh>
-      {[[-8, 6], [9, -6], [2, 12]].map(([x, z], i) => (
-        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0, z]} receiveShadow>
-          <circleGeometry args={[3 + i, 24]} />
-          <meshStandardMaterial color="#cadcbf" roughness={1} />
-        </mesh>
-      ))}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-13, 0.01, -4]}>
-        <circleGeometry args={[2.4, 32]} />
-        <meshStandardMaterial color="#a9cfe0" roughness={0.3} metalness={0.1} transparent opacity={0.9} />
-      </mesh>
-
+      <Ground />
       <Road curve={curve} />
       <City curve={curve} />
       <Lamps curve={curve} />
       <Cars curve={curve} />
+      <Shuttle curve={curve} />
+      <EnergyGates curve={curve} stops={stops} />
+      <DataOrbs />
       <Clouds />
+      <Sparkles count={40} scale={[50, 12, 50]} position={[0, 7, -2]} size={1.6} speed={0.25} opacity={0.5} color="#fff6e4" />
 
-      {checkpoints.slice(0, 4).map((cp, i) => (
-        <Station key={cp.slug} point={stationPoints[i]} cp={cp} index={i} active={i === activeIndex} onSelect={onSelect} />
+      {checkpoints.map((cp, i) => (
+        <Station key={cp.slug} point={stationPoints[i]} cp={cp} total={checkpoints.length} index={i} active={i === activeIndex} onSelect={onSelect} />
       ))}
 
       <ContactShadows position={[0, 0, 0]} opacity={0.26} scale={80} blur={2.6} far={14} color="#4a5a6a" />
-      <CameraRig curve={curve} activeIndex={activeIndex} />
+      <CameraRig curve={curve} stops={stops} activeIndex={activeIndex} />
     </Canvas>
   );
 }
