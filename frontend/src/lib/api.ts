@@ -102,6 +102,12 @@ export const api = {
     ),
 
   progress: () => request<ProgressPayload>("/progress"),
+
+  executeC: (code: string, stdin?: string) =>
+    request<import("./types").ExecuteResult>("/execute", {
+      method: "POST",
+      body: JSON.stringify({ code, stdin }),
+    }),
 };
 
 export type { User, Challenge };

@@ -2,7 +2,24 @@
 
 export type Difficulty = "easy" | "medium" | "hard" | "insane";
 
-export type ChallengeType = "text" | "mcq" | "multi" | "numeric" | "order";
+export type ChallengeType = "text" | "mcq" | "multi" | "numeric" | "order" | "code";
+
+/** Language of a `code` challenge editor. */
+export type CodeLanguage = "pseudo" | "c";
+
+/**
+ * Canonical grading payload for `code` challenges, stored as a JSON string in
+ * `answer`: each keypoint regex must match the submission (comments stripped)
+ * unless `minRatio` (< 1) relaxes it. `label` is safe to show the player as
+ * feedback — it must describe the expectation, never reveal the solution.
+ * Example answer value:
+ * `JSON.stringify({ keypoints: [{ label: "Déclare un compteur entier", pattern: "Var[\\s\\S]*?:\\s*entier", flags: "i" }], minRatio: 1 })`
+ */
+export interface CodeKeypoint {
+  label: string;
+  pattern: string;
+  flags?: string;
+}
 
 export interface Hint {
   text: string;
@@ -37,6 +54,12 @@ export interface ChallengeSeed {
   caseSensitive?: boolean;
   /** Optional interactive helper widget rendered on the client. */
   widget?: string;
+  /** `code` challenges: editor language (pseudo-code USTHB ou C). */
+  language?: CodeLanguage;
+  /** `code` challenges: starter skeleton pre-filled in the editor. */
+  starter?: string;
+  /** `code` (C) challenges: expected stdout used by the run-feedback loop. */
+  expectedOutput?: string;
   /** Shown after the challenge is solved. */
   explanation: string;
   tags?: string[];

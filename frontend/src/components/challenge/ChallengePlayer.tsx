@@ -5,15 +5,17 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Lightbulb, Lock, Check, X, Flag, Timer as TimerIcon, Trophy, ChevronUp, ChevronDown, ArrowRight, Sparkles,
+  Play, TerminalSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { DifficultyBadge } from "@/components/ui/DifficultyBadge";
 import { Markdown } from "@/components/Markdown";
 import { WidgetRenderer } from "@/components/widgets/WidgetRenderer";
+import { CodeEditor } from "@/components/challenge/CodeEditor";
 import { useAuth } from "@/context/AuthContext";
 import { api, ApiError } from "@/lib/api";
 import { formatTime, cn } from "@/lib/utils";
-import type { Challenge, Hint, SubmitResult } from "@/lib/types";
+import type { Challenge, ExecuteResult, Hint, SubmitResult } from "@/lib/types";
 
 export function ChallengePlayer({
   challenge,
@@ -40,6 +42,15 @@ export function ChallengePlayer({
   const [choice, setChoice] = useState<number | null>(null);
   const [multi, setMulti] = useState<Set<number>>(new Set());
   const [order, setOrder] = useState<number[]>(challenge.options.map((_, i) => i));
+  const [code, setCode] = useState(
+    challenge.starter ??
+      (challenge.language === "c"
+        ? "#include <stdio.h>\n\nint main(void) {\n  \n  return 0;\n}\n"
+        : "Algorithme MonAlgo\nVar\n  \nDebut\n  \nFin\n")
+  );
+  const [feedback, setFeedback] = useState<SubmitResult["feedback"] | null>(null);
+  const [running, setRunning] = useState(false);
+  const [runResult, setRunResult] = useState<ExecuteResult | null>(null);
 
   const solved = result?.correct === true;
 
@@ -70,6 +81,8 @@ export function ChallengePlayer({
         return multi.size ? [...multi] : null;
       case "order":
         return order;
+      case "code":
+        return code.trim() === "" ? null : code;
     }
   };
 
@@ -88,6 +101,7 @@ export function ChallengePlayer({
         setResult(r);
         onSolved?.();
       } else {
+        setFeedback(r.feedback ?? null);
         setWrong(true);
         setTimeout(() => setWrong(false), 600);
       }
@@ -207,6 +221,89 @@ export function ChallengePlayer({
                       </button>
                     );
                   })}
+                </div>
+              )}
+
+              {challenge.type === "code" && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-faint">
+                      {challenge.language === "c"
+                        ? "Écris ton programme C, compile-le, puis soumets quand la sortie te convient."
+                        : "Écris ton algorithme en pseudo-code USTHB (Algorithme, Var, Debut…Fin, Lire, Ecrire, ←)."}
+                    </p>
+                    {challenge.language === "c" && (
+                      <Button
+                        variant="glass"
+                        size="sm"
+                        disabled={running}
+                        onClick={async () => {
+                          setRunning(true);
+                          setError("");
+                          try {
+                            setRunResult(await api.executeC(code));
+                          } catch (e) {
+                            setError(e instanceof ApiError ? e.message : "Erreur d'exécution");
+                          } finally {
+                            setRunning(false);
+                          }
+                        }}
+                      >
+                        <Play className="h-3.5 w-3.5" /> {running ? "Compilation…" : "Compiler & Exécuter"}
+                      </Button>
+                    )}
+                  </div>
+
+                  <CodeEditor language={challenge.language ?? "pseudo"} value={code} onChange={setCode} />
+
+                  {challenge.language === "c" && runResult && (
+                    <div className="rounded-lg border border-line bg-surface-2/70 p-3 font-mono text-xs">
+                      <p className="mb-1 flex items-center gap-1.5 text-faint">
+                        <TerminalSquare className="h-3.5 w-3.5" /> Sortie
+                      </p>
+                      {runResult.compile && runResult.compile.code !== 0 ? (
+                        <pre className="whitespace-pre-wrap text-danger">{runResult.compile.stderr || "Erreur de compilation"}</pre>
+                      ) : (
+                        <>
+                          <pre className="max-h-48 overflow-auto whitespace-pre-wrap text-fg">
+                            {runResult.run?.stdout || "(aucune sortie)"}
+                          </pre>
+                          {runResult.run?.stderr && (
+                            <pre className="mt-1 whitespace-pre-wrap text-warning">{runResult.run.stderr}</pre>
+                          )}
+                          {challenge.expectedOutput !== null && runResult.run && (
+                            runResult.run.stdout.replace(/\s+$/, "") === (challenge.expectedOutput ?? "").replace(/\s+$/, "") ? (
+                              <p className="mt-2 flex items-center gap-1.5 text-success">
+                                <Check className="h-3.5 w-3.5" /> Sortie conforme à l&apos;attendu — soumets !
+                              </p>
+                            ) : (
+                              <p className="mt-2 text-warning">
+                                La sortie ne correspond pas encore à l&apos;attendu.
+                              </p>
+                            )
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {feedback && !solved && (
+                    <div className="rounded-lg border border-warning/40 bg-warning/10 p-3">
+                      <p className="mb-1 text-xs font-medium text-warning">
+                        Points-clés validés : {feedback.matched}/{feedback.total}
+                      </p>
+                      {feedback.missing.length > 0 && (
+                        <ul className="list-inside list-disc space-y-0.5 text-xs text-muted">
+                          {feedback.missing.map((m) => (
+                            <li key={m}>{m}</li>
+                          ))}
+                        </ul>
+                      )}
+                      <p className="mt-2 text-[11px] text-faint">
+                        Bloqué ? Le dernier indice de la barre latérale révèle la correction complète (contre des points).
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -14,7 +14,8 @@ export const allCheckpoints: CheckpointSeed[] = [
     status: "empty",
     icon: "Binary",
     accent: "#6FA8DC",
-    description: "Fondamentaux des algorithmes, complexité et structures de données.",
+    description:
+      "Le cursus complet L1→L2 : pseudo-code USTHB, traces d'exécution, tableaux, structures dynamiques, complexité, piles/files, arbres — cours magistraux vulgarisés, TD corrigés ligne à ligne et TP en C avec éditeur intégré.",
     tagline: "Bientôt disponible",
   },
   {

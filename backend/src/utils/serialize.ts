@@ -23,6 +23,9 @@ export function serializeChallenge(challenge: ChallengeDoc, user?: UserDoc | nul
     timeLimitSec: challenge.timeLimitSec,
     options: challenge.options ?? [],
     widget: challenge.widget ?? null,
+    language: challenge.language ?? null,
+    starter: challenge.starter ?? null,
+    expectedOutput: challenge.expectedOutput ?? null,
     tags: challenge.tags ?? [],
     hints: (challenge.hints ?? []).map((h, index) => {
       const isOpen = solved || unlocked.has(index);

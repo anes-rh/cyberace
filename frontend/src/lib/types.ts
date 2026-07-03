@@ -1,5 +1,6 @@
 export type Difficulty = "easy" | "medium" | "hard" | "insane";
-export type ChallengeType = "text" | "mcq" | "multi" | "numeric" | "order";
+export type ChallengeType = "text" | "mcq" | "multi" | "numeric" | "order" | "code";
+export type CodeLanguage = "pseudo" | "c";
 export type CheckpointStatus = "empty" | "active";
 
 export interface CheckpointSummary {
@@ -105,6 +106,9 @@ export interface Challenge {
   timeLimitSec: number;
   options: string[];
   widget: string | null;
+  language: CodeLanguage | null;
+  starter: string | null;
+  expectedOutput: string | null;
   tags: string[];
   hints: Hint[];
   solved: boolean;
@@ -144,6 +148,13 @@ export interface SubmitResult {
   level?: LevelInfo;
   newBadge?: Badge | null;
   courseCompleted?: boolean;
+  /** `code` challenges: pedagogical keypoint feedback on a wrong submission. */
+  feedback?: { missing: string[]; matched: number; total: number };
+}
+
+export interface ExecuteResult {
+  compile: { stdout: string; stderr: string; code: number | null } | null;
+  run: { stdout: string; stderr: string; code: number | null; signal: string | null } | null;
 }
 
 export interface LeaderboardEntry {

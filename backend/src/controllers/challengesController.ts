@@ -4,7 +4,7 @@ import { Course } from "../models/Course";
 import { User } from "../models/User";
 import { Attempt } from "../models/Attempt";
 import { serializeChallenge } from "../utils/serialize";
-import { checkAnswer } from "../utils/answer";
+import { checkAnswer, codeFeedback } from "../utils/answer";
 import { computeAward, computeLevel } from "../utils/scoring";
 import { HttpError } from "../middleware/error";
 
@@ -128,6 +128,13 @@ export async function submitAnswer(req: Request, res: Response): Promise<void> {
       hintsUsed: unlocked.length,
       submitted: typeof answer === "string" ? answer.slice(0, 120) : JSON.stringify(answer).slice(0, 120),
     });
+    // Code challenges: tell the player WHICH expected keypoints are missing
+    // (pedagogical labels only — the solution itself never leaves the server).
+    if (challenge.type === "code") {
+      const fb = codeFeedback(challenge, answer);
+      res.json({ correct: false, feedback: { missing: fb.missing, matched: fb.matched, total: fb.total } });
+      return;
+    }
     res.json({ correct: false });
     return;
   }

@@ -1,5 +1,5 @@
 import { Schema, model, Document } from "mongoose";
-import type { ChallengeType, Difficulty, Hint } from "../types";
+import type { ChallengeType, CodeLanguage, Difficulty, Hint } from "../types";
 
 export interface ChallengeDoc extends Document {
   challengeId: string;
@@ -18,6 +18,9 @@ export interface ChallengeDoc extends Document {
   accept: string[];
   caseSensitive: boolean;
   widget?: string;
+  language?: CodeLanguage;
+  starter?: string;
+  expectedOutput?: string;
   explanation: string;
   tags: string[];
 }
@@ -43,7 +46,7 @@ const challengeSchema = new Schema<ChallengeDoc>(
     },
     type: {
       type: String,
-      enum: ["text", "mcq", "multi", "numeric", "order"],
+      enum: ["text", "mcq", "multi", "numeric", "order", "code"],
       required: true,
     },
     prompt: { type: String, required: true },
@@ -56,6 +59,9 @@ const challengeSchema = new Schema<ChallengeDoc>(
     accept: { type: [String], default: [], select: false },
     caseSensitive: { type: Boolean, default: false, select: false },
     widget: { type: String },
+    language: { type: String, enum: ["pseudo", "c"] },
+    starter: { type: String },
+    expectedOutput: { type: String },
     explanation: { type: String, default: "" },
     tags: { type: [String], default: [] },
   },

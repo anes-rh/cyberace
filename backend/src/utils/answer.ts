@@ -1,4 +1,58 @@
 import type { ChallengeDoc } from "../models/Challenge";
+import type { CodeKeypoint } from "../types";
+
+/** Strip pseudo-code and C comments so keypoints match real code only. */
+function stripComments(code: string): string {
+  return code
+    .replace(/\/\*[\s\S]*?\*\//g, " ") // C block comments
+    .replace(/\/\/[^\n]*/g, " ") // C line comments
+    .replace(/\{[^{}\n]*\}/g, (m) => (m.includes("←") || m.includes("<-") ? m : " ")) // pseudo {comments}, keep braces w/ assignments
+    .replace(/^\s*\*.*$/gm, " ");
+}
+
+interface CodeAnswerSpec {
+  keypoints: CodeKeypoint[];
+  minRatio?: number;
+}
+
+function parseCodeSpec(answer: unknown): CodeAnswerSpec | null {
+  try {
+    const spec = typeof answer === "string" ? JSON.parse(answer) : answer;
+    if (spec && Array.isArray(spec.keypoints) && spec.keypoints.length > 0) return spec as CodeAnswerSpec;
+  } catch {
+    /* malformed spec → treated as no match */
+  }
+  return null;
+}
+
+/**
+ * Structured feedback for a `code` submission: which expected keypoints are
+ * present and which are missing. Labels are pedagogical, never the solution.
+ */
+export function codeFeedback(
+  challenge: Pick<ChallengeDoc, "answer">,
+  submitted: unknown
+): { ok: boolean; missing: string[]; matched: number; total: number } {
+  const spec = parseCodeSpec(challenge.answer);
+  const code = stripComments(String(submitted ?? ""));
+  if (!spec || code.trim().length < 5) {
+    return { ok: false, missing: spec ? spec.keypoints.map((k) => k.label) : [], matched: 0, total: spec?.keypoints.length ?? 0 };
+  }
+  const missing: string[] = [];
+  let matched = 0;
+  for (const kp of spec.keypoints) {
+    let hit = false;
+    try {
+      hit = new RegExp(kp.pattern, kp.flags ?? "i").test(code);
+    } catch {
+      hit = false; // invalid pattern in seed — count as missing, never crash
+    }
+    if (hit) matched += 1;
+    else missing.push(kp.label);
+  }
+  const ratio = matched / spec.keypoints.length;
+  return { ok: ratio >= (spec.minRatio ?? 1), missing, matched, total: spec.keypoints.length };
+}
 
 function normalizeText(value: string, caseSensitive: boolean): string {
   let s = String(value).trim().replace(/\s+/g, " ");
@@ -58,6 +112,8 @@ export function checkAnswer(
       if (a.length !== b.length) return false;
       return a.every((v, i) => v === b[i]);
     }
+    case "code":
+      return codeFeedback(challenge, submitted).ok;
     default:
       return false;
   }
