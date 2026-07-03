@@ -87,7 +87,7 @@ const GLASS_COLORS = ["#bcd8ee", "#c9e4e2", "#d4d3ef"];
 
 type BuildingKind = "block" | "glass" | "landmark";
 
-function City({ curve }: { curve: THREE.CatmullRomCurve3 }) {
+function City({ curve, stationPts }: { curve: THREE.CatmullRomCurve3; stationPts: THREE.Vector3[] }) {
   const winCanvas = useWindowCanvas();
 
   const buildings = useMemo(() => {
@@ -107,12 +107,19 @@ function City({ curve }: { curve: THREE.CatmullRomCurve3 }) {
       const dir = i % 2 === 0 ? 1 : -1;
       const dist = 3.6 + rnd() * 7;
       const kindRoll = rnd();
-      const kind: BuildingKind = kindRoll > 0.86 ? "landmark" : kindRoll > 0.58 ? "glass" : "block";
-      const h = kind === "landmark" ? 6.5 + rnd() * 3.5 : kind === "glass" ? 3 + rnd() * 4 : 1.4 + rnd() * 4.5;
+      let kind: BuildingKind = kindRoll > 0.86 ? "landmark" : kindRoll > 0.58 ? "glass" : "block";
+      let h = kind === "landmark" ? 6.5 + rnd() * 3.5 : kind === "glass" ? 3 + rnd() * 4 : 1.4 + rnd() * 4.5;
       const w = kind === "landmark" ? 1.3 + rnd() * 0.5 : 1.1 + rnd() * 1.5;
       const d = kind === "landmark" ? w : 1.1 + rnd() * 1.5;
       const bx = p.x + side.x * dist * dir + (rnd() - 0.5) * 2.4;
       const bz = p.z + side.z * dist * dir + (rnd() - 0.5) * 2.4;
+      // Keep every station platform clear: no building near a checkpoint.
+      if (stationPts.some((sp) => (sp.x - bx) ** 2 + (sp.z - bz) ** 2 < 6 ** 2)) continue;
+      // Low-rise corridor along the road so stations stay visible while travelling.
+      if (dist < 6.2) {
+        kind = "block";
+        h = Math.min(h, 2.6);
+      }
       let tex: THREE.CanvasTexture | null = null;
       if (kind === "block") {
         tex = new THREE.CanvasTexture(winCanvas);
@@ -129,7 +136,7 @@ function City({ curve }: { curve: THREE.CatmullRomCurve3 }) {
       });
     }
     return items;
-  }, [curve, winCanvas]);
+  }, [curve, winCanvas, stationPts]);
 
   const trees = useMemo(() => {
     const items: { pos: [number, number, number]; s: number; c: string }[] = [];
@@ -143,10 +150,13 @@ function City({ curve }: { curve: THREE.CatmullRomCurve3 }) {
       const side = new THREE.Vector3().crossVectors(tan, UP).normalize();
       const dir = i % 2 === 0 ? -1 : 1;
       const dist = 2.3 + rnd() * 3;
-      items.push({ pos: [p.x + side.x * dist * dir, 0, p.z + side.z * dist * dir], s: 0.8 + rnd() * 0.5, c: greens[i % 3] });
+      const tx = p.x + side.x * dist * dir;
+      const tz = p.z + side.z * dist * dir;
+      if (stationPts.some((sp) => (sp.x - tx) ** 2 + (sp.z - tz) ** 2 < 3 ** 2)) continue;
+      items.push({ pos: [tx, 0, tz], s: 0.8 + rnd() * 0.5, c: greens[i % 3] });
     }
     return items;
-  }, [curve]);
+  }, [curve, stationPts]);
 
   return (
     <group>
@@ -549,7 +559,7 @@ function Station({ point, cp, total, index, active, onSelect }: {
         <torusGeometry args={[1.08, 0.055, 10, 44]} />
         <meshStandardMaterial
           color={color} emissive={color}
-          emissiveIntensity={completed ? 0.85 : active ? 0.55 : 0.18}
+          emissiveIntensity={completed ? 0.85 : active ? 0.9 : 0.18}
           roughness={0.35} transparent opacity={dim}
         />
       </mesh>
@@ -578,8 +588,8 @@ function Station({ point, cp, total, index, active, onSelect }: {
       {/* rotating accent ring for the active station */}
       {active && !locked && (
         <mesh ref={ringRef} position={[0, 1.2, 0]} rotation={[Math.PI / 2.6, 0, 0]}>
-          <torusGeometry args={[2, 0.03, 8, 48]} />
-          <meshBasicMaterial color={color} transparent opacity={0.55} toneMapped={false} />
+          <torusGeometry args={[2, 0.035, 8, 48]} />
+          <meshBasicMaterial color={color} transparent opacity={0.75} toneMapped={false} />
         </mesh>
       )}
       {completed && <group position={[0, 1, 0]}><CompletionParticles color={cp.accent} /></group>}
@@ -611,20 +621,19 @@ function CameraRig({ curve, stops, activeIndex }: { curve: THREE.CatmullRomCurve
     gsap.to(intro.current, { v: 1, duration: 2.6, ease: "power2.out" });
   }, []);
 
-  useEffect(() => {
+  useFrame((state, delta) => {
+    // Critically-damped glide toward the active station (~1.8 s cinematic travel).
+    // Runs inside the render loop: immune to effect-timing issues, always converges.
     const target = stops[activeIndex] ?? 0.1;
-    const tween = gsap.to(progress.current, { t: target, duration: 2.2, ease: "power2.inOut" });
-    return () => { tween.kill(); };
-  }, [activeIndex, stops]);
-
-  useFrame((state) => {
+    const k = 1 - Math.exp(-Math.min(delta, 0.05) * 1.9);
+    progress.current.t += (target - progress.current.t) * k;
     const t = THREE.MathUtils.clamp(progress.current.t, 0.001, 0.999);
     curve.getPointAt(t, tmp.point);
     curve.getTangentAt(t, tmp.tan);
     const sway = Math.sin(state.clock.elapsedTime * 0.4) * 0.4;
     // establishing height eases from wide/high to the travelling shot
-    const height = THREE.MathUtils.lerp(11, 5.2, intro.current.v);
-    const back = THREE.MathUtils.lerp(11, 7, intro.current.v);
+    const height = THREE.MathUtils.lerp(12.5, 6.4, intro.current.v);
+    const back = THREE.MathUtils.lerp(12, 8.6, intro.current.v);
     tmp.pos.set(tmp.point.x - tmp.tan.x * back + sway, tmp.point.y + height, tmp.point.z - tmp.tan.z * back + 2);
     camera.position.lerp(tmp.pos, 0.06);
     tmp.look.set(tmp.point.x + tmp.tan.x * 2, tmp.point.y + 0.8, tmp.point.z + tmp.tan.z * 2);
@@ -677,7 +686,7 @@ export default function RoadmapScene({ checkpoints, activeIndex, onSelect }: {
 
       <Ground />
       <Road curve={curve} />
-      <City curve={curve} />
+      <City curve={curve} stationPts={stationPoints} />
       <Lamps curve={curve} />
       <Cars curve={curve} />
       <Shuttle curve={curve} />

@@ -136,84 +136,98 @@ export default function RoadmapExperience() {
         </div>
       )}
 
-      {/* info panel */}
-      <div className="absolute inset-x-0 bottom-0 z-10 p-4 sm:p-6">
+      {/* bottom-left HUD — compact, never hides the road */}
+      <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-10 sm:right-auto sm:w-[360px]">
         <AnimatePresence mode="wait">
           {active && (
             <motion.div
               key={active.slug}
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 12 }}
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-              className="mx-auto max-w-2xl rounded-3xl border border-line bg-surface/85 p-6 backdrop-blur-xl soft-shadow"
+              initial={{ opacity: 0, y: 18, scale: 0.98 }}
+              animate={{
+                opacity: 1, y: 0, scale: 1,
+                transition: { duration: 0.5, delay: 0.85, ease: [0.22, 1, 0.36, 1] },
+              }}
+              exit={{ opacity: 0, y: 10, scale: 0.98, transition: { duration: 0.2 } }}
+              className="pointer-events-auto rounded-2xl border border-line bg-surface/75 p-4 backdrop-blur-xl soft-shadow"
             >
-              <div className="flex items-start gap-4">
+              {/* header row */}
+              <div className="flex items-center gap-3">
                 <div
-                  className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl"
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-xl"
                   style={{ background: `${active.accent}1f`, color: active.accent, boxShadow: `inset 0 0 0 1px ${active.accent}55` }}
                 >
-                  <Icon name={active.icon} className="h-7 w-7" />
+                  <Icon name={active.icon} className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs text-faint">Checkpoint {active.order}/{checkpoints.length}</span>
+                    <span className="font-mono text-[11px] text-faint">Checkpoint {active.order}/{checkpoints.length}</span>
                     {active.status === "empty" ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-surface-2 px-2 py-0.5 text-[11px] text-faint">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-surface-2 px-2 py-0.5 text-[10px] text-faint">
                         <Clock className="h-3 w-3" /> Bientôt
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px]" style={{ background: `${active.accent}22`, color: active.accent }}>
+                      <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px]" style={{ background: `${active.accent}22`, color: active.accent }}>
                         <Sparkles className="h-3 w-3" /> Actif
                       </span>
                     )}
                   </div>
-                  <h2 className="mt-1 font-display text-2xl font-semibold text-fg">{active.title}</h2>
-                  <p className="mt-1 text-sm text-muted">{active.description}</p>
-
-                  {active.status === "active" && active.challengeCount > 0 && (
-                    <div className="mt-3">
-                      <div className="mb-1 flex justify-between text-xs text-faint">
-                        <span>{active.courseCount} modules · {active.challengeCount} défis</span>
-                        <span className="tnum">{pct(active.progress)}</span>
-                      </div>
-                      <Progress value={active.progress} color={active.accent} />
-                    </div>
-                  )}
-
-                  <div className="mt-4">
-                    {active.status === "empty" ? (
-                      <button disabled className="inline-flex cursor-not-allowed items-center gap-2 rounded-lg border border-line bg-surface-2 px-5 py-2.5 text-sm text-faint">
-                        <Lock className="h-4 w-4" /> Bientôt disponible
-                      </button>
-                    ) : (
-                      <Link href={`/checkpoints/${active.slug}`} className={buttonVariants({ size: "md" })}>
-                        Entrer dans le checkpoint <ArrowRight className="h-4 w-4" />
-                      </Link>
-                    )}
-                  </div>
+                  <h2 className="truncate font-display text-lg font-semibold leading-tight text-fg">{active.title}</h2>
+                </div>
+                {/* prev / next */}
+                <div className="flex shrink-0 gap-1.5">
+                  <button
+                    onClick={() => go(activeIndex - 1)}
+                    disabled={activeIndex === 0}
+                    aria-label="Checkpoint précédent"
+                    className="grid h-8 w-8 place-items-center rounded-full border border-line text-muted transition-colors hover:text-fg disabled:opacity-40"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => go(activeIndex + 1)}
+                    disabled={activeIndex === checkpoints.length - 1}
+                    aria-label="Checkpoint suivant"
+                    className="grid h-8 w-8 place-items-center rounded-full border border-line text-muted transition-colors hover:text-fg disabled:opacity-40"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
 
-              {/* nav row */}
-              <div className="mt-5 flex items-center justify-between border-t border-line pt-4">
-                <button onClick={() => go(activeIndex - 1)} disabled={activeIndex === 0} className="grid h-9 w-9 place-items-center rounded-full border border-line text-muted transition-colors hover:text-fg disabled:opacity-40">
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <div className="flex gap-2">
+              <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted">{active.description}</p>
+
+              {active.status === "active" && active.challengeCount > 0 && (
+                <div className="mt-3">
+                  <div className="mb-1 flex justify-between text-[11px] text-faint">
+                    <span>{active.courseCount} modules · {active.challengeCount} défis</span>
+                    <span className="tnum">{pct(active.progress)}</span>
+                  </div>
+                  <Progress value={active.progress} color={active.accent} />
+                </div>
+              )}
+
+              <div className="mt-3 flex items-center justify-between gap-3">
+                {active.status === "empty" ? (
+                  <button disabled className="inline-flex cursor-not-allowed items-center gap-2 rounded-lg border border-line bg-surface-2 px-4 py-2 text-xs text-faint">
+                    <Lock className="h-3.5 w-3.5" /> Bientôt disponible
+                  </button>
+                ) : (
+                  <Link href={`/checkpoints/${active.slug}`} className={buttonVariants({ size: "sm" })}>
+                    Entrer <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                )}
+                {/* dots (mobile-friendly quick nav) */}
+                <div className="flex gap-1.5">
                   {checkpoints.map((cp, i) => (
                     <button
                       key={cp.slug}
                       onClick={() => go(i)}
-                      className={cn("h-2 rounded-full transition-all", i === activeIndex ? "w-8" : "w-2")}
+                      className={cn("h-1.5 rounded-full transition-all", i === activeIndex ? "w-6" : "w-1.5")}
                       style={{ background: i === activeIndex ? cp.accent : `${cp.accent}55` }}
                       aria-label={cp.title}
                     />
                   ))}
                 </div>
-                <button onClick={() => go(activeIndex + 1)} disabled={activeIndex === checkpoints.length - 1} className="grid h-9 w-9 place-items-center rounded-full border border-line text-muted transition-colors hover:text-fg disabled:opacity-40">
-                  <ChevronRight className="h-4 w-4" />
-                </button>
               </div>
             </motion.div>
           )}
