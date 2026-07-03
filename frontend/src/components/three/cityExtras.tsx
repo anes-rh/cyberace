@@ -62,14 +62,31 @@ export function CityCrowd({ curve, stationPts }: { curve: THREE.CatmullRomCurve3
     const prisms: Spec[] = [];
     const glass: Spec[] = [];
     const jc = (hex: string) =>
-      new THREE.Color(hex).offsetHSL((rnd() - 0.5) * 0.02, (rnd() - 0.5) * 0.05, (rnd() - 0.5) * 0.09);
+      new THREE.Color(hex).offsetHSL((rnd() - 0.5) * 0.035, (rnd() - 0.5) * 0.12, (rnd() - 0.5) * 0.14);
     // sampled road polyline — guarantees the viaduct corridor stays clear even
     // where the S-curve folds back on itself
     const samples: THREE.Vector3[] = [];
-    for (let i = 0; i <= 63; i++) samples.push(curve.getPointAt(i / 63));
-    const clear = (x: number, z: number) =>
-      !stationPts.some((sp) => (sp.x - x) ** 2 + (sp.z - z) ** 2 < 8 * 8) &&
-      !samples.some((s) => (s.x - x) ** 2 + (s.z - z) ** 2 < 6.5 * 6.5);
+    const trail: THREE.Vector3[] = []; // ground track of the trailing camera
+    for (let i = 0; i <= 63; i++) {
+      const t = THREE.MathUtils.clamp(i / 63, 0.001, 0.999);
+      const p = curve.getPointAt(t);
+      samples.push(p);
+      const tan = curve.getTangentAt(t);
+      trail.push(new THREE.Vector3(p.x - tan.x * 8.6, 0, p.z - tan.z * 8.6 + 2));
+    }
+    const stationClear = (x: number, z: number) =>
+      !stationPts.some((sp) => (sp.x - x) ** 2 + (sp.z - z) ** 2 < 8 * 8);
+    // Height-aware clearance for BOTH the road corridor and the camera's own
+    // ground track (it trails ~9u behind the road): nothing tall may loom
+    // between the lens and a station, and no roof may slide under the lens.
+    const roadClear = (x: number, z: number, hEff: number) => {
+      const minD = hEff > 4.5 ? 12 : hEff > 1.9 ? 6.5 : 3.2;
+      const minT = hEff > 4.5 ? 10 : hEff > 1.9 ? 6 : 2.6;
+      return (
+        !samples.some((s) => (s.x - x) ** 2 + (s.z - z) ** 2 < minD * minD) &&
+        !trail.some((s) => (s.x - x) ** 2 + (s.z - z) ** 2 < minT * minT)
+      );
+    };
 
     const ring = (count: number, dMin: number, dMax: number, hMin: number, hMax: number, allowTall: boolean) => {
       for (let i = 0; i < count; i++) {
@@ -81,7 +98,6 @@ export function CityCrowd({ curve, stationPts }: { curve: THREE.CatmullRomCurve3
         const dist = dMin + rnd() * (dMax - dMin);
         const x = p.x + side.x * dist * dir + (rnd() - 0.5) * 5;
         const z = p.z + side.z * dist * dir + (rnd() - 0.5) * 5;
-        if (!clear(x, z)) continue;
         const w = 1 + rnd() * 1.6;
         const d = 1 + rnd() * 1.6;
         let h = hMin + rnd() * (hMax - hMin);
@@ -89,7 +105,10 @@ export function CityCrowd({ curve, stationPts }: { curve: THREE.CatmullRomCurve3
         const rotY = (rnd() - 0.5) * 0.16;
         const y0 = (rnd() - 0.5) * 0.1; // breaks the perfect-grid feel
         const base = PASTELS[Math.floor(rnd() * PASTELS.length)];
-        switch (Math.floor(rnd() * 8)) {
+        const arch = Math.floor(rnd() * 8);
+        const hEff = arch === 1 ? h * 1.6 : arch === 6 ? h * 1.5 : arch === 5 ? 1.9 : h; // real silhouette height
+        if (!stationClear(x, z) || !roadClear(x, z, hEff)) continue;
+        switch (arch) {
           case 0: // slab
             boxes.push({ pos: [x, y0 + h / 2, z], rotY, scale: [w, h, d], color: jc(base) });
             break;
@@ -134,11 +153,68 @@ export function CityCrowd({ curve, stationPts }: { curve: THREE.CatmullRomCurve3
         }
       }
     };
-    ring(46, 8, 14, 1.6, 5, true);   // mid ring
+    // Near belt — low fills right beside the road (hedges, cottages, kiosks)
+    // so the foreground the camera sweeps over is never bare lawn.
+    const belt = (count: number) => {
+      for (let i = 0; i < count; i++) {
+        const t = THREE.MathUtils.clamp((i + rnd()) / count, 0.001, 0.999);
+        const p = curve.getPointAt(t);
+        const tan = curve.getTangentAt(t);
+        const side = new THREE.Vector3().crossVectors(tan, UP).normalize();
+        const dir = rnd() > 0.5 ? 1 : -1;
+        const dist = 3.4 + rnd() * 4.4;
+        const x = p.x + side.x * dist * dir + (rnd() - 0.5) * 2.2;
+        const z = p.z + side.z * dist * dir + (rnd() - 0.5) * 2.2;
+        if (!stationClear(x, z) || !roadClear(x, z, 1.6)) continue;
+        const rotY = (rnd() - 0.5) * 0.5;
+        const base = PASTELS[Math.floor(rnd() * PASTELS.length)];
+        const kind = rnd();
+        if (kind < 0.34) { // hedge row
+          boxes.push({ pos: [x, 0.26, z], rotY, scale: [1.3 + rnd() * 1.2, 0.52, 0.5], color: jc("#9fbe93") });
+        } else if (kind < 0.72) { // cottage with gable roof
+          const w = 0.9 + rnd() * 0.7;
+          const d = 0.9 + rnd() * 0.7;
+          const hh = 0.9 + rnd() * 0.5;
+          const roofH = 0.45 + rnd() * 0.2;
+          boxes.push({ pos: [x, hh / 2, z], rotY, scale: [w, hh, d], color: jc(base) });
+          prisms.push({
+            pos: [x, hh + roofH * 0.5, z],
+            euler: new THREE.Euler(-Math.PI / 2, rotY, 0, "YXZ"),
+            scale: [w * 0.62, d, roofH],
+            color: jc(ROOFS[Math.floor(rnd() * ROOFS.length)]),
+          });
+        } else { // kiosk / low pavilion
+          boxes.push({ pos: [x, 0.5, z], rotY, scale: [0.9 + rnd() * 0.6, 1 + rnd() * 0.5, 0.9 + rnd() * 0.6], color: jc(base) });
+        }
+      }
+    };
+    belt(92);
+    ring(46, 8, 14, 1.6, 4.2, true); // mid ring
     ring(58, 14, 26, 2, 8.5, true);  // outer ring — tallest silhouettes
     ring(40, 26, 36, 1.2, 3, false); // far low filler
     return { boxes, cyls, prisms, glass };
   }, [curve, stationPts]);
+
+  // Shared window-grid texture — instantly reads as "real buildings" instead
+  // of plain coloured boxes (multiplied by each instance's pastel colour).
+  const windowTex = useMemo(() => {
+    const c = document.createElement("canvas");
+    c.width = 64;
+    c.height = 96;
+    const ctx = c.getContext("2d")!;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, 64, 96);
+    ctx.fillStyle = "rgba(84,104,136,0.42)";
+    const cols = 3, rows = 5, pad = 8, gapX = 7, gapY = 6;
+    const w = (64 - pad * 2 - gapX * (cols - 1)) / cols;
+    const h = (96 - pad * 2 - gapY * (rows - 1)) / rows;
+    for (let r = 0; r < rows; r++)
+      for (let col = 0; col < cols; col++)
+        ctx.fillRect(pad + col * (w + gapX), pad + r * (h + gapY), w, h);
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }, []);
 
   const boxRef = useRef<THREE.InstancedMesh>(null);
   const cylRef = useRef<THREE.InstancedMesh>(null);
@@ -153,23 +229,87 @@ export function CityCrowd({ curve, stationPts }: { curve: THREE.CatmullRomCurve3
 
   return (
     <group>
-      <instancedMesh key={`b${sets.boxes.length}`} ref={boxRef} args={[undefined, undefined, sets.boxes.length]} receiveShadow>
+      <instancedMesh key={`b${sets.boxes.length}`} ref={boxRef} args={[undefined, undefined, sets.boxes.length]} castShadow receiveShadow>
         <boxGeometry />
-        <meshStandardMaterial roughness={0.8} />
+        <meshStandardMaterial roughness={0.72} map={windowTex} />
       </instancedMesh>
-      <instancedMesh key={`c${sets.cyls.length}`} ref={cylRef} args={[undefined, undefined, sets.cyls.length]}>
+      <instancedMesh key={`c${sets.cyls.length}`} ref={cylRef} args={[undefined, undefined, sets.cyls.length]} castShadow>
         <cylinderGeometry args={[0.5, 0.5, 1, 12]} />
-        <meshStandardMaterial roughness={0.7} />
+        <meshStandardMaterial roughness={0.6} metalness={0.08} />
       </instancedMesh>
-      <instancedMesh key={`p${sets.prisms.length}`} ref={prismRef} args={[undefined, undefined, sets.prisms.length]}>
+      <instancedMesh key={`p${sets.prisms.length}`} ref={prismRef} args={[undefined, undefined, sets.prisms.length]} castShadow>
         <cylinderGeometry args={[1, 1, 1, 3, 1, false, Math.PI / 2]} />
         <meshStandardMaterial roughness={0.85} flatShading />
       </instancedMesh>
-      <instancedMesh key={`g${sets.glass.length}`} ref={glassRef} args={[undefined, undefined, sets.glass.length]}>
+      <instancedMesh key={`g${sets.glass.length}`} ref={glassRef} args={[undefined, undefined, sets.glass.length]} castShadow>
         <boxGeometry />
         <meshPhysicalMaterial roughness={0.15} metalness={0.12} clearcoat={0.9} clearcoatRoughness={0.3} transparent opacity={0.9} />
       </instancedMesh>
     </group>
+  );
+}
+
+const HORIZON_TINTS = ["#d3dbe2", "#d9e0dd", "#dde2e6", "#d6dde4"];
+
+/**
+ * Distant skyline ring — simplified misty silhouettes all around the scene so
+ * the ground never runs bare to the horizon, whatever the camera angle.
+ * Filtered against the road AND the trailing-camera track: the rings cross
+ * the camera zone near the first/last stations.
+ */
+export function HorizonSilhouettes({ curve }: { curve: THREE.CatmullRomCurve3 }) {
+  const specs = useMemo(() => {
+    const rnd = mulberry(31337);
+    const out: Spec[] = [];
+    const keepOut: THREE.Vector3[] = [];
+    for (let i = 0; i <= 63; i++) {
+      const t = THREE.MathUtils.clamp(i / 63, 0.001, 0.999);
+      const p = curve.getPointAt(t);
+      const tan = curve.getTangentAt(t);
+      keepOut.push(p, new THREE.Vector3(p.x - tan.x * 8.6, 0, p.z - tan.z * 8.6 + 2));
+    }
+    const farFromCamera = (x: number, z: number) =>
+      !keepOut.some((s) => (s.x - x) ** 2 + (s.z - z) ** 2 < 13 * 13);
+    for (let i = 0; i < 150; i++) {
+      const a = (i / 150) * Math.PI * 2 + rnd() * 0.06;
+      const r = 38 + rnd() * 28;
+      const x = 1 + Math.cos(a) * r;
+      const z = -2 + Math.sin(a) * r * 0.92;
+      const h = 3.5 + rnd() * 11 * (0.4 + Math.min(1, (r - 38) / 20)); // taller farther out
+      const w = 2 + rnd() * 3.4;
+      if (!farFromCamera(x, z)) continue;
+      out.push({
+        pos: [x, h / 2 - 0.1, z],
+        rotY: (rnd() - 0.5) * 0.4,
+        scale: [w, h, 1.6 + rnd() * 2.6],
+        color: new THREE.Color(HORIZON_TINTS[Math.floor(rnd() * HORIZON_TINTS.length)]).offsetHSL(0, 0, (rnd() - 0.5) * 0.05),
+      });
+    }
+    // inner band — closer, lower, a touch deeper in tone so it stays visible
+    // through less fog and bridges city → horizon without a gap
+    for (let i = 0; i < 70; i++) {
+      const a = (i / 70) * Math.PI * 2 + rnd() * 0.09;
+      const r = 29 + rnd() * 9;
+      const h = 2 + rnd() * 4.5;
+      const x = 1 + Math.cos(a) * r;
+      const z = -2 + Math.sin(a) * r * 0.92;
+      if (!farFromCamera(x, z)) continue;
+      out.push({
+        pos: [x, h / 2 - 0.1, z],
+        rotY: (rnd() - 0.5) * 0.4,
+        scale: [1.8 + rnd() * 2.6, h, 1.5 + rnd() * 2.2],
+        color: new THREE.Color(rnd() > 0.5 ? "#ccd6cf" : "#cbd4dd").offsetHSL(0, 0, (rnd() - 0.5) * 0.06),
+      });
+    }
+    return out;
+  }, [curve]);
+  const ref = useRef<THREE.InstancedMesh>(null);
+  useLayoutEffect(() => applyInstances(ref.current, specs), [specs]);
+  return (
+    <instancedMesh ref={ref} args={[undefined, undefined, specs.length]}>
+      <boxGeometry />
+      <meshStandardMaterial roughness={1} />
+    </instancedMesh>
   );
 }
 
@@ -203,13 +343,13 @@ export function TreesInstanced({ curve, stationPts }: { curve: THREE.CatmullRomC
     };
 
     // roadside, jittered — never a perfect line
-    for (let i = 0; i < 36; i++) {
-      const t = Math.min(0.99, (i + rnd() * 0.9) / 36);
+    for (let i = 0; i < 64; i++) {
+      const t = Math.min(0.99, (i + rnd() * 0.9) / 64);
       const p = curve.getPointAt(t);
       const tan = curve.getTangentAt(t);
       const side = new THREE.Vector3().crossVectors(tan, UP).normalize();
       const dir = rnd() > 0.5 ? 1 : -1;
-      const dist = 2.2 + rnd() * 3.4;
+      const dist = 1.9 + rnd() * 4.5;
       add(p.x + side.x * dist * dir + (rnd() - 0.5) * 1.6, p.z + side.z * dist * dir + (rnd() - 0.5) * 1.6);
     }
     // park clusters (match the grass circles in the scene)

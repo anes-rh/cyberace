@@ -6,7 +6,8 @@ import { Sky, ContactShadows, Html, Float, Sparkles } from "@react-three/drei";
 import { gsap } from "gsap";
 import * as THREE from "three";
 import type { CheckpointSummary } from "@/lib/types";
-import { CityCrowd, TreesInstanced, SecondaryRoad, GroundTraffic, StreetLife, useGroundLoop } from "./cityExtras";
+import { EffectComposer, Bloom, Vignette, HueSaturation, BrightnessContrast } from "@react-three/postprocessing";
+import { CityCrowd, TreesInstanced, SecondaryRoad, GroundTraffic, StreetLife, HorizonSilhouettes, useGroundLoop } from "./cityExtras";
 
 const UP = new THREE.Vector3(0, 1, 0);
 
@@ -86,7 +87,7 @@ function useGroundTexture() {
     }
     const tex = new THREE.CanvasTexture(c);
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(10, 10);
+    tex.repeat.set(16, 16);
     return tex;
   }, []);
 }
@@ -109,6 +110,14 @@ function City({ curve, stationPts }: { curve: THREE.CatmullRomCurve3; stationPts
     }[] = [];
     let seed = 7;
     const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+    // ground track of the trailing camera — keep roofs out from under the lens
+    const trail: THREE.Vector3[] = [];
+    for (let i = 0; i <= 63; i++) {
+      const tt = THREE.MathUtils.clamp(i / 63, 0.001, 0.999);
+      const pp = curve.getPointAt(tt);
+      const tn = curve.getTangentAt(tt);
+      trail.push(new THREE.Vector3(pp.x - tn.x * 8.6, 0, pp.z - tn.z * 8.6 + 2));
+    }
     for (let i = 0; i < 46; i++) {
       const t = (i + 0.5) / 46;
       const p = curve.getPointAt(t);
@@ -117,18 +126,31 @@ function City({ curve, stationPts }: { curve: THREE.CatmullRomCurve3; stationPts
       const dir = i % 2 === 0 ? 1 : -1;
       const dist = 3.6 + rnd() * 7;
       const kindRoll = rnd();
-      let kind: BuildingKind = kindRoll > 0.86 ? "landmark" : kindRoll > 0.58 ? "glass" : "block";
-      let h = kind === "landmark" ? 6.5 + rnd() * 3.5 : kind === "glass" ? 3 + rnd() * 4 : 1.4 + rnd() * 4.5;
-      const w = kind === "landmark" ? 1.3 + rnd() * 0.5 : 1.1 + rnd() * 1.5;
-      const d = kind === "landmark" ? w : 1.1 + rnd() * 1.5;
+      // no "landmark" heroes anymore: a tall grey cone beside the camera path
+      // dominated the frame — the instanced crowd now carries the variety.
+      let kind: BuildingKind = kindRoll > 0.58 ? "glass" : "block";
+      let h = kind === "glass" ? 2.6 + rnd() * 2.2 : 1.4 + rnd() * 3.4;
+      const w = 1.1 + rnd() * 1.5;
+      const d = 1.1 + rnd() * 1.5;
       const bx = p.x + side.x * dist * dir + (rnd() - 0.5) * 2.4;
       const bz = p.z + side.z * dist * dir + (rnd() - 0.5) * 2.4;
       // Keep every station platform clear: no building near a checkpoint.
       if (stationPts.some((sp) => (sp.x - bx) ** 2 + (sp.z - bz) ** 2 < 6 ** 2)) continue;
+      // Never under or right beside the lens itself.
+      const trailD2 = Math.min(...trail.map((s) => (s.x - bx) ** 2 + (s.z - bz) ** 2));
+      if (trailD2 < 3 * 3) continue;
+      if (trailD2 < 6.5 * 6.5) {
+        kind = "block";
+        h = Math.min(h, 2.2);
+      }
       // Low-rise corridor along the road so stations stay visible while travelling.
       if (dist < 6.2) {
         kind = "block";
         h = Math.min(h, 2.6);
+      } else if (h > 4.2) {
+        // The camera trails ~9u behind the road: heroes this close must never
+        // tower into the lens (the "giant grey pillar" bug).
+        h = 4.2;
       }
       let tex: THREE.CanvasTexture | null = null;
       if (kind === "block") {
@@ -680,7 +702,7 @@ function Ground() {
   return (
     <>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} receiveShadow>
-        <planeGeometry args={[140, 140]} />
+        <planeGeometry args={[220, 220]} />
         <meshStandardMaterial map={tex} color="#eef3ea" roughness={1} />
       </mesh>
       {[[-8, 6], [9, -6], [2, 12]].map(([x, z], i) => (
@@ -706,22 +728,24 @@ export default function RoadmapScene({ checkpoints, activeIndex, onSelect }: {
   const groundLoop = useGroundLoop();
 
   return (
-    <Canvas shadows dpr={[1, 1.75]} camera={{ position: [-22, 12, 20], fov: 42 }} gl={{ antialias: true }}>
-      {/* golden-hour sky, fog tinted toward the ground colour for harmony */}
+    <Canvas shadows dpr={[1, 1.5]} camera={{ position: [-22, 12, 20], fov: 42 }} gl={{ antialias: true, preserveDrawingBuffer: true }}>
+      {/* golden-hour sky, fog pushed back so the city keeps its colour */}
       <Sky sunPosition={[-8, 2.4, -10]} turbidity={5.5} rayleigh={1.7} mieCoefficient={0.006} mieDirectionalG={0.85} />
-      <fog attach="fog" args={["#edf0e7", 32, 74]} />
-      {/* warm sky / sage ground hemisphere — pastel surfaces read as "lit" */}
-      <hemisphereLight args={["#fdf3e3", "#c9d6c2", 1.2]} />
-      <ambientLight intensity={0.4} />
+      <fog attach="fog" args={["#e4e8dd", 42, 98]} />
+      {/* hemisphere + ambient kept LOW so the warm key actually models the volumes */}
+      <hemisphereLight args={["#fdf3e3", "#c9d6c2", 0.8]} />
+      <ambientLight intensity={0.2} />
       {/* warm key (only shadow-caster) + cool lavender fill = colour depth */}
       <directionalLight
-        position={[-10, 13, -6]} intensity={1.85} color="#ffe3b8" castShadow
-        shadow-mapSize-width={1024} shadow-mapSize-height={1024}
-        shadow-camera-far={70} shadow-camera-left={-34} shadow-camera-right={34} shadow-camera-top={34} shadow-camera-bottom={-34}
+        position={[-10, 13, -6]} intensity={2.5} color="#ffdfae" castShadow
+        shadow-mapSize-width={2048} shadow-mapSize-height={2048}
+        shadow-camera-far={70} shadow-camera-left={-30} shadow-camera-right={30} shadow-camera-top={30} shadow-camera-bottom={-30}
+        shadow-bias={-0.0004}
       />
-      <directionalLight position={[12, 8, 10]} intensity={0.35} color="#d8e2f8" />
+      <directionalLight position={[12, 8, 10]} intensity={0.4} color="#d8e2f8" />
 
       <Ground />
+      <HorizonSilhouettes curve={curve} />
       <Road curve={curve} />
       <SecondaryRoad loop={groundLoop} />
       <City curve={curve} stationPts={stationPoints} />
@@ -743,6 +767,14 @@ export default function RoadmapScene({ checkpoints, activeIndex, onSelect }: {
 
       <ContactShadows position={[0, 0, 0]} opacity={0.26} scale={80} blur={2.6} far={14} color="#4a5a6a" />
       <CameraRig curve={curve} stops={stops} activeIndex={activeIndex} />
+
+      {/* subtle post — bloom on emissive accents, gentle grade, vignette depth */}
+      <EffectComposer multisampling={4}>
+        <Bloom mipmapBlur intensity={0.55} luminanceThreshold={0.8} luminanceSmoothing={0.25} />
+        <HueSaturation saturation={0.16} />
+        <BrightnessContrast brightness={0.015} contrast={0.08} />
+        <Vignette eskil={false} offset={0.18} darkness={0.42} />
+      </EffectComposer>
     </Canvas>
   );
 }
