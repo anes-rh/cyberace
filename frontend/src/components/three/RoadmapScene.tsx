@@ -6,6 +6,7 @@ import { Sky, ContactShadows, Html, Float, Sparkles } from "@react-three/drei";
 import { gsap } from "gsap";
 import * as THREE from "three";
 import type { CheckpointSummary } from "@/lib/types";
+import { CityCrowd, TreesInstanced, SecondaryRoad, GroundTraffic, StreetLife, useGroundLoop } from "./cityExtras";
 
 const UP = new THREE.Vector3(0, 1, 0);
 
@@ -62,6 +63,15 @@ function useGroundTexture() {
     const ctx = c.getContext("2d")!;
     ctx.fillStyle = "#dbe6d4";
     ctx.fillRect(0, 0, 256, 256);
+    // soft organic blotches — breaks flat colour before the street grid
+    let s = 13;
+    const rnd = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
+    for (let i = 0; i < 26; i++) {
+      ctx.fillStyle = i % 2 ? "rgba(232,240,222,0.20)" : "rgba(205,220,196,0.20)";
+      ctx.beginPath();
+      ctx.arc(rnd() * 256, rnd() * 256, 9 + rnd() * 22, 0, Math.PI * 2);
+      ctx.fill();
+    }
     // subtle alternating blocks
     ctx.fillStyle = "rgba(255,255,255,0.16)";
     for (let x = 0; x < 4; x++)
@@ -138,26 +148,6 @@ function City({ curve, stationPts }: { curve: THREE.CatmullRomCurve3; stationPts
     return items;
   }, [curve, winCanvas, stationPts]);
 
-  const trees = useMemo(() => {
-    const items: { pos: [number, number, number]; s: number; c: string }[] = [];
-    let seed = 42;
-    const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
-    const greens = ["#93b892", "#a7c79a", "#86ac83"];
-    for (let i = 0; i < 26; i++) {
-      const t = (i + 0.2) / 26;
-      const p = curve.getPointAt(t);
-      const tan = curve.getTangentAt(t);
-      const side = new THREE.Vector3().crossVectors(tan, UP).normalize();
-      const dir = i % 2 === 0 ? -1 : 1;
-      const dist = 2.3 + rnd() * 3;
-      const tx = p.x + side.x * dist * dir;
-      const tz = p.z + side.z * dist * dir;
-      if (stationPts.some((sp) => (sp.x - tx) ** 2 + (sp.z - tz) ** 2 < 3 ** 2)) continue;
-      items.push({ pos: [tx, 0, tz], s: 0.8 + rnd() * 0.5, c: greens[i % 3] });
-    }
-    return items;
-  }, [curve, stationPts]);
-
   return (
     <group>
       {buildings.map((b, i) => (
@@ -215,18 +205,6 @@ function City({ curve, stationPts }: { curve: THREE.CatmullRomCurve3; stationPts
           )}
         </group>
       ))}
-      {trees.map((t, i) => (
-        <group key={i} position={t.pos} scale={t.s}>
-          <mesh position={[0, 0.3, 0]} castShadow>
-            <cylinderGeometry args={[0.08, 0.1, 0.6, 6]} />
-            <meshStandardMaterial color="#b89a6f" roughness={1} />
-          </mesh>
-          <mesh position={[0, 0.95, 0]} castShadow>
-            <sphereGeometry args={[0.55, 10, 10]} />
-            <meshStandardMaterial color={t.c} roughness={1} />
-          </mesh>
-        </group>
-      ))}
     </group>
   );
 }
@@ -251,6 +229,10 @@ function Lamps({ curve }: { curve: THREE.CatmullRomCurve3 }) {
         <group key={i} position={l.pos}>
           <mesh position={[0, 0.7, 0]} castShadow>
             <cylinderGeometry args={[0.03, 0.045, 1.4, 6]} />
+            <meshStandardMaterial color="#c8cdd6" roughness={0.6} metalness={0.3} />
+          </mesh>
+          <mesh position={[0, 1.34, 0]}>
+            <boxGeometry args={[0.26, 0.035, 0.05]} />
             <meshStandardMaterial color="#c8cdd6" roughness={0.6} metalness={0.3} />
           </mesh>
           <mesh position={[0, 1.44, 0]}>
@@ -611,33 +593,84 @@ function Station({ point, cp, total, index, active, onSelect }: {
   );
 }
 
+/** easeInOutQuart — soft acceleration, soft arrival (three-story-controls style). */
+function easeInOutQuart(x: number) {
+  return x < 0.5 ? 8 * x * x * x * x : 1 - Math.pow(-2 * x + 2, 4) / 2;
+}
+
+/**
+ * StoryPoints-style rig: each checkpoint change starts a timed, eased
+ * transition along the curve (duration scales with distance travelled),
+ * with damped position + damped lookAt on top, and a gentle orbital sway
+ * that blends in once the camera has arrived.
+ */
 function CameraRig({ curve, stops, activeIndex }: { curve: THREE.CatmullRomCurve3; stops: number[]; activeIndex: number }) {
   const { camera } = useThree();
-  const progress = useRef({ t: stops[activeIndex] ?? 0.1 });
+  const progress = useRef(stops[activeIndex] ?? 0.1);
+  const trans = useRef({ from: 0, to: stops[activeIndex] ?? 0.1, t0: 0, dur: 1, running: false });
+  const orbit = useRef(0); // 0 → 1 idle-orbit blend after arrival
+  const look = useRef(new THREE.Vector3(0, 0, -1));
+  const started = useRef(false);
   const intro = useRef({ v: 0 }); // 0 → 1 establishing fly-in
-  const tmp = useMemo(() => ({ point: new THREE.Vector3(), tan: new THREE.Vector3(), look: new THREE.Vector3(), pos: new THREE.Vector3() }), []);
+  const tmp = useMemo(
+    () => ({ point: new THREE.Vector3(), tan: new THREE.Vector3(), side: new THREE.Vector3(), pos: new THREE.Vector3(), lookT: new THREE.Vector3() }),
+    []
+  );
 
   useEffect(() => {
     gsap.to(intro.current, { v: 1, duration: 2.6, ease: "power2.out" });
   }, []);
 
+  useEffect(() => {
+    const to = stops[activeIndex] ?? 0.1;
+    trans.current = {
+      from: progress.current,
+      to,
+      t0: performance.now(),
+      dur: THREE.MathUtils.clamp(1200 + Math.abs(to - progress.current) * 3200, 1400, 2400),
+      running: true,
+    };
+  }, [activeIndex, stops]);
+
   useFrame((state, delta) => {
-    // Critically-damped glide toward the active station (~1.8 s cinematic travel).
-    // Runs inside the render loop: immune to effect-timing issues, always converges.
-    const target = stops[activeIndex] ?? 0.1;
-    const k = 1 - Math.exp(-Math.min(delta, 0.05) * 1.9);
-    progress.current.t += (target - progress.current.t) * k;
-    const t = THREE.MathUtils.clamp(progress.current.t, 0.001, 0.999);
+    const tr = trans.current;
+    if (tr.running) {
+      const e = Math.min(1, (performance.now() - tr.t0) / tr.dur);
+      progress.current = tr.from + (tr.to - tr.from) * easeInOutQuart(e);
+      if (e >= 1) tr.running = false;
+      orbit.current = Math.max(0, orbit.current - delta * 2.5); // fade orbit out fast while travelling
+    } else {
+      progress.current = tr.to;
+      orbit.current = Math.min(1, orbit.current + delta / 1.5); // ease orbit in after arrival
+    }
+
+    const t = THREE.MathUtils.clamp(progress.current, 0.001, 0.999);
     curve.getPointAt(t, tmp.point);
     curve.getTangentAt(t, tmp.tan);
-    const sway = Math.sin(state.clock.elapsedTime * 0.4) * 0.4;
-    // establishing height eases from wide/high to the travelling shot
-    const height = THREE.MathUtils.lerp(12.5, 6.4, intro.current.v);
+    tmp.side.crossVectors(tmp.tan, UP).normalize();
+
+    const el = state.clock.elapsedTime;
+    const sway = Math.sin(el * 0.4) * 0.35;
+    const orbitOff = Math.sin(el * 0.22) * 1.15 * orbit.current; // slow lateral arc around the active station
+    const bob = Math.sin(el * 0.3) * 0.14 * orbit.current;
+    const height = THREE.MathUtils.lerp(12.5, 6.4, intro.current.v) + bob;
     const back = THREE.MathUtils.lerp(12, 8.6, intro.current.v);
-    tmp.pos.set(tmp.point.x - tmp.tan.x * back + sway, tmp.point.y + height, tmp.point.z - tmp.tan.z * back + 2);
-    camera.position.lerp(tmp.pos, 0.06);
-    tmp.look.set(tmp.point.x + tmp.tan.x * 2, tmp.point.y + 0.8, tmp.point.z + tmp.tan.z * 2);
-    camera.lookAt(tmp.look);
+
+    tmp.pos.set(
+      tmp.point.x - tmp.tan.x * back + tmp.side.x * (sway + orbitOff),
+      tmp.point.y + height,
+      tmp.point.z - tmp.tan.z * back + tmp.side.z * (sway + orbitOff) + 2
+    );
+    camera.position.lerp(tmp.pos, 0.07);
+
+    // damped lookAt — no rotational snap when the target station changes
+    tmp.lookT.set(tmp.point.x + tmp.tan.x * 2, tmp.point.y + 0.8, tmp.point.z + tmp.tan.z * 2);
+    if (!started.current) {
+      look.current.copy(tmp.lookT);
+      started.current = true;
+    }
+    look.current.lerp(tmp.lookT, 0.08);
+    camera.lookAt(look.current);
   });
   return null;
 }
@@ -670,25 +703,34 @@ export default function RoadmapScene({ checkpoints, activeIndex, onSelect }: {
   const curve = useRoadCurve();
   const stops = useStops(checkpoints.length);
   const stationPoints = useMemo(() => stops.map((t) => curve.getPointAt(t)), [curve, stops]);
+  const groundLoop = useGroundLoop();
 
   return (
-    <Canvas shadows dpr={[1, 1.8]} camera={{ position: [-22, 12, 20], fov: 42 }} gl={{ antialias: true }}>
-      <Sky sunPosition={[-8, 3, -10]} turbidity={5} rayleigh={1} mieCoefficient={0.006} mieDirectionalG={0.85} />
-      <fog attach="fog" args={["#e9edf4", 30, 68]} />
-      <hemisphereLight args={["#fdf6ea", "#c8d6c6", 1.15]} />
-      <ambientLight intensity={0.45} />
+    <Canvas shadows dpr={[1, 1.75]} camera={{ position: [-22, 12, 20], fov: 42 }} gl={{ antialias: true }}>
+      {/* golden-hour sky, fog tinted toward the ground colour for harmony */}
+      <Sky sunPosition={[-8, 2.4, -10]} turbidity={5.5} rayleigh={1.7} mieCoefficient={0.006} mieDirectionalG={0.85} />
+      <fog attach="fog" args={["#edf0e7", 32, 74]} />
+      {/* warm sky / sage ground hemisphere — pastel surfaces read as "lit" */}
+      <hemisphereLight args={["#fdf3e3", "#c9d6c2", 1.2]} />
+      <ambientLight intensity={0.4} />
+      {/* warm key (only shadow-caster) + cool lavender fill = colour depth */}
       <directionalLight
-        position={[-10, 13, -6]} intensity={1.7} color="#ffe9c8" castShadow
+        position={[-10, 13, -6]} intensity={1.85} color="#ffe3b8" castShadow
         shadow-mapSize-width={1024} shadow-mapSize-height={1024}
         shadow-camera-far={70} shadow-camera-left={-34} shadow-camera-right={34} shadow-camera-top={34} shadow-camera-bottom={-34}
       />
-      <directionalLight position={[12, 8, 10]} intensity={0.4} color="#dbe8ff" />
+      <directionalLight position={[12, 8, 10]} intensity={0.35} color="#d8e2f8" />
 
       <Ground />
       <Road curve={curve} />
+      <SecondaryRoad loop={groundLoop} />
       <City curve={curve} stationPts={stationPoints} />
+      <CityCrowd curve={curve} stationPts={stationPoints} />
+      <TreesInstanced curve={curve} stationPts={stationPoints} />
+      <StreetLife stationPts={stationPoints} />
       <Lamps curve={curve} />
       <Cars curve={curve} />
+      <GroundTraffic loop={groundLoop} />
       <Shuttle curve={curve} />
       <EnergyGates curve={curve} stops={stops} />
       <DataOrbs />

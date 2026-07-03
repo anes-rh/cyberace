@@ -61,14 +61,6 @@ export default function RoadmapExperience() {
     <section className="relative h-[calc(100dvh-4rem)] w-full overflow-hidden">
       <div className="absolute inset-0">{sceneEl}</div>
 
-      {/* top heading */}
-      <div className="pointer-events-none absolute left-0 right-0 top-6 z-10 px-6 text-center">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-primary">Ton parcours</p>
-        <h1 className="mt-1 font-display text-3xl font-semibold text-fg sm:text-4xl">
-          La route des <span className="gradient-text">checkpoints</span>
-        </h1>
-      </div>
-
       {/* right checkpoint navigator */}
       {checkpoints.length > 0 && (
         <div className="pointer-events-none absolute right-4 top-1/2 z-10 hidden -translate-y-1/2 lg:block xl:right-6">

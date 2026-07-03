@@ -49,7 +49,15 @@ export default function RoadmapFallback({
           </g>
         </g>
 
-        {/* skyline silhouette */}
+        {/* skyline silhouette — two depths */}
+        <g opacity="0.35">
+          {[
+            [4, 42, 3, 6], [24, 39, 4, 9], [30, 43, 3, 5], [44, 38, 3.5, 10],
+            [52, 41, 3, 7], [61, 36, 4, 12], [96, 40, 3, 8],
+          ].map(([x, y, w, h], i) => (
+            <rect key={i} x={x} y={y} width={w} height={h} rx="0.6" fill={i % 2 ? "#d5dfe9" : "#dde4d6"} />
+          ))}
+        </g>
         <g opacity="0.5">
           {[
             [8, 40, 4, 8], [13, 36, 5, 12], [19, 42, 3.5, 6], [70, 40, 4, 8],
@@ -62,6 +70,22 @@ export default function RoadmapFallback({
         {/* hills */}
         <path d="M0 48 Q 25 40 50 48 T 100 46 V64 H0 Z" fill="#d3e0cb" opacity="0.85" />
         <path d="M0 55 Q 30 48 60 55 T 100 54 V64 H0 Z" fill="#c6d6bd" opacity="0.9" />
+
+        {/* trees — round, conifer and bush variants */}
+        <g opacity="0.85">
+          {([[10, 56, "r"], [26, 53, "c"], [38, 57, "b"], [57, 54, "r"], [72, 56, "c"], [90, 53, "r"], [47, 52, "b"]] as const).map(([x, y, k], i) =>
+            k === "c" ? (
+              <polygon key={i} points={`${x},${y - 4} ${x - 1.6},${y} ${x + 1.6},${y}`} fill={i % 2 ? "#93b892" : "#86ac83"} />
+            ) : k === "b" ? (
+              <ellipse key={i} cx={x} cy={y - 0.6} rx="2" ry="1.1" fill="#a7c79a" />
+            ) : (
+              <g key={i}>
+                <rect x={x - 0.25} y={y - 1.6} width="0.5" height="1.6" fill="#b89a6f" />
+                <circle cx={x} cy={y - 2.6} r="1.5" fill={i % 2 ? "#9dbf8e" : "#93b892"} />
+              </g>
+            )
+          )}
+        </g>
 
         {/* road */}
         <path d={PATH} fill="none" stroke="#efe6d3" strokeWidth="5" strokeLinecap="round" />
