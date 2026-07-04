@@ -71,6 +71,12 @@ export const api = {
 
   me: () => request<{ user: User }>("/auth/me"),
 
+  updateProfile: (body: { username?: string; avatarUrl?: string | null }) =>
+    request<{ user: User }>("/auth/profile", { method: "PATCH", body: JSON.stringify(body) }),
+
+  updatePassword: (body: { currentPassword: string; newPassword: string }) =>
+    request<{ user: User }>("/auth/password", { method: "PATCH", body: JSON.stringify(body) }),
+
   checkpoints: () => request<{ checkpoints: CheckpointSummary[] }>("/checkpoints"),
   checkpoint: (slug: string) => request<CheckpointDetail>(`/checkpoints/${slug}`),
 

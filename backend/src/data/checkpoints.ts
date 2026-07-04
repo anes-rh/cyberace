@@ -15,7 +15,7 @@ export const allCheckpoints: CheckpointSeed[] = [
     icon: "Binary",
     accent: "#6FA8DC",
     description:
-      "Le cursus complet L1→L2 : pseudo-code USTHB, traces d'exécution, tableaux, structures dynamiques, complexité, piles/files, arbres — cours magistraux vulgarisés, TD corrigés ligne à ligne et TP en C avec éditeur intégré.",
+      "Le cursus complet L1→L2 : pseudo-code CyberAce, traces d'exécution, tableaux, structures dynamiques, complexité, piles/files, arbres — cours magistraux vulgarisés, TD corrigés ligne à ligne et TP en C avec éditeur intégré.",
     tagline: "Première étape du parcours",
   },
   {

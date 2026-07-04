@@ -22,6 +22,12 @@ export interface UserDoc extends Document {
   passwordHash: string;
   displayName: string;
   avatarSeed: string;
+  /** Uploaded profile picture (data URL). Falls back to the initials avatar when absent. */
+  avatarUrl?: string;
+  /** Last time the pseudo (username) was changed — enforces the 1/week limit. */
+  usernameChangedAt?: Date;
+  /** Last time the password was changed — enforces the 1/week limit. */
+  passwordChangedAt?: Date;
   title: string;
   xp: number;
   solved: SolvedEntry[];
@@ -75,6 +81,9 @@ const userSchema = new Schema<UserDoc>(
     passwordHash: { type: String, required: true, select: false },
     displayName: { type: String, required: true, trim: true, maxlength: 40 },
     avatarSeed: { type: String, default: () => Math.random().toString(36).slice(2, 10) },
+    avatarUrl: { type: String },
+    usernameChangedAt: { type: Date },
+    passwordChangedAt: { type: Date },
     title: { type: String, default: "Recrue" },
     xp: { type: Number, default: 0, index: true },
     solved: { type: [solvedSchema], default: [] },

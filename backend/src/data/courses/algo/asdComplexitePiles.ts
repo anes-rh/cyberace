@@ -512,13 +512,13 @@ fait;
     challenges: [
       {
         id: "asd-cx-s3e1-seq",
-        title: "Série 3 — Ex.1 : itérations en séquence",
+        title: "Ex.1 : itérations en séquence",
         order: 1,
         difficulty: "easy",
         type: "text",
         points: 100,
         timeLimitSec: 360,
-        prompt: `**Série 3 — Exercice 1 (première action).** Évalue la complexité de l'action suivante (tableaux d'entiers **sans répétition** de valeurs) :
+        prompt: `**Exercice 1 (première action).** Évalue la complexité de l'action suivante (tableaux d'entiers **sans répétition** de valeurs) :
 
 \`\`\`
 Action Seq_itérations;
@@ -557,17 +557,17 @@ Donne la complexité au pire des cas en notation de Landau (ex : O(n)).`,
 Le terme de poids fort est proportionnel à n → **C(n) = O(n)**, complexité **linéaire**.
 
 ⚠️ Piège classique : « trois boucles » ne veut pas dire O(n³) — elles ne sont pas imbriquées !`,
-        tags: ["complexite", "serie3", "sequence"],
+        tags: ["complexite", "sequence"],
       },
       {
         id: "asd-cx-s3e1-imb",
-        title: "Série 3 — Ex.1 : itérations imbriquées",
+        title: "Ex.1 : itérations imbriquées",
         order: 2,
         difficulty: "medium",
         type: "text",
         points: 200,
         timeLimitSec: 720,
-        prompt: `**Série 3 — Exercice 1 (deuxième action).** Même question pour cette action :
+        prompt: `**Exercice 1 (deuxième action).** Même question pour cette action :
 
 \`\`\`
 Action Imb_itérations;
@@ -608,17 +608,17 @@ Donne la complexité au pire des cas en notation de Landau.`,
 **Séquence totale** : C(n) = O(n) + O(n) + O(n²) = **O(n²)**, complexité **quadratique**.
 
 💡 Comparaison instructive avec Seq_itérations : même problème d'apparence (comparer deux tableaux), mais chercher chaque élément *partout* dans l'autre tableau (imbrication) au lieu de comparer *case à case* (séquence) fait passer de O(n) à O(n²).`,
-        tags: ["complexite", "serie3", "imbrication"],
+        tags: ["complexite", "imbrication"],
       },
       {
         id: "asd-cx-s3e2-ab",
-        title: "Série 3 — Ex.2 : algorithmes A et B",
+        title: "Ex.2 : algorithmes A et B",
         order: 3,
         difficulty: "medium",
         type: "mcq",
         points: 200,
         timeLimitSec: 720,
-        prompt: `**Série 3 — Exercice 2 (algorithmes A et B).** Détermine la complexité **en nombre d'itérations effectuées** des algorithmes suivants, où m et n sont deux entiers positifs :
+        prompt: `**Exercice 2 (algorithmes A et B).** Détermine la complexité **en nombre d'itérations effectuées** des algorithmes suivants, où m et n sont deux entiers positifs :
 
 \`\`\`
 Algorithme A                      Algorithme B
@@ -650,17 +650,17 @@ Quelle paire de complexités est correcte ?`,
 **Algorithme B — condition (i ≤ m) OU (j ≤ n).** La boucle tourne tant qu'AU MOINS une condition est vraie ; elle ne s'arrête que quand les deux bornes sont dépassées. Si m = 3 et n = 10 : il faut 10 tours pour que j dépasse n. Nombre d'itérations = **max(m,n)** → **O(max(m,n))**.
 
 *Vérification croisée* : pour m = n, les deux donnent n itérations — cohérent, car min(n,n) = max(n,n) = n.`,
-        tags: ["complexite", "serie3", "boucles"],
+        tags: ["complexite", "boucles"],
       },
       {
         id: "asd-cx-s3e2-cd",
-        title: "Série 3 — Ex.2 : algorithmes C et D",
+        title: "Ex.2 : algorithmes C et D",
         order: 4,
         difficulty: "hard",
         type: "mcq",
         points: 350,
         timeLimitSec: 1500,
-        prompt: `**Série 3 — Exercice 2 (algorithmes C et D).** Même question pour :
+        prompt: `**Exercice 2 (algorithmes C et D).** Même question pour :
 
 \`\`\`
 Algorithme C                      Algorithme D
@@ -700,18 +700,18 @@ Quelle paire de complexités est correcte ?`,
 *Trace (m = 2, n = 2)* : (1,1)→(2,1)→(3,1)→(1,2)→(2,2)→(3,2)→(1,3) stop : 6 itérations = n·(m+1). ✅
 
 💡 Moralité : une simple instruction (i ← 1) fait passer l'algorithme de linéaire O(m+n) à quadratique O(m·n). Toujours regarder si les compteurs sont *réinitialisés*.`,
-        tags: ["complexite", "serie3", "boucles"],
+        tags: ["complexite", "boucles"],
       },
       {
         id: "asd-cx-s3e3-dicho",
-        title: "Série 3 — Ex.3.1 : recherche dichotomique",
+        title: "Ex.3.1 : recherche dichotomique",
         order: 5,
         difficulty: "hard",
         type: "code",
         language: "pseudo",
         points: 350,
         timeLimitSec: 1500,
-        prompt: `**Série 3 — Exercice 3, question 1.** Écris l'algorithme de **recherche dichotomique** d'une valeur val dans un vecteur **trié** d'entiers T de taille n, puis calcule sa complexité (tu la retrouveras dans la correction).
+        prompt: `**Exercice 3, question 1.** Écris l'algorithme de **recherche dichotomique** d'une valeur val dans un vecteur **trié** d'entiers T de taille n, puis calcule sa complexité (tu la retrouveras dans la correction).
 
 Principe : comparer val à l'élément du **milieu** ; selon le résultat, éliminer la moitié gauche ou la moitié droite, et recommencer sur la moitié restante.
 
@@ -770,18 +770,18 @@ Fin;
 **C(n) = O(log n)** — complexité **logarithmique**, à comparer avec la recherche séquentielle en O(n) : pour n = 1 000 000, environ 20 tours au lieu d'un million. La contrepartie : le vecteur doit être **trié**.
 
 *Déroulement sur l'exemple (chercher 40 dans [3, 8, 15, 21, 40, 57, 62])* : inf=0, sup=6 → mid=3, T[3]=21 < 40 → inf=4 ; mid=(4+6)/2=5, T[5]=57 > 40 → sup=4 ; mid=4, T[4]=40 → vrai, en 3 tours.`,
-        tags: ["complexite", "serie3", "dichotomie", "code"],
+        tags: ["complexite", "dichotomie", "code"],
       },
       {
         id: "asd-cx-s3e3-prodmat",
-        title: "Série 3 — Ex.3.2 : produit de matrices",
+        title: "Ex.3.2 : produit de matrices",
         order: 6,
         difficulty: "hard",
         type: "code",
         language: "pseudo",
         points: 350,
         timeLimitSec: 1500,
-        prompt: `**Série 3 — Exercice 3, question 2** (aussi Exercice 4 du chapitre 3). Écris l'algorithme du **produit de deux matrices** A(n, m) et B(m, p) d'entiers, dans une matrice C(n, p), et calcule sa complexité.
+        prompt: `**Exercice 3, question 2** (aussi Exercice 4 du chapitre 3). Écris l'algorithme du **produit de deux matrices** A(n, m) et B(m, p) d'entiers, dans une matrice C(n, p), et calcule sa complexité.
 
 Rappel : C[i, j] = somme sur k de A[i, k] × B[k, j].
 
@@ -834,18 +834,18 @@ Fin;
 C(n, m, p) = c·n·m·p + (termes de poids faible pour les initialisations) → **O(n·m·p)**.
 
 Pour des matrices carrées (n = m = p), on retrouve la fameuse complexité **cubique O(n³)** citée dans le cours comme exemple type de O(nᵏ) avec k = 3.`,
-        tags: ["complexite", "serie3", "matrices", "code"],
+        tags: ["complexite", "matrices", "code"],
       },
       {
         id: "asd-cx-s3e3-triselect",
-        title: "Série 3 — Ex.3.3 : tri par sélection",
+        title: "Ex.3.3 : tri par sélection",
         order: 7,
         difficulty: "hard",
         type: "code",
         language: "pseudo",
         points: 350,
         timeLimitSec: 1500,
-        prompt: `**Série 3 — Exercice 3, question 3.** Écris l'algorithme du **tri par sélection** d'un vecteur V d'entiers de taille n (ordre croissant), et calcule sa complexité.
+        prompt: `**Exercice 3, question 3.** Écris l'algorithme du **tri par sélection** d'un vecteur V d'entiers de taille n (ordre croissant), et calcule sa complexité.
 
 Principe : à l'étape i, chercher le **minimum** de V[i..n-1] et l'**échanger** avec V[i].
 
@@ -906,18 +906,18 @@ Fin;
 C(n) = n(n−1)/2 × coût constant + (n−1) échanges au plus → terme de poids fort n²/2 → **O(n²)**, complexité **quadratique** — l'exemple type du cours (« tri par permutations »).
 
 💡 Remarque : le nombre de comparaisons est le MÊME quel que soit le vecteur (déjà trié ou non) — meilleur cas = pire cas = O(n²) pour les comparaisons ; seuls les échanges varient.`,
-        tags: ["complexite", "serie3", "tri", "code"],
+        tags: ["complexite", "tri", "code"],
       },
       {
         id: "asd-cx-s3e4-binaire",
-        title: "Série 3 — Ex.4 : décomposition binaire en liste chaînée",
+        title: "Ex.4 : décomposition binaire en liste chaînée",
         order: 8,
         difficulty: "hard",
         type: "code",
         language: "pseudo",
         points: 350,
         timeLimitSec: 1500,
-        prompt: `**Série 3 — Exercice 4.** Écris une **action paramétrée** qui décompose un nombre entier positif N en **binaire** dans une **liste chaînée** d'entiers, puis calcule la complexité de l'algorithme.
+        prompt: `**Exercice 4.** Écris une **action paramétrée** qui décompose un nombre entier positif N en **binaire** dans une **liste chaînée** d'entiers, puis calcule la complexité de l'algorithme.
 
 Méthode des divisions successives : N mod 2 donne le bit de poids faible, puis N ← N div 2, et on recommence tant que N > 0.
 
@@ -989,18 +989,18 @@ Fin;
 **Calcul de complexité.** Chaque itération a un coût constant (allocation + 2 affectations de champs + mod + div). La boucle s'exécute tant que N > 0 en divisant N par 2 à chaque tour : nombre d'itérations = nombre de bits de N = ⌊log₂ N⌋ + 1.
 
 **C(N) = O(log N)** — complexité **logarithmique** : ici la « taille de la donnée » est la valeur N, et on la ronge par moitiés successives, exactement comme la dichotomie.`,
-        tags: ["complexite", "serie3", "liste-chainee", "code"],
+        tags: ["complexite", "liste-chainee", "code"],
       },
       {
         id: "asd-cx-s3e5-naif",
-        title: "Série 3 — Ex.5a : l'élément égal à la somme des autres (naïf)",
+        title: "Ex.5a : l'élément égal à la somme des autres (naïf)",
         order: 9,
         difficulty: "medium",
         type: "code",
         language: "pseudo",
         points: 200,
         timeLimitSec: 900,
-        prompt: `**Série 3 — Exercice 5a.** Étant donné un tableau A de n entiers, on cherche à savoir si **l'un de ses éléments est égal à la somme des n−1 autres**.
+        prompt: `**Exercice 5a.** Étant donné un tableau A de n entiers, on cherche à savoir si **l'un de ses éléments est égal à la somme des n−1 autres**.
 
 \`\`\`
 A : [ 3 | 8 | -6 | 3 | -1 | 9 ]
@@ -1054,18 +1054,18 @@ Fin;
 **Calcul de complexité.** Pour chacun des n candidats, on refait une somme complète de n−1 additions : C(n) = n × (n−1) additions + n comparaisons → terme de poids fort n² → **O(n²)**, quadratique.
 
 Le gaspillage saute aux yeux : on recalcule presque la même somme n fois. D'où la question b de l'exercice… (défi suivant 😉).`,
-        tags: ["complexite", "serie3", "tableaux", "code"],
+        tags: ["complexite", "tableaux", "code"],
       },
       {
         id: "asd-cx-s3e5-ameliore",
-        title: "Série 3 — Ex.5b : la même chose, mais en malin",
+        title: "Ex.5b : la même chose, mais en malin",
         order: 10,
         difficulty: "medium",
         type: "code",
         language: "pseudo",
         points: 200,
         timeLimitSec: 900,
-        prompt: `**Série 3 — Exercice 5b.** On peut améliorer, **au sens de la complexité**, l'algorithme précédent. Écris ce deuxième algorithme et donne sa complexité.
+        prompt: `**Exercice 5b.** On peut améliorer, **au sens de la complexité**, l'algorithme précédent. Écris ce deuxième algorithme et donne sa complexité.
 
 💡 Piste mathématique : si S est la somme de TOUS les éléments, alors « A[i] égale la somme des autres » s'écrit A[i] = S − A[i], c'est-à-dire **2·A[i] = S**.`,
         starter: `Fonction ExisteSommeAutres2 (E/ A: TAB, E/ n: entier): booleen
@@ -1114,17 +1114,17 @@ Fin;
 **Vérification sur l'exemple** A = [3, 8, −6, 3, −1, 9] : S = 16 ; on cherche un élément tel que 2·A[i] = 16 → A[1] = 8 ✅.
 
 🏁 Bilan de l'exercice 5 : O(n²) → O(n) juste en réorganisant le calcul. C'est exactement le but du calcul de complexité : détecter ce genre de gain **avant** d'implémenter.`,
-        tags: ["complexite", "serie3", "optimisation", "code"],
+        tags: ["complexite", "optimisation", "code"],
       },
       {
         id: "asd-cx-s3e6-deroule",
-        title: "Série 3 — Ex.6 : dérouler Fusion_B",
+        title: "Ex.6 : dérouler Fusion_B",
         order: 11,
         difficulty: "medium",
         type: "text",
         points: 200,
         timeLimitSec: 720,
-        prompt: `**Série 3 — Exercice 6 (déroulement).** On dispose de deux tableaux triés T1[1..n] et T2[1..n]. **Fusion_B** remplit T3[1..2n] en parcourant **simultanément** T1 et T2 (indices courants i1 et i2) :
+        prompt: `**Exercice 6 (déroulement).** On dispose de deux tableaux triés T1[1..n] et T2[1..n]. **Fusion_B** remplit T3[1..2n] en parcourant **simultanément** T1 et T2 (indices courants i1 et i2) :
 
 - si T1[i1] < T2[i2] : mettre T1[i1] à la fin de T3 et avancer dans T1 ;
 - si T1[i1] > T2[i2] : mettre T2[i2] à la fin de T3 et avancer dans T2 ;
@@ -1155,18 +1155,18 @@ Donne le contenu final de T3 (valeurs séparées par des espaces).`,
 | 5 | 5 | — | T2 épuisé | recopier le reste de T1 | **1 2 3 3 4 5** |
 
 Chaque comparaison fait progresser au moins un indice : après au plus 2n étapes, tout est recopié. C'est ce qui rend Fusion_B **linéaire** — la preuve au prochain défi.`,
-        tags: ["complexite", "serie3", "fusion"],
+        tags: ["complexite", "fusion"],
       },
       {
         id: "asd-cx-s3e6-fusion-a",
-        title: "Série 3 — Ex.6 : écrire Fusion_A",
+        title: "Ex.6 : écrire Fusion_A",
         order: 12,
         difficulty: "hard",
         type: "code",
         language: "pseudo",
         points: 350,
         timeLimitSec: 1800,
-        prompt: `**Série 3 — Exercice 6 (Fusion_A).** Écris l'algorithme **Fusion_A** : initialiser T3 avec T1 (déjà trié), puis y **insérer un à un** les éléments de T2 de façon à ce que l'ordre soit respecté (comme la procédure Insère du cours : décalage à droite puis insertion).
+        prompt: `**Exercice 6 (Fusion_A).** Écris l'algorithme **Fusion_A** : initialiser T3 avec T1 (déjà trié), puis y **insérer un à un** les éléments de T2 de façon à ce que l'ordre soit respecté (comme la procédure Insère du cours : décalage à droite puis insertion).
 
 Entrées : T1[0..n-1] et T2[0..n-1] triés croissants. Sortie : T3[0..2n-1] trié.`,
         starter: `Procédure Fusion_A (E/ T1: TAB, E/ T2: TAB, S/ T3: TAB, E/ n: entier)
@@ -1226,18 +1226,18 @@ Fin;
 **Complexité au pire des cas.** La recopie initiale coûte n. Pour la j-ième insertion, T3 contient n+j éléments et le décalage peut tous les toucher (cas T2 dont tous les éléments sont plus petits que ceux de T1) : n + (n+1) + … + (2n−1) = somme d'environ n termes de l'ordre de n → ≈ 3n²/2.
 
 **C(n) = O(n²)** — quadratique.`,
-        tags: ["complexite", "serie3", "fusion", "code"],
+        tags: ["complexite", "fusion", "code"],
       },
       {
         id: "asd-cx-s3e6-fusion-b",
-        title: "Série 3 — Ex.6 : écrire Fusion_B",
+        title: "Ex.6 : écrire Fusion_B",
         order: 13,
         difficulty: "hard",
         type: "code",
         language: "pseudo",
         points: 350,
         timeLimitSec: 1800,
-        prompt: `**Série 3 — Exercice 6 (Fusion_B).** Écris l'algorithme **Fusion_B** : remplir T3 en parcourant **simultanément** T1 et T2 du début jusqu'à leur fin. Soient i1 et i2 les indices courants dans T1 et T2 ; trois cas :
+        prompt: `**Exercice 6 (Fusion_B).** Écris l'algorithme **Fusion_B** : remplir T3 en parcourant **simultanément** T1 et T2 du début jusqu'à leur fin. Soient i1 et i2 les indices courants dans T1 et T2 ; trois cas :
 
 - si T1[i1] < T2[i2] : mettre T1[i1] à la fin de T3 et avancer dans T1 ;
 - si T1[i1] > T2[i2] : mettre T2[i2] à la fin de T3 et avancer dans T2 ;
@@ -1297,17 +1297,17 @@ Fin;
 **C(n) = O(n)** — linéaire.
 
 **Comparaison finale (question 2 de l'exercice)** : Fusion_A = O(n²), Fusion_B = O(n) → on choisit **Fusion_B** pour l'implémentation. Détails au défi suivant.`,
-        tags: ["complexite", "serie3", "fusion", "code"],
+        tags: ["complexite", "fusion", "code"],
       },
       {
         id: "asd-cx-s3e6-choix",
-        title: "Série 3 — Ex.6 : quel algorithme implémenter ?",
+        title: "Ex.6 : quel algorithme implémenter ?",
         order: 14,
         difficulty: "easy",
         type: "mcq",
         points: 100,
         timeLimitSec: 300,
-        prompt: `**Série 3 — Exercice 6, question 2.** Donne la complexité, **au pire des cas**, des algorithmes Fusion_A et Fusion_B en fonction de la taille des données. Quel algorithme choisis-tu d'implémenter ?`,
+        prompt: `**Exercice 6, question 2.** Donne la complexité, **au pire des cas**, des algorithmes Fusion_A et Fusion_B en fonction de la taille des données. Quel algorithme choisis-tu d'implémenter ?`,
         options: [
           "Fusion_A : O(n²), Fusion_B : O(n) → j'implémente Fusion_B",
           "Fusion_A : O(n), Fusion_B : O(n²) → j'implémente Fusion_A",
@@ -1322,7 +1322,7 @@ Fin;
         explanation: `**Corrigé.** Fusion_A = insertion avec décalage répétée n fois dans un tableau qui grossit : au pire n + (n+1) + … + (2n−1) ≈ 3n²/2 opérations → **O(n²)**. Fusion_B = parcours simultané, chaque itération avance au moins un curseur, 2n cases à remplir → **O(n)**.
 
 **Choix : Fusion_B.** C'est exactement le troisième « besoin » de la notion de complexité vu au cours : *comparer les algorithmes résolvant un problème donné afin de faire un choix avant de les implémenter*. À taille égale, l'écart est colossal : pour n = 10 000, environ 150 millions d'opérations pour A contre 20 000 pour B.`,
-        tags: ["complexite", "serie3", "fusion"],
+        tags: ["complexite", "fusion"],
       },
       // __C1_MORE2__
     ],
@@ -1339,7 +1339,7 @@ Fin;
     order: 7,
     difficulty: "medium",
     summary:
-      "Deux structures reines : la Pile (LIFO, on empile/dépile par le sommet) et la File (FIFO, on enfile en queue, on défile en tête). Primitives sur liste chaînée, schémas avant/après, et tous les exercices de la Série 4 corrigés.",
+      "Deux structures reines : la Pile (LIFO, on empile/dépile par le sommet) et la File (FIFO, on enfile en queue, on défile en tête). Primitives sur liste chaînée, schémas avant/après, et les exercices.",
     objectives: [
       "Distinguer une Pile (LIFO) d'une File (FIFO) et savoir quand utiliser chacune",
       "Déclarer une pile et une file en représentation chaînée (pointeurs ^)",
@@ -1466,7 +1466,7 @@ Type Elément = Enregistrement
                FinEnreg ;
 \`\`\`
 
-> 🧠 **Astuce mémo** — dans beaucoup d'exercices de la Série 4, on **ne peut consulter que la tête** d'une file. Pour parcourir toute la file (ex : \`affiche_File\`), on **défile** chaque élément vers une **file intermédiaire F1**, puis on fait \`F ← F1\` pour tout remettre. C'est le motif à connaître par cœur ! 🔁
+> 🧠 **Astuce mémo** — dans beaucoup d'exercices de cet atelier, on **ne peut consulter que la tête** d'une file. Pour parcourir toute la file (ex : \`affiche_File\`), on **défile** chaque élément vers une **file intermédiaire F1**, puis on fait \`F ← F1\` pour tout remettre. C'est le motif à connaître par cœur ! 🔁
 
 ---
 
@@ -1476,7 +1476,7 @@ Comme on n'accède qu'à **un bout**, presque tous les traitements suivent le m�
 
 > **Pour fouiller une pile/file sans la perdre, on la vide dans une structure temporaire, puis on la reconstruit.**
 
-C'est exactement ce que font \`affiche_File\` (via \`F1\`), \`vérifOrdre\` (via \`B\`), \`supprim\`, \`insert\` (via \`F1\`) et \`SUPPR\` (via \`T\` et \`R\`) dans la Série 4.
+C'est exactement ce que font \`affiche_File\` (via \`F1\`), \`vérifOrdre\` (via \`B\`), \`supprim\`, \`insert\` (via \`F1\`) et \`SUPPR\` (via \`T\` et \`R\`) dans cet atelier.
 
 ---
 
@@ -1568,7 +1568,7 @@ Dépiler(S, x) ;
   │ A │
   └───┘
 \`\`\``,
-        tags: ["pile", "lifo", "serie4"],
+        tags: ["pile", "lifo"],
       },
       {
         id: "asd-pf-fifo",
@@ -1599,7 +1599,7 @@ Défiler(F, x) ;
         explanation: `**FIFO** = *First In, First Out*. \`'A'\`, arrivé **en premier**, occupe la **tête** ; on défile par la tête, donc \`x = 'A'\`.
 
 C'est toute la différence avec la pile : même séquence d'insertion, résultat **opposé** ('A' pour la file, 'C' pour la pile).`,
-        tags: ["file", "fifo", "serie4"],
+        tags: ["file", "fifo"],
       },
       {
         id: "asd-pf-empiler",
@@ -1653,7 +1653,7 @@ Fin ;
 \`\`\`
 
 **Pourquoi cet ordre ?** Si on écrivait \`S ← nouv\` **avant** \`(^nouv).suivant ← S\`, alors \`S\` vaudrait déjà \`nouv\`, et \`nouv\` finirait par **pointer sur lui-même** — la pile serait corrompue et on perdrait tous les anciens éléments.`,
-        tags: ["pile", "code", "primitive", "serie4"],
+        tags: ["pile", "code", "primitive"],
       },
       {
         id: "asd-pf-depiler",
@@ -1698,7 +1698,7 @@ Fin ;
 \`\`\`
 
 Sans la ligne \`libérer(temp)\`, chaque \`Dépiler\` laisserait un maillon fantôme en mémoire : c'est la **fuite mémoire** classique. Et sans \`temp\`, après \`S ← (^S).suivant\` on n'aurait **plus aucun moyen** d'atteindre l'ancien sommet pour le libérer.`,
-        tags: ["pile", "code", "primitive", "memoire", "serie4"],
+        tags: ["pile", "code", "primitive", "memoire"],
       },
       {
         id: "asd-pf-suppr-complexite",
@@ -1738,7 +1738,7 @@ En **Grand O**, on ne garde que le **terme dominant** (\`n²\`) et on ignore les
 > **complexité de SUPPR = O(n²)**
 
 Détail du corrigé : la boucle (1) et la boucle (2) sont toutes deux en O(n²) et **séquentielles** (donc O(n²) + O(n²) = O(n²)) ; la boucle (3) de remise en place est en O(n), négligeable devant O(n²).`,
-        tags: ["complexite", "pile", "grand-o", "serie4"],
+        tags: ["complexite", "pile", "grand-o"],
       },
       {
         id: "asd-pf-compare-dates",
@@ -1800,7 +1800,7 @@ Fin ;
 \`\`\`
 
 **Pourquoi cet ordre année → mois → jour ?** L'année a le **poids** le plus fort : deux dates de la même année ne se départagent que par le mois, et à mois égal, par le jour. Comparer le jour en premier donnerait des non-sens (le 31/01/2020 « après » le 01/12/2025). Cette fonction \`Compare\` sert ensuite à \`vérifOrdre\` pour tester si une pile de dates est triée.`,
-        tags: ["pile", "code", "date", "enregistrement", "serie4"],
+        tags: ["pile", "code", "date", "enregistrement"],
       },
       {
         id: "asd-pf-affiche-file",
@@ -1844,7 +1844,7 @@ Fin ;
 \`\`\`
 
 Le même motif sert pour \`supprim\`, \`insert\` (via \`F1\`) et \`vérifOrdre\` (via une pile \`B\`).`,
-        tags: ["file", "motif", "serie4"],
+        tags: ["file", "motif"],
       },
       {
         id: "asd-pf-fusion-trace",
@@ -1885,7 +1885,7 @@ C : 10 → 12 → 15 → 20 → 30 → 60 → 70 → 70 → 82
 - \`20\` (A) > \`15\` (B) → C = [10, 12, **15**] ← la **3ᵉ** valeur est **15**.
 
 La file résultat contient les 4 + 5 = **9** éléments, triés. Note : le \`70\` apparaît **deux fois** (une fois de chaque file) — la fusion conserve les doublons.`,
-        tags: ["file", "fusion", "trace", "serie4"],
+        tags: ["file", "fusion", "trace"],
       },
       {
         id: "asd-pf-tri-pile",
@@ -1947,7 +1947,7 @@ Fin ;
 \`\`\`
 
 **Idée du tri par insertion sur pile :** \`B\` garde les éléments **déjà triés** (min au sommet). Quand le sommet de \`A\` est plus petit que celui de \`B\`, il a sa place au sommet → on l'y met et on **rapatrie** ce qu'on avait mis de côté dans \`C\`. Sinon, on **déblaie** temporairement le sommet de \`B\` vers \`C\` pour créer la place. C'est l'analogue « à trois piles » de l'insertion dans un tableau trié. Complexité : **O(n²)** dans le pire cas (chaque insertion peut re-transvaser toute la pile).`,
-        tags: ["pile", "code", "tri", "tp", "serie4"],
+        tags: ["pile", "code", "tri", "tp"],
       },
     ],
   },

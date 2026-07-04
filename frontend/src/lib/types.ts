@@ -57,6 +57,9 @@ export interface User {
   email: string;
   displayName: string;
   avatarSeed: string;
+  avatarUrl?: string | null;
+  usernameChangedAt?: string | null;
+  passwordChangedAt?: string | null;
   title: string;
   xp: number;
   level: LevelInfo;
@@ -120,6 +123,7 @@ export interface CourseDetail {
   course: {
     slug: string;
     title: string;
+    checkpoint?: string;
     codename: string;
     domain: string;
     theme: string;
@@ -162,6 +166,7 @@ export interface LeaderboardEntry {
   username: string;
   displayName: string;
   avatarSeed: string;
+  avatarUrl?: string | null;
   xp: number;
   level: number;
   title: string;

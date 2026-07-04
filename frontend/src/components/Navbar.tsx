@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, X, LogOut, Zap } from "lucide-react";
+import { Menu, X, LogOut, Zap, Settings } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button, buttonVariants } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
-  { href: "/checkpoints/cybersecurite", label: "Cybersécurité" },
+  // Generic, checkpoint-agnostic link to the 3D roadmap (all checkpoints).
+  { href: "/", label: "La route des checkpoints" },
   { href: "/leaderboard", label: "Classement" },
 ];
 
@@ -35,29 +36,35 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden items-center gap-1 md:flex">
-          {allLinks.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className={cn(
-                "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
-                pathname.startsWith(l.href) ? "text-primary" : "text-muted hover:text-fg"
-              )}
-            >
-              {l.label}
-            </Link>
-          ))}
+          {allLinks.map((l) => {
+            const active = l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                className={cn(
+                  "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+                  active ? "text-primary" : "text-muted hover:text-fg"
+                )}
+              >
+                {l.label}
+              </Link>
+            );
+          })}
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
           {loading ? null : user ? (
             <>
               <Link href="/profile" className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 hover:bg-surface-2">
-                <Avatar seed={user.avatarSeed} name={user.displayName} size={32} />
+                <Avatar seed={user.avatarSeed} name={user.displayName} url={user.avatarUrl} size={32} />
                 <div className="text-right leading-tight">
                   <div className="text-sm font-medium text-fg">{user.displayName}</div>
                   <div className="text-[11px] text-primary tnum">{user.xp} XP · Nv.{user.level.level}</div>
                 </div>
+              </Link>
+              <Link href="/settings" className={cn(buttonVariants({ variant: "ghost", size: "icon" }), pathname.startsWith("/settings") && "text-primary")} title="Paramètres">
+                <Settings className="h-4 w-4" />
               </Link>
               <Button variant="ghost" size="icon" onClick={logout} title="Se déconnecter">
                 <LogOut className="h-4 w-4" />
@@ -93,6 +100,9 @@ export default function Navbar() {
                 <>
                   <Link href="/profile" onClick={() => setOpen(false)} className={cn(buttonVariants({ variant: "glass", size: "sm" }), "flex-1")}>
                     Profil
+                  </Link>
+                  <Link href="/settings" onClick={() => setOpen(false)} className={cn(buttonVariants({ variant: "glass", size: "sm" }), "flex-1")}>
+                    <Settings className="h-4 w-4" /> Paramètres
                   </Link>
                   <Button variant="ghost" size="sm" onClick={() => { logout(); setOpen(false); }}>
                     Déconnexion

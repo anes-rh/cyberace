@@ -39,7 +39,7 @@ function ProfileInner() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass relative overflow-hidden rounded-3xl p-8">
         <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-secondary/20 blur-3xl" />
         <div className="relative flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
-          <Avatar seed={user.avatarSeed} name={user.displayName} size={96} className="ring-2 ring-primary/40" />
+          <Avatar seed={user.avatarSeed} name={user.displayName} url={user.avatarUrl} size={96} className="ring-2 ring-primary/40" />
           <div className="flex-1">
             <h1 className="font-display text-3xl font-bold">{user.displayName}</h1>
             <p className="text-muted">@{user.username}</p>

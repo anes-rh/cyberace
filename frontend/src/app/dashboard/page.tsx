@@ -40,7 +40,7 @@ function DashboardInner() {
         <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/15 blur-3xl" />
         <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
-            <Avatar seed={user.avatarSeed} name={user.displayName} size={72} />
+            <Avatar seed={user.avatarSeed} name={user.displayName} url={user.avatarUrl} size={72} />
             <div>
               <p className="font-mono text-xs uppercase tracking-widest text-primary">{level.title} · Niveau {level.level}</p>
               <h1 className="mt-1 font-display text-3xl font-bold">{user.displayName}</h1>

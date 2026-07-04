@@ -54,7 +54,7 @@ export interface ChallengeSeed {
   caseSensitive?: boolean;
   /** Optional interactive helper widget rendered on the client. */
   widget?: string;
-  /** `code` challenges: editor language (pseudo-code USTHB ou C). */
+  /** `code` challenges: editor language (pseudo-code CyberAce ou C). */
   language?: CodeLanguage;
   /** `code` challenges: starter skeleton pre-filled in the editor. */
   starter?: string;

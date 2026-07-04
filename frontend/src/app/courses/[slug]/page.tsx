@@ -37,11 +37,13 @@ export default function CourseDetailPage() {
   if (!data) return <FullScreenLoader label="Chargement du circuit…" />;
 
   const { course, challenges, progress } = data;
+  // Back link returns to the PARENT checkpoint's module list, never the global one.
+  const backHref = course.checkpoint ? `/checkpoints/${course.checkpoint}` : "/courses";
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10">
-      <Link href="/courses" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg">
-        <ArrowLeft className="h-4 w-4" /> Tous les circuits
+      <Link href={backHref} className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg">
+        <ArrowLeft className="h-4 w-4" /> Retour au checkpoint
       </Link>
 
       {/* Banner */}

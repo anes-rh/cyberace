@@ -1,7 +1,7 @@
 import type { CourseSeed } from "../../../types";
 
 /**
- * Algorithmique L1 (Dr. B. BESSAA) — structures itératives (les 3 boucles)
+ * Algorithmique L1  — structures itératives (les 3 boucles)
  * et tableaux/vecteurs. Reconstruit depuis les parties 5, 6 et 7 du cours.
  */
 export const algoControle: CourseSeed[] = [

@@ -1,7 +1,6 @@
 /**
  * CyberAce — Checkpoint Algorithmique
  * Modules "fondations" : Chap 0 + Chap 1 (parties 1 et 2)
- * Source : Cours Algorithmique 1re année MI — USTHB, Dr B. BESSAA.
  */
 import type { CourseSeed } from "../../../types";
 
@@ -29,17 +28,15 @@ export const algoFondations: CourseSeed[] = [
     ],
     lesson: `# 🏁 Introduction à l'algorithmique — bienvenue sur la grille de départ
 
-Salam et bienvenue à l'USTHB ! 🎓 Tu viens de t'installer dans le baquet du pilote : ce premier module est ton **tour de chauffe**. Avant d'écrire la moindre ligne de code, on va comprendre **ce qu'est l'informatique**, **comment une machine "pense"**, et surtout **comment on lui explique quoi faire** — c'est exactement ça, l'algorithmique.
+Bienvenue sur CyberAce ! 🎓 Tu viens de t'installer dans le baquet du pilote : ce premier module est ton **tour de chauffe**. Avant d'écrire la moindre ligne de code, on va comprendre **ce qu'est l'informatique**, **comment une machine "pense"**, et surtout **comment on lui explique quoi faire** — c'est exactement ça, l'algorithmique.
 
-> Ce cours suit fidèlement le cours d'Algorithmique de 1re année MI de l'USTHB (Dr B. BESSAA). Tout ce qui est au programme est ici — juste raconté façon paddock de course. 🏎️
+> Ce module couvre l'intégralité des fondamentaux de l'algorithmique — juste raconté façon paddock de course. 🏎️
 
 ---
 
-## 1. MI ? Informatique ? C'est quoi tout ça ?
+## 1. L'informatique, c'est quoi au juste ?
 
-Tu es en **1re année MI** : **M** pour **Mathématiques**, **I** pour **Informatique**.
-
-Les maths, tu vois à peu près. Mais l'informatique ? Quand on pose la question, on entend de tout :
+Quand on demande « c'est quoi l'informatique ? », on entend de tout :
 
 - « C'est l'**ordinateur** ! »
 - « C'est **Internet** ! »
@@ -645,7 +642,7 @@ En 1957, un ingénieur allemand publie un livre au titre prophétique. En 1962, 
 - **1957** : Karl Steinbuch (ingénieur allemand) écrit *Informatik : Automatische Informationsverarbeitung* — « Informatique : traitement automatique de l'information ». C'est la première apparition du mot.
 - **1962** : Philippe Dreyfus (français) l'utilise pour désigner le traitement automatique des données et fonde la **SIA** (« Société d'Informatique Appliquée ») — la société vient donc **après** le mot, pas avant.
 
-Les pièges : « informatics » est la traduction anglaise (postérieure), et le « M » de MI signifie Mathématiques mais n'entre pas dans la composition du mot informatique.`,
+Les pièges : « informatics » est la traduction anglaise (postérieure), et le « M » signifie Mathématiques mais n'entre pas dans la composition du mot informatique.`,
         tags: ["algo", "intro", "culture"],
       },
       {
@@ -1238,7 +1235,7 @@ Du plus prioritaire au moins prioritaire :
 
 | Priorité | Opérateurs |
 |---|---|
-| 1 (max) | \`( )\` parenthèses |
+| 1 (max) | \`\` parenthèses |
 | 2 | \`−\` unaire, \`+\` unaire (le signe d'un nombre) |
 | 3 | \`*\`, \`/\` (et \`div\`, \`mod\`) |
 | 4 (min) | \`+\`, \`−\` (binaires) |
@@ -1281,7 +1278,7 @@ E3 = (J + 2*K) > 2
 
 | Priorité | Opérateur |
 |---|---|
-| 1 (max) | \`( )\` parenthèses |
+| 1 (max) | \`\` parenthèses |
 | 2 | \`Non\` |
 | 3 | \`Et\` |
 | 4 (min) | \`Ou\` |
@@ -1542,8 +1539,8 @@ Les structures de contrôle méritent un module entier — c'est le programme de
 - Le **type** définit la **taille mémoire** réservée — on choisit la voiture pour 3 personnes, pas le bus. 🚌
 - **\`Lire(X)\`** : clavier → mémoire (initialise un objet déjà déclaré). **\`Ecrire(expr)\`** : mémoire → écran (constante, texte entre cotes, identificateur ou expression). Les deux acceptent plusieurs éléments séparés par des **virgules**.
 - Une **expression** a 3 formes : **de base**, **arithmétique** (à écrire en forme **linéaire** : \`2X\` → \`2*X\`, parenthèses au besoin), **logique**.
-- **Priorité arithmétique** : \`( )\` puis signes unaires puis \`* / div mod\` puis \`+ −\` ; à égalité → gauche à droite. \`4 + 6/2*7 − 2 = 23\` mais \`(4+6)/(2*(7−2)) = 1\`.
-- **Priorité logique** : \`( )\` puis \`Non\` puis \`Et\` puis \`Ou\`.
+- **Priorité arithmétique** : \`\` puis signes unaires puis \`* / div mod\` puis \`+ −\` ; à égalité → gauche à droite. \`4 + 6/2*7 − 2 = 23\` mais \`(4+6)/(2*(7−2)) = 1\`.
+- **Priorité logique** : \`\` puis \`Non\` puis \`Et\` puis \`Ou\`.
 - **Affectation \`X ← expr ;\`** : calcule la droite, range dans la gauche. L'**ancienne valeur est PERDUE**. Compatibilité : **entier → reel OK**, **reel → entier INTERDIT**.
 - Tout problème se traite en 4 temps : **analyse, données, résultats, relations** — puis l'algorithme (cf. \`somme\` et \`CalculMax\`).
 - \`Si <Cond> Alors <Bloc> Fsi ;\` exécute le bloc si la condition est **Vraie** ; la version complète ajoute \`Sinon <Bloc2>\` pour le cas **Faux**.
@@ -1822,7 +1819,7 @@ E1 = (A Ou B) Et (Non C Et A)
         ],
         options: ["Vrai", "Faux"],
         answer: 0,
-        explanation: `On évalue en respectant la priorité **( ) > Non > Et > Ou** :
+        explanation: `On évalue en respectant la priorité ** > Non > Et > Ou** :
 
 \`\`\`
 E1 = (A Ou B) Et (Non C Et A)
@@ -1885,7 +1882,7 @@ La dernière ligne : \`2*B\` utilise le B **actuel** (20) → 40, plus A (25) = 
 
 Écris un **algorithme complet** qui **lit deux entiers** \`A\` et \`B\`, calcule leur **somme** \`S\`, et **affiche** le résultat.
 
-Utilise la syntaxe USTHB vue en cours : \`Algorithme\`, \`Var\`, \`Debut\` … \`Fin\`, \`Lire\`, \`Ecrire\`, et l'affectation \`←\` (tape \`<-\`, il devient \`←\`).
+Utilise la syntaxe CyberAce vue en cours : \`Algorithme\`, \`Var\`, \`Debut\` … \`Fin\`, \`Lire\`, \`Ecrire\`, et l'affectation \`←\` (tape \`<-\`, il devient \`←\`).
 
 🎯 Rends l'exécution conviviale avec des messages \`Ecrire('…')\` si tu veux le bonus fierté.`,
         points: 200,

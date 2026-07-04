@@ -18,7 +18,8 @@ export function createApp() {
     })
   );
 
-  app.use(express.json({ limit: "256kb" }));
+  // 2 MB accommodates base64 profile-picture uploads (avatarUrl data URLs).
+  app.use(express.json({ limit: "2mb" }));
 
   app.get("/health", (_req, res) => res.json({ status: "ok", uptime: process.uptime() }));
 

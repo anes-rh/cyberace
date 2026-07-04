@@ -72,6 +72,7 @@ export async function getCourse(req: Request, res: Response): Promise<void> {
     course: {
       slug: course.slug,
       title: course.title,
+      checkpoint: course.checkpoint,
       codename: course.codename,
       domain: course.domain,
       theme: course.theme,

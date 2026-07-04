@@ -6,7 +6,7 @@ import { computeLevel } from "../utils/scoring";
 export async function getLeaderboard(req: Request, res: Response): Promise<void> {
   const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 50));
 
-  const top = await User.find({}, "username displayName avatarSeed xp badges solved")
+  const top = await User.find({}, "username displayName avatarSeed avatarUrl xp badges solved")
     .sort({ xp: -1, updatedAt: 1 })
     .limit(limit)
     .lean();
@@ -16,6 +16,7 @@ export async function getLeaderboard(req: Request, res: Response): Promise<void>
     username: u.username,
     displayName: u.displayName,
     avatarSeed: u.avatarSeed,
+    avatarUrl: u.avatarUrl ?? null,
     xp: u.xp,
     level: computeLevel(u.xp).level,
     title: computeLevel(u.xp).title,

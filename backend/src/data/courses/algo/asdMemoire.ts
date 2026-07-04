@@ -2,8 +2,8 @@ import type { CourseSeed } from "../../../types";
 
 /**
  * ASD L2 — Chapitre 2 : Représentation des données en mémoire & allocation
- * dynamique (S. Boukhedouma). Contigu vs chaîné, pointeurs, Allouer/Libérer,
- * listes uni/bi/circulaires. Exercices de la Série 2.
+ * dynamique . Contigu vs chaîné, pointeurs, Allouer/Libérer,
+ * listes uni/bi/circulaires. Exercices de cet atelier.
  */
 export const asdMemoire: CourseSeed[] = [
   {
@@ -426,7 +426,7 @@ P ← @A ;
 Donc \`^P ← 20\` écrit **20 dans A** → \`A = 20\`.
 
 C'est le principe de la **télécommande** : agir sur \`^P\`, c'est agir sur la variable pointée. (Piège fréquent : croire que seule une copie change — non, c'est bien l'original.)`,
-        tags: ["pointeur", "chap2"],
+        tags: ["pointeur"],
       },
       {
         id: "asd-mem-adresse-calc",
@@ -453,7 +453,7 @@ a₅ = a0 + 5 × taille = 1000 + 5 × 4 = 1020
 \`\`\`
 
 C'est **le** point fort du tableau : atteindre \`T[5]\` ne coûte qu'**une multiplication et une addition** (O(1)), sans parcourir les cases précédentes. Une liste chaînée, elle, devrait suivre 5 chaînons un par un.`,
-        tags: ["tableau", "contigu", "chap2"],
+        tags: ["tableau", "contigu"],
       },
       {
         id: "asd-mem-chaine-avantages",
@@ -487,7 +487,7 @@ C'est **le** point fort du tableau : atteindre \`T[5]\` ne coûte qu'**une multi
 | **Accès direct au i-ème** | ❌ (séquentiel) | ✅ (O(1)) |
 
 La dernière proposition est **le point fort du tableau**, pas de la liste : dans une liste, atteindre le i-ème élément oblige à suivre les chaînons depuis la tête.`,
-        tags: ["liste", "tableau", "chap2"],
+        tags: ["liste", "tableau"],
       },
       {
         id: "asd-mem-ajout-tete",
@@ -541,7 +541,7 @@ Fin ;
 \`\`\`
 
 On teste \`nouv <> nil\` car \`Allouer\` peut **échouer** si la mémoire est pleine. L'ordre des deux dernières lignes est crucial : inverser ferait pointer \`nouv\` sur lui-même et **perdrait** toute la liste existante.`,
-        tags: ["liste", "code", "insertion", "chap2"],
+        tags: ["liste", "code", "insertion"],
       },
       {
         id: "asd-mem-supprim-tete",
@@ -584,7 +584,7 @@ Fin ;
 \`\`\`
 
 Sans \`temp\`, après \`tete ← (^tete).suivant\` l'ancienne tête serait **inaccessible** → impossible à libérer → **fuite mémoire**. (En pratique on ajouterait un test \`Si tete <> nil\` pour ne pas dépiler une liste vide.)`,
-        tags: ["liste", "code", "suppression", "memoire", "chap2"],
+        tags: ["liste", "code", "suppression", "memoire"],
       },
       {
         id: "asd-mem-recherche",
@@ -630,7 +630,7 @@ Fin ;
 \`\`\`
 
 **Pourquoi tester \`p <> nil\` EN PREMIER ?** Grâce à l'évaluation de gauche à droite, si \`p\` vaut nil la 2ᵉ condition \`(^p).info\` n'est **pas évaluée** — sinon on déréférencerait nil (plantage). À la sortie : soit \`p\` pointe sur la cellule trouvée, soit \`p = nil\` (valeur absente). Complexité : **O(n)** (parcours séquentiel).`,
-        tags: ["liste", "code", "recherche", "chap2"],
+        tags: ["liste", "code", "recherche"],
       },
       {
         id: "asd-mem-fifo-lifo",
@@ -663,7 +663,7 @@ Ajout_tete(30)  →  [30]→[20]→[10]
 Parcours tête→fin : **30, 20, 10** — l'ordre est **inversé**. C'est le mode **LIFO** (*Last In, First Out*).
 
 Pour conserver l'ordre d'insertion (**FIFO** : 10, 20, 30), il aurait fallu ajouter **en queue** à chaque fois.`,
-        tags: ["liste", "fifo", "lifo", "chap2"],
+        tags: ["liste", "fifo", "lifo"],
       },
       {
         id: "asd-mem-circulaire",
@@ -699,7 +699,7 @@ Tantque (p <> tete) faire
     Ecrire((^p).info) ; p ← (^p).suivant ;
 fait ;
 \`\`\``,
-        tags: ["liste", "circulaire", "chap2"],
+        tags: ["liste", "circulaire"],
       },
       {
         id: "asd-mem-matrice-dyn",
@@ -742,7 +742,7 @@ Fait ;
 \`\`\`
 
 **Deux niveaux d'allocation** : \`A\` est un \`^^entier\` (pointeur vers un tableau de pointeurs). On alloue d'abord le **vecteur des lignes** (n cases de type \`^entier\`), puis **chaque ligne** séparément (m entiers). \`A[i][j]\` équivaut alors à \`^(^(A+i)+j)\` : on suit \`A[i]\` (adresse de la ligne i) puis on décale de j. Ne pas oublier, à la fin du programme, de \`Libérer\` chaque ligne **puis** le vecteur de lignes (dans l'ordre inverse).`,
-        tags: ["matrice", "allocation", "code", "chap2"],
+        tags: ["matrice", "allocation", "code"],
       },
     ],
   },

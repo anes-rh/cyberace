@@ -1,7 +1,7 @@
 import type { CourseSeed } from "../../../types";
 
 /**
- * ASD L2 — Arbres binaires de recherche (Série 6, S. Boukhedouma).
+ * ASD L2 — Arbres binaires de recherche .
  * Terminologie, représentation chaînée (succg/succd), parcours, recherche,
  * insertion, suppression (feuille / 1 fils / 2 fils via successeur infixe).
  */
@@ -313,7 +313,7 @@ Infixe(filsgauche(a)) ; Ecrire((^a).info) ; Infixe(filsdroit(a)) ;
         explanation: `Une **feuille** est un nœud **sans fils** : \`succg = succd = nil\`, donc de **degré 0**. C'est le bout d'une branche.
 
 Les distracteurs : le nœud « sans père » est la **racine** ; un nœud à deux fils est un nœud **interne** (degré 2).`,
-        tags: ["arbre", "vocabulaire", "serie6"],
+        tags: ["arbre", "vocabulaire"],
       },
       {
         id: "asd-arb-propriete",
@@ -342,7 +342,7 @@ Dans un **ABR**, pour n'importe quel nœud contenant la valeur \`v\` :
         explanation: `La règle d'or de l'ABR : pour **chaque** nœud \`v\`, **tout le sous-arbre gauche < v < tout le sous-arbre droit**.
 
 C'est exactement ce qui permet la recherche **dichotomique** : à chaque nœud on élimine la moitié des possibilités en descendant d'un seul côté → **O(log n)** dans un arbre équilibré.`,
-        tags: ["arbre", "abr", "serie6"],
+        tags: ["arbre", "abr"],
       },
       {
         id: "asd-arb-infixe-trie",
@@ -374,7 +374,7 @@ Pourquoi ? À chaque nœud, on visite d'abord **tout ce qui est plus petit** (so
     /  \\   /  \\
   (20)(40)(60)(80)
 \`\`\``,
-        tags: ["arbre", "parcours", "infixe", "serie6"],
+        tags: ["arbre", "parcours", "infixe"],
       },
       {
         id: "asd-arb-prefixe-trace",
@@ -416,7 +416,7 @@ Donne le résultat du parcours **préfixe** (Racine, Gauche, Droite). Écris les
 Résultat : **50 30 20 40 70 60 80**.
 
 (À comparer : infixe → 20 30 40 50 60 70 80 (trié) ; postfixe → 20 40 30 60 80 70 50.)`,
-        tags: ["arbre", "parcours", "prefixe", "trace", "serie6"],
+        tags: ["arbre", "parcours", "prefixe", "trace"],
       },
       {
         id: "asd-arb-recherche-code",
@@ -466,7 +466,7 @@ Fin ;
 \`\`\`
 
 **Pourquoi c'est efficace ?** À chaque tour, on **élimine la moitié** de l'arbre (on ne descend que d'un côté). Dans un ABR équilibré de \`n\` nœuds, on fait au plus **log₂(n)** comparaisons — bien mieux que les \`n\` d'une liste. La version **récursive** fait exactement la même chose, en remplaçant la boucle par des appels sur \`filsgauche\`/\`filsdroit\`.`,
-        tags: ["arbre", "recherche", "code", "serie6"],
+        tags: ["arbre", "recherche", "code"],
       },
       {
         id: "asd-arb-suppression",
@@ -504,7 +504,7 @@ Fait ;
 \`\`\`
 
 **Pourquoi ça marche ?** Le successeur infixe est la **plus petite valeur supérieure** à celle du nœud. La placer là **conserve** l'invariant ABR : tout ce qui est à gauche reste plus petit, tout ce qui est à droite reste plus grand.`,
-        tags: ["arbre", "suppression", "serie6"],
+        tags: ["arbre", "suppression"],
       },
     ],
   },
