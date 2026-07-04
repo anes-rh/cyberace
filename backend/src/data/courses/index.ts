@@ -13,9 +13,18 @@ import { forensics } from "./forensics";
 import { cloud } from "./cloud";
 import { socialEngineering } from "./socialEngineering";
 import { websec } from "./websec";
+import { algoFondations } from "./algo/algoFondations";
+import { asdComplexitePiles } from "./algo/asdComplexitePiles";
+
+/** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
+export const algoCourses: CourseSeed[] = [
+  ...algoFondations,
+  ...asdComplexitePiles,
+];
 
 /** Every course, in display order. */
 export const allCourses: CourseSeed[] = [
+  ...algoCourses,
   crypto,
   accessControl,
   activeDirectory,
