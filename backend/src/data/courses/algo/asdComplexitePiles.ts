@@ -1327,5 +1327,628 @@ Fin;
       // __C1_MORE2__
     ],
   },
-  // __COURSE2__
+  {
+    slug: "asd-piles-files",
+    title: "Piles & Files — LIFO, FIFO et leurs primitives",
+    checkpoint: "algorithmique",
+    codename: "Stack & Queue Rally",
+    domain: "Structures de données L2",
+    theme: "circuit",
+    icon: "Cpu",
+    accent: "#5FB3C6",
+    order: 7,
+    difficulty: "medium",
+    summary:
+      "Deux structures reines : la Pile (LIFO, on empile/dépile par le sommet) et la File (FIFO, on enfile en queue, on défile en tête). Primitives sur liste chaînée, schémas avant/après, et tous les exercices de la Série 4 corrigés.",
+    objectives: [
+      "Distinguer une Pile (LIFO) d'une File (FIFO) et savoir quand utiliser chacune",
+      "Déclarer une pile et une file en représentation chaînée (pointeurs ^)",
+      "Écrire les primitives Empiler, Dépiler, SommetPile, Enfiler, Défiler",
+      "Résoudre un problème avec des piles/files intermédiaires (motif « tout dépiler/défiler »)",
+      "Analyser la complexité d'un algorithme à piles imbriquées (SUPPR en O(n²))",
+      "Fusionner deux files triées et trier une pile par insertion",
+    ],
+    lesson: `# 🥞 Piles & Files — les deux structures reines
+
+Après les listes chaînées libres, voici deux structures **disciplinées** : elles imposent **où** on ajoute et **où** on retire. Cette contrainte, loin d'être un défaut, est exactement ce qui les rend puissantes. 🏎️
+
+---
+
+## 1. La Pile (Stack) — LIFO 🥞
+
+Une **pile** fonctionne comme une **pile d'assiettes** : on pose une assiette **au-dessus**, et on reprend toujours celle **du dessus**. Le dernier arrivé est le premier servi : **LIFO** (*Last In, First Out*).
+
+On ne manipule la pile que par **un seul bout** : le **sommet**.
+
+\`\`\`
+Empiler(S, C)              Dépiler(S) → retourne C
+  ┌───┐                      ┌───┐
+  │ C │ ← sommet             │ C │ ─── sort
+  ├───┤                      └───┘
+  │ B │                      ┌───┐
+  ├───┤          ══►         │ B │ ← nouveau sommet
+  │ A │                      ├───┤
+  └───┘                      │ A │
+                             └───┘
+\`\`\`
+
+### 1.1 Les primitives d'une pile
+
+| Primitive | Rôle |
+|---|---|
+| \`InitPile(S)\` | crée une pile **vide** |
+| \`PileVide(S)\` | retourne **Vrai** si la pile est vide |
+| \`Empiler(S, x)\` | ajoute \`x\` **au sommet** |
+| \`Dépiler(S, x)\` | retire l'élément du sommet et le range dans \`x\` |
+| \`SommetPile(S)\` | **consulte** le sommet **sans** le retirer |
+
+### 1.2 Représentation par liste chaînée
+
+La pile pointe directement sur son **sommet** ; chaque élément pointe vers celui **en dessous**.
+
+\`\`\`
+Type Pile = ^Elément ;
+Type Elément = Enregistrement
+                   info : chaine ;
+                   suivant : ^Elément ;
+               FinEnreg ;
+\`\`\`
+
+**Empiler** = créer un maillon et le brancher **devant** le sommet :
+
+\`\`\`
+Procédure Empiler (E/S S: Pile, E/ x: chaine)
+Var nouv : Pile ;
+Debut
+    nouv ← Allouer(tailleDe(Elément)) ;
+    (^nouv).info ← x ;
+    (^nouv).suivant ← S ;   // le nouveau pointe sur l'ancien sommet
+    S ← nouv ;              // le sommet devient le nouveau maillon
+Fin ;
+\`\`\`
+
+**Dépiler** = sauver l'info du sommet, avancer S, libérer l'ancien sommet :
+
+\`\`\`
+Procédure Dépiler (E/S S: Pile, E/S x: chaine)
+Var temp : Pile ;
+Debut
+    x ← (^S).info ;
+    temp ← S ;
+    S ← (^S).suivant ;   // le sommet descend d'un cran
+    libérer(temp) ;      // on rend la mémoire de l'ancien sommet
+Fin ;
+
+Fonction SommetPile (E/ S: Pile): chaine
+Debut
+    retourner (^S).info ;   // consulte sans retirer
+Fin ;
+\`\`\`
+
+---
+
+## 2. La File (Queue) — FIFO 🎟️
+
+Une **file** fonctionne comme une **file d'attente** au guichet : on entre **par la queue**, on est servi **par la tête**. Premier arrivé, premier servi : **FIFO** (*First In, First Out*).
+
+Deux bouts distincts : on **enfile** en **queue**, on **défile** en **tête**.
+
+\`\`\`
+              défiler ◄── tête              queue ◄── enfiler
+                        ┌────┬────┬────┬────┐
+   Défiler → A          │ A  │ B  │ C  │ D  │       Enfiler(F, E)
+                        └────┴────┴────┴────┘
+                          ▲                ▲
+                        tête             queue
+\`\`\`
+
+### 2.1 Les primitives d'une file
+
+| Primitive | Rôle |
+|---|---|
+| \`InitFile(F)\` | crée une file **vide** |
+| \`FileVide(F)\` | **Vrai** si la file est vide |
+| \`Enfiler(F, x)\` | ajoute \`x\` **en queue** |
+| \`Défiler(F, x)\` | retire l'élément **de tête** dans \`x\` |
+| \`TeteFile(F)\` | consulte la tête sans la retirer |
+
+### 2.2 Représentation par liste chaînée
+
+Une file garde **deux** pointeurs — **tête** (pour défiler) et **queue** (pour enfiler en O(1)) :
+
+\`\`\`
+Type File = Enregistrement
+                tete, queue : ^Elément ;
+            FinEnreg ;
+Type Elément = Enregistrement
+                   info : entier ;
+                   suivant : ^Elément ;
+               FinEnreg ;
+\`\`\`
+
+> 🧠 **Astuce mémo** — dans beaucoup d'exercices de la Série 4, on **ne peut consulter que la tête** d'une file. Pour parcourir toute la file (ex : \`affiche_File\`), on **défile** chaque élément vers une **file intermédiaire F1**, puis on fait \`F ← F1\` pour tout remettre. C'est le motif à connaître par cœur ! 🔁
+
+---
+
+## 3. Le motif « piles/files intermédiaires » 🔄
+
+Comme on n'accède qu'à **un bout**, presque tous les traitements suivent le même réflexe :
+
+> **Pour fouiller une pile/file sans la perdre, on la vide dans une structure temporaire, puis on la reconstruit.**
+
+C'est exactement ce que font \`affiche_File\` (via \`F1\`), \`vérifOrdre\` (via \`B\`), \`supprim\`, \`insert\` (via \`F1\`) et \`SUPPR\` (via \`T\` et \`R\`) dans la Série 4.
+
+---
+
+## 🧠 Ce qu'il faut retenir
+
+- **Pile = LIFO**, un seul bout (**sommet**) : \`Empiler\`, \`Dépiler\`, \`SommetPile\`.
+- **File = FIFO**, deux bouts (**tête** pour défiler, **queue** pour enfiler).
+- En **chaîné**, \`Empiler\` branche un maillon devant le sommet ; \`Dépiler\` avance \`S\` et **libère** l'ancien sommet.
+- Pour **parcourir** une pile/file, on transvase dans une **structure intermédiaire** puis on **reconstruit**.
+- Des boucles imbriquées « dépiler tout » donnent souvent une complexité **O(n²)** (voir SUPPR).
+
+## ⚠️ Erreurs fréquentes des débutants
+
+**1. Confondre l'ordre LIFO et FIFO.**
+- ❌ Croire qu'une pile rend les éléments dans l'ordre d'insertion. Non : le **dernier** empilé sort **en premier**.
+- ✅ Pile = assiettes (dernier posé, premier repris) ; File = guichet (premier arrivé, premier servi).
+
+**2. Oublier de \`libérer\` en dépilant.**
+\`\`\`
+// ❌ fuite mémoire : l'ancien sommet n'est jamais rendu
+S ← (^S).suivant ;
+// ✅ on garde une trace AVANT d'avancer, puis on libère
+temp ← S ;  S ← (^S).suivant ;  libérer(temp) ;
+\`\`\`
+Pourquoi ça casse : sans \`libérer\`, la mémoire de l'ancien sommet reste réservée mais inaccessible → **fuite**. Sur des milliers de dépilements, le programme épuise la mémoire.
+
+**3. Mal ordonner les branchements dans \`Empiler\`.**
+\`\`\`
+// ❌ on écrase S avant d'avoir mémorisé l'ancien sommet
+S ← nouv ;
+(^nouv).suivant ← S ;   // nouv pointe sur… lui-même ! Pile corrompue.
+// ✅ d'abord brancher nouv sur l'ancien sommet, PUIS déplacer S
+(^nouv).suivant ← S ;
+S ← nouv ;
+\`\`\`
+
+**4. Parcourir une file en consultant autre chose que la tête.**
+Une file n'expose que sa **tête**. Vouloir lire « le 3ᵉ élément » directement est impossible : il faut **défiler** jusqu'à lui (en sauvegardant dans une file intermédiaire), sinon on perd les éléments défilés.
+
+**5. Boucler sur une pile vide.**
+\`\`\`
+// ❌ Dépiler une pile déjà vide → (^S).info avec S = NIL → plantage
+Dépiler(S, x) ;
+// ✅ toujours tester d'abord
+Si non PileVide(S) Alors Dépiler(S, x) Fsi ;
+\`\`\``,
+    badge: {
+      id: "badge-stack-queue",
+      name: "Stack & Queue Master",
+      icon: "Cpu",
+      description:
+        "Maîtrise les piles (LIFO) et files (FIFO), leurs primitives chaînées et le motif des structures intermédiaires.",
+    },
+    challenges: [
+      {
+        id: "asd-pf-lifo",
+        title: "Qui sort en premier de la pile ?",
+        order: 1,
+        difficulty: "easy",
+        type: "mcq",
+        prompt: `## 🥞 Principe LIFO
+
+Sur une pile \`S\` initialement vide, on exécute :
+
+\`\`\`
+Empiler(S, 'A') ;
+Empiler(S, 'B') ;
+Empiler(S, 'C') ;
+Dépiler(S, x) ;
+\`\`\`
+
+**Quelle valeur se retrouve dans \`x\` ?**`,
+        points: 100,
+        timeLimitSec: 240,
+        hints: [
+          { text: "Une pile est LIFO : Last In, First Out. Le dernier empilé est au sommet.", cost: 15 },
+          { text: "📖 Correction complète : après les 3 empilements, le sommet est 'C' (dernier arrivé). Dépiler retire le sommet → x = 'C'.", cost: 60 },
+        ],
+        options: ["'A'", "'B'", "'C'", "La pile est vide, erreur"],
+        answer: 2,
+        explanation: `**LIFO** = *Last In, First Out*. Le **dernier** empilé (\`'C'\`) est au **sommet**, donc c'est lui qui sort en premier.
+
+\`\`\`
+  ┌───┐          Dépiler
+  │ C │ ← sommet ═══════► x = 'C'
+  ├───┤
+  │ B │ ← nouveau sommet
+  ├───┤
+  │ A │
+  └───┘
+\`\`\``,
+        tags: ["pile", "lifo", "serie4"],
+      },
+      {
+        id: "asd-pf-fifo",
+        title: "Qui sort en premier de la file ?",
+        order: 2,
+        difficulty: "easy",
+        type: "mcq",
+        prompt: `## 🎟️ Principe FIFO
+
+Sur une file \`F\` initialement vide, on exécute :
+
+\`\`\`
+Enfiler(F, 'A') ;
+Enfiler(F, 'B') ;
+Enfiler(F, 'C') ;
+Défiler(F, x) ;
+\`\`\`
+
+**Quelle valeur se retrouve dans \`x\` ?**`,
+        points: 100,
+        timeLimitSec: 240,
+        hints: [
+          { text: "Une file est FIFO : First In, First Out. On défile toujours par la tête.", cost: 15 },
+          { text: "📖 Correction complète : 'A' est arrivé en premier, il est en tête. Défiler retire la tête → x = 'A'.", cost: 60 },
+        ],
+        options: ["'A'", "'B'", "'C'", "La file est vide, erreur"],
+        answer: 0,
+        explanation: `**FIFO** = *First In, First Out*. \`'A'\`, arrivé **en premier**, occupe la **tête** ; on défile par la tête, donc \`x = 'A'\`.
+
+C'est toute la différence avec la pile : même séquence d'insertion, résultat **opposé** ('A' pour la file, 'C' pour la pile).`,
+        tags: ["file", "fifo", "serie4"],
+      },
+      {
+        id: "asd-pf-empiler",
+        title: "Écris la primitive Empiler",
+        order: 3,
+        difficulty: "medium",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🔧 Primitive Empiler (pile chaînée)
+
+La pile est déclarée ainsi :
+
+\`\`\`
+Type Pile = ^Elément ;
+Type Elément = Enregistrement info : chaine ; suivant : ^Elément ; FinEnreg ;
+\`\`\`
+
+**Écris la procédure \`Empiler(E/S S: Pile, E/ x: chaine)\`** qui ajoute \`x\` au sommet.
+
+⚠️ Ordre des branchements crucial : d'abord relier le nouveau maillon à l'ancien sommet, **puis** déplacer \`S\`.`,
+        points: 200,
+        timeLimitSec: 600,
+        starter: `Procédure Empiler (E/S S: Pile, E/ x: chaine)
+Var nouv : Pile ;
+Debut
+
+Fin ;`,
+        hints: [
+          { text: "4 étapes : Allouer un maillon, ranger x dans son info, brancher son suivant sur S, puis faire pointer S sur ce maillon.", cost: 25 },
+          { text: "L'ordre `(^nouv).suivant ← S` PUIS `S ← nouv` est obligatoire : l'inverse ferait pointer nouv sur lui-même.", cost: 30 },
+          { text: "📖 Correction complète :\n```\nnouv <- Allouer(tailleDe(Elément)) ;\n(^nouv).info <- x ;\n(^nouv).suivant <- S ;\nS <- nouv ;\n```", cost: 70 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.75,
+          keypoints: [
+            { label: "Alloue un nouveau maillon avec Allouer", pattern: "Allouer", flags: "i" },
+            { label: "Range x dans le champ info du nouveau maillon", pattern: "info\\s*(←|<-)\\s*x", flags: "i" },
+            { label: "Branche le suivant du nouveau maillon sur l'ancien sommet S", pattern: "suivant\\s*(←|<-)\\s*S", flags: "i" },
+            { label: "Fais pointer S sur le nouveau maillon (après le branchement)", pattern: "S\\s*(←|<-)\\s*nouv", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+Procédure Empiler (E/S S: Pile, E/ x: chaine)
+Var nouv : Pile ;
+Debut
+    nouv ← Allouer(tailleDe(Elément)) ;
+    (^nouv).info ← x ;
+    (^nouv).suivant ← S ;   // nouv pointe sur l'ancien sommet
+    S ← nouv ;              // S pointe sur nouv → nouveau sommet
+Fin ;
+\`\`\`
+
+**Pourquoi cet ordre ?** Si on écrivait \`S ← nouv\` **avant** \`(^nouv).suivant ← S\`, alors \`S\` vaudrait déjà \`nouv\`, et \`nouv\` finirait par **pointer sur lui-même** — la pile serait corrompue et on perdrait tous les anciens éléments.`,
+        tags: ["pile", "code", "primitive", "serie4"],
+      },
+      {
+        id: "asd-pf-depiler",
+        title: "Écris la primitive Dépiler (sans fuite mémoire)",
+        order: 4,
+        difficulty: "medium",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🔧 Primitive Dépiler (pile chaînée)
+
+**Écris la procédure \`Dépiler(E/S S: Pile, E/S x: chaine)\`** qui retire l'élément du sommet, le range dans \`x\`, et **libère** sa mémoire (pas de fuite !).`,
+        points: 200,
+        timeLimitSec: 600,
+        starter: `Procédure Dépiler (E/S S: Pile, E/S x: chaine)
+Var temp : Pile ;
+Debut
+
+Fin ;`,
+        hints: [
+          { text: "Sauve d'abord l'info du sommet dans x. Garde un pointeur temp sur le sommet AVANT d'avancer S.", cost: 25 },
+          { text: "Après `S ← (^S).suivant`, l'ancien sommet n'est plus atteignable que par temp : c'est lui qu'il faut libérer.", cost: 30 },
+          { text: "📖 Correction complète :\n```\nx <- (^S).info ;\ntemp <- S ;\nS <- (^S).suivant ;\nlibérer(temp) ;\n```", cost: 70 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.75,
+          keypoints: [
+            { label: "Sauvegarde l'info du sommet dans x", pattern: "x\\s*(←|<-)\\s*\\(\\s*\\^\\s*S\\s*\\)\\s*\\.\\s*info", flags: "i" },
+            { label: "Garde un pointeur temp sur le sommet avant d'avancer", pattern: "temp\\s*(←|<-)\\s*S", flags: "i" },
+            { label: "Fais descendre S sur l'élément suivant", pattern: "S\\s*(←|<-)\\s*\\(\\s*\\^\\s*S\\s*\\)\\s*\\.\\s*suivant", flags: "i" },
+            { label: "Libère l'ancien sommet (évite la fuite mémoire)", pattern: "lib[eé]rer\\s*\\(\\s*temp", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+Procédure Dépiler (E/S S: Pile, E/S x: chaine)
+Var temp : Pile ;
+Debut
+    x ← (^S).info ;      // on récupère la valeur du sommet
+    temp ← S ;           // on retient l'ancien sommet
+    S ← (^S).suivant ;   // le sommet descend d'un cran
+    libérer(temp) ;      // on rend la mémoire → PAS de fuite
+Fin ;
+\`\`\`
+
+Sans la ligne \`libérer(temp)\`, chaque \`Dépiler\` laisserait un maillon fantôme en mémoire : c'est la **fuite mémoire** classique. Et sans \`temp\`, après \`S ← (^S).suivant\` on n'aurait **plus aucun moyen** d'atteindre l'ancien sommet pour le libérer.`,
+        tags: ["pile", "code", "primitive", "memoire", "serie4"],
+      },
+      {
+        id: "asd-pf-suppr-complexite",
+        title: "Complexité de SUPPR (Exercice 3)",
+        order: 5,
+        difficulty: "hard",
+        type: "text",
+        prompt: `## 📊 Analyse de complexité
+
+Dans l'Exercice 3, la procédure \`SUPPR\` retire d'une pile tous les mots qui sont suffixes d'un autre. Elle utilise **une boucle externe** (dépiler chaque \`M1\`) et, à l'intérieur, **une boucle qui dépile tous les mots restants** (\`M2\`), puis remet les éléments — soit, pour \`n\` mots au départ :
+
+\`\`\`
+1 + 2 + … + (n−1) = n(n−1)/2  itérations
+\`\`\`
+
+La fonction \`suffixe\` étant en coût **constant** (mots de longueur ≤ 30).
+
+**Donne la complexité de \`SUPPR\` en notation Grand O.** (forme : \`O(...)\`)`,
+        points: 350,
+        timeLimitSec: 900,
+        hints: [
+          { text: "n(n−1)/2 = (n² − n)/2. En Grand O, on garde le terme dominant et on ignore les constantes.", cost: 30 },
+          { text: "Les boucles (1) et (2) sont chacune en O(n²) et séquentielles ; la boucle (3) en O(n) est négligeable devant.", cost: 40 },
+          { text: "📖 Correction complète : n(n−1)/2 = (n²−n)/2 → terme dominant n² → O(n²). Les deux boucles quadratiques séquentielles restent en O(n²), et la boucle finale en O(n) ne change rien. Réponse : O(n²).", cost: 70 },
+        ],
+        answer: "O(n^2)",
+        accept: ["O(n²)", "O(n2)", "o(n^2)", "o(n²)", "O( n^2 )", "O(n*n)", "grand o de n carré", "n^2", "n²"],
+        caseSensitive: false,
+        explanation: `La boucle interne se répète \`n−1\`, puis \`n−2\`, … puis \`1\` fois selon l'itération externe :
+
+\`\`\`
+1 + 2 + … + (n−1) = n(n−1)/2 = (n² − n) / 2
+\`\`\`
+
+En **Grand O**, on ne garde que le **terme dominant** (\`n²\`) et on ignore les constantes (le \`/2\`) et les termes de plus bas degré (\`−n\`) :
+
+> **complexité de SUPPR = O(n²)**
+
+Détail du corrigé : la boucle (1) et la boucle (2) sont toutes deux en O(n²) et **séquentielles** (donc O(n²) + O(n²) = O(n²)) ; la boucle (3) de remise en place est en O(n), négligeable devant O(n²).`,
+        tags: ["complexite", "pile", "grand-o", "serie4"],
+      },
+      {
+        id: "asd-pf-compare-dates",
+        title: "Comparer deux dates (Exercice 4)",
+        order: 6,
+        difficulty: "medium",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 📅 Fonction Compare
+
+On définit :
+
+\`\`\`
+Type Date = Enregistrement jour, mois, année : entier ; FinEnreg ;
+\`\`\`
+
+**Écris la fonction \`Compare(E/ D1: Date, D2: Date): entier\`** qui retourne :
+- \`-1\` si \`D1 < D2\`,
+- \`0\` si \`D1 = D2\`,
+- \`1\` si \`D1 > D2\`.
+
+💡 Compare d'abord les **années**, puis (si égales) les **mois**, puis (si égaux) les **jours**.`,
+        points: 200,
+        timeLimitSec: 720,
+        starter: `Fonction Compare (E/ D1: Date, D2: Date): entier
+Debut
+
+Fin ;`,
+        hints: [
+          { text: "Structure en cascade : Si année différentes → décider. Sinon comparer les mois. Sinon comparer les jours.", cost: 25 },
+          { text: "À chaque niveau : si le champ de D1 > celui de D2 → retourner 1 ; s'il est < → retourner -1 ; sinon descendre au champ suivant.", cost: 30 },
+          { text: "📖 Correction complète :\n```\nSi D1.année > D2.année Alors retourner(1)\nSinon Si D1.année < D2.année Alors retourner(-1)\nSinon Si D1.mois > D2.mois Alors retourner(1)\nSinon Si D1.mois < D2.mois Alors retourner(-1)\nSinon Si D1.jour > D2.jour Alors retourner(1)\nSinon Si D1.jour < D2.jour Alors retourner(-1)\nSinon retourner(0) Fsi…\n```", cost: 70 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.8,
+          keypoints: [
+            { label: "Compare le champ année de D1 et D2", pattern: "ann[eé]e", flags: "i" },
+            { label: "Compare aussi le champ mois", pattern: "mois", flags: "i" },
+            { label: "Compare enfin le champ jour", pattern: "jour", flags: "i" },
+            { label: "Retourne 1 quand D1 > D2", pattern: "retourner\\s*\\(?\\s*1", flags: "i" },
+            { label: "Retourne -1 quand D1 < D2", pattern: "retourner\\s*\\(?\\s*-\\s*1", flags: "i" },
+            { label: "Retourne 0 en cas d'égalité", pattern: "retourner\\s*\\(?\\s*0", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+Fonction Compare (E/ D1: Date, D2: Date): entier
+Debut
+    Si (D1.année > D2.année) Alors retourner(1)
+    Sinon Si (D1.année < D2.année) Alors retourner(-1)
+    Sinon   // même année
+        Si (D1.mois > D2.mois) Alors retourner(1)
+        Sinon Si (D1.mois < D2.mois) Alors retourner(-1)
+        Sinon   // même année et même mois
+            Si (D1.jour > D2.jour) Alors retourner(1)
+            Sinon Si (D1.jour < D2.jour) Alors retourner(-1)
+            Sinon retourner(0)   // dates égales
+            Fsi ; Fsi ; Fsi ;
+Fin ;
+\`\`\`
+
+**Pourquoi cet ordre année → mois → jour ?** L'année a le **poids** le plus fort : deux dates de la même année ne se départagent que par le mois, et à mois égal, par le jour. Comparer le jour en premier donnerait des non-sens (le 31/01/2020 « après » le 01/12/2025). Cette fonction \`Compare\` sert ensuite à \`vérifOrdre\` pour tester si une pile de dates est triée.`,
+        tags: ["pile", "code", "date", "enregistrement", "serie4"],
+      },
+      {
+        id: "asd-pf-affiche-file",
+        title: "Pourquoi une file intermédiaire ?",
+        order: 7,
+        difficulty: "medium",
+        type: "mcq",
+        prompt: `## 🔁 Le motif de la structure intermédiaire
+
+Dans l'Exercice 5, la procédure \`affiche_File(F)\` doit afficher **tous** les éléments d'une file. Le corrigé **défile** chaque élément vers une file intermédiaire \`F1\`, l'affiche, puis termine par \`F ← F1\`.
+
+**Pourquoi passer par \`F1\` au lieu d'afficher directement ?**`,
+        points: 200,
+        timeLimitSec: 420,
+        hints: [
+          { text: "Une file n'expose que sa tête. Comment lire le 2e élément sans retirer le 1er ?", cost: 20 },
+          { text: "Défiler est destructif : sans sauvegarde, la file serait vide après affichage.", cost: 25 },
+          { text: "📖 Correction complète : on ne peut consulter qu'un bout de la file, et défiler retire l'élément. Pour lire tout le contenu il faut défiler chaque valeur — ce qui viderait F. On sauvegarde donc dans F1, puis F ← F1 reconstruit la file intacte.", cost: 60 },
+        ],
+        options: [
+          "Parce qu'une file ne permet de consulter qu'un bout ; défiler est destructif, donc on sauvegarde dans F1 puis on restaure avec F ← F1",
+          "Parce que F1 trie automatiquement les éléments",
+          "Parce que l'affichage est plus rapide depuis une file vide",
+          "Parce qu'une file ne peut pas contenir plus de 30 éléments",
+        ],
+        answer: 0,
+        explanation: `Une file **n'expose que sa tête**, et \`Défiler\` est une opération **destructive** : pour lire le 2ᵉ élément, il faut d'abord retirer le 1ᵉʳ. Afficher toute la file **la viderait** donc.
+
+La parade (le **motif à connaître**) : on défile chaque valeur dans une **file intermédiaire \`F1\`** au fur et à mesure qu'on l'affiche, puis \`F ← F1\` **reconstruit** la file d'origine, intacte.
+
+\`\`\`
+Procédure affiche_File (E/S F: File)
+Var x: entier; F1: File;
+Debut
+    InitFile(F1) ;
+    Tant que non FileVide(F) faire
+        Défiler(F, x) ; Ecrire(x) ; Enfiler(F1, x) ;
+    fait ;
+    F ← F1 ;
+Fin ;
+\`\`\`
+
+Le même motif sert pour \`supprim\`, \`insert\` (via \`F1\`) et \`vérifOrdre\` (via une pile \`B\`).`,
+        tags: ["file", "motif", "serie4"],
+      },
+      {
+        id: "asd-pf-fusion-trace",
+        title: "Fusion de deux files triées",
+        order: 8,
+        difficulty: "medium",
+        type: "numeric",
+        prompt: `## 🔗 Fusion (Exercice 5-6)
+
+On fusionne deux files **triées** croissantes en une file triée \`C\` (on compare les têtes, on défile la plus petite dans \`C\`, on répète) :
+
+\`\`\`
+A : 10 → 20 → 30 → 70
+B : 12 → 15 → 60 → 70 → 82
+\`\`\`
+
+Après fusion, \`C\` est triée. **Quelle est la 3ᵉ valeur de \`C\` (en partant de la tête) ?**`,
+        points: 200,
+        timeLimitSec: 420,
+        hints: [
+          { text: "Écris C en fusionnant : compare les têtes, prends la plus petite à chaque étape. Commence : 10 (de A), 12 (de B)…", cost: 20 },
+          { text: "C = 10 → 12 → 15 → 20 → 30 → 60 → 70 → 70 → 82. Compte jusqu'au 3e.", cost: 30 },
+          { text: "📖 Correction complète : la fusion donne C = 10, 12, 15, 20, 30, 60, 70, 70, 82. La 3ᵉ valeur est 15.", cost: 60 },
+        ],
+        answer: 15,
+        explanation: `On compare les têtes de \`A\` et \`B\` et on défile la plus petite dans \`C\`, jusqu'à épuisement :
+
+\`\`\`
+A : 10 → 20 → 30 → 70
+B : 12 → 15 → 60 → 70 → 82
+
+C : 10 → 12 → 15 → 20 → 30 → 60 → 70 → 70 → 82
+        ①    ②    ③
+\`\`\`
+
+- \`10\` (A) < \`12\` (B) → C = [10]
+- \`20\` (A) > \`12\` (B) → C = [10, 12]
+- \`20\` (A) > \`15\` (B) → C = [10, 12, **15**] ← la **3ᵉ** valeur est **15**.
+
+La file résultat contient les 4 + 5 = **9** éléments, triés. Note : le \`70\` apparaît **deux fois** (une fois de chaque file) — la fusion conserve les doublons.`,
+        tags: ["file", "fusion", "trace", "serie4"],
+      },
+      {
+        id: "asd-pf-tri-pile",
+        title: "Trier une pile par insertion (TP)",
+        order: 9,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏆 Tri d'une pile
+
+Écris la procédure \`Tri-Pile(E/S A: Pile)\` qui trie les entiers d'une pile \`A\` (résultat : **minimum au sommet**), selon la méthode du TD :
+
+> On utilise une pile intermédiaire. Tant que \`A\` n'est pas vide :
+> - si \`B\` est vide **ou** \`SommetPile(A) < SommetPile(B)\` : dépiler \`A\` vers \`B\`, puis vider toute la pile \`C\` dans \`B\` ;
+> - sinon : déplacer le sommet de \`B\` vers \`C\`.
+>
+> À la fin, \`A ← B\`.`,
+        points: 350,
+        timeLimitSec: 1200,
+        starter: `Procédure Tri-Pile (E/S A: Pile)
+Var x : entier ; B, C : Pile ;
+Debut
+    InitPile(B) ; InitPile(C) ;
+
+Fin ;`,
+        hints: [
+          { text: "Boucle externe : Tant que non PileVide(A). À l'intérieur, le test `PileVide(B) ou SommetPile(A) < SommetPile(B)` décide la branche.", cost: 30 },
+          { text: "Branche vraie : dépiler A dans x, empiler x dans B, puis une boucle qui vide C dans B. Branche fausse : dépiler B, empiler dans C.", cost: 40 },
+          { text: "📖 Correction complète :\n```\nTant que non PileVide(A) faire\n  Si PileVide(B) ou (SommetPile(A) < SommetPile(B)) Alors\n    Dépiler(A, x) ; Empiler(B, x) ;\n    Tant que non PileVide(C) faire Dépiler(C, x) ; Empiler(B, x) ; fait ;\n  Sinon Dépiler(B, x) ; Empiler(C, x) ;\n  Fsi ;\nfait ;\nA <- B ;\n```", cost: 80 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.75,
+          keypoints: [
+            { label: "Boucle externe tant que A n'est pas vide", pattern: "Tant\\s*que[\\s\\S]{0,40}Pile[Vv]ide\\s*\\(\\s*A", flags: "i" },
+            { label: "Teste PileVide(B) ou SommetPile(A) < SommetPile(B)", pattern: "Sommet[Pp]ile\\s*\\(\\s*A[\\s\\S]{0,20}<[\\s\\S]{0,20}Sommet[Pp]ile\\s*\\(\\s*B", flags: "i" },
+            { label: "Déplace le sommet de A vers B", pattern: "Empiler\\s*\\(\\s*B", flags: "i" },
+            { label: "Vide la pile C dans B (boucle interne)", pattern: "D[eé]piler\\s*\\(\\s*C", flags: "i" },
+            { label: "Sinon, déplace le sommet de B vers C", pattern: "Empiler\\s*\\(\\s*C", flags: "i" },
+            { label: "À la fin, A ← B", pattern: "A\\s*(←|<-)\\s*B", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+Procédure Tri-Pile (E/S A: Pile)
+Var x : entier ; B, C : Pile ;
+Debut
+    InitPile(B) ; InitPile(C) ;
+    Tant que non PileVide(A) faire
+        Si PileVide(B) ou (SommetPile(A) < SommetPile(B)) Alors
+            Dépiler(A, x) ; Empiler(B, x) ;
+            Tant que non PileVide(C) faire   // on rapatrie C dans B
+                Dépiler(C, x) ; Empiler(B, x) ;
+            fait ;
+        Sinon
+            Dépiler(B, x) ; Empiler(C, x) ; // on met de côté dans C
+        Fsi ;
+    fait ;
+    A ← B ;
+Fin ;
+\`\`\`
+
+**Idée du tri par insertion sur pile :** \`B\` garde les éléments **déjà triés** (min au sommet). Quand le sommet de \`A\` est plus petit que celui de \`B\`, il a sa place au sommet → on l'y met et on **rapatrie** ce qu'on avait mis de côté dans \`C\`. Sinon, on **déblaie** temporairement le sommet de \`B\` vers \`C\` pour créer la place. C'est l'analogue « à trois piles » de l'insertion dans un tableau trié. Complexité : **O(n²)** dans le pire cas (chaque insertion peut re-transvaser toute la pile).`,
+        tags: ["pile", "code", "tri", "tp", "serie4"],
+      },
+    ],
+  },
 ];
