@@ -6,7 +6,9 @@ function stripComments(code: string): string {
   return code
     .replace(/\/\*[\s\S]*?\*\//g, " ") // C block comments
     .replace(/\/\/[^\n]*/g, " ") // C line comments
-    .replace(/\{[^{}\n]*\}/g, (m) => (m.includes("←") || m.includes("<-") ? m : " ")) // pseudo {comments}, keep braces w/ assignments
+    // pseudo-code {comments}: strip ONLY prose-looking braces. Never touch a
+    // C block `{ ...statements... }` (contains ; = ( ) or an assignment arrow).
+    .replace(/\{[^{}\n]*\}/g, (m) => (/[;=()]|←|<-/.test(m) ? m : " "))
     .replace(/^\s*\*.*$/gm, " ");
 }
 
