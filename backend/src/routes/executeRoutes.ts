@@ -5,14 +5,35 @@ import { HttpError } from "../middleware/error";
 const router = Router();
 
 /**
- * POST /api/execute — compile & run a C snippet in the Piston public sandbox
- * (https://github.com/engineer-man/piston). The code runs in an isolated
- * container on emkc.org, never on our server. Auth required to limit abuse;
- * a light per-user cooldown keeps us inside Piston's public rate limit.
+ * POST /api/execute — compile & run a C snippet in an external sandbox.
+ *
+ * Default backend: Wandbox (https://wandbox.org), public and key-free — it
+ * replaces the old public Piston API, which became whitelist-only in 2026.
+ * The code runs in Wandbox's container, never on our server.
+ *
+ * Configurable via env for self-hosting / swapping providers:
+ *   CODE_EXEC_URL       (default https://wandbox.org/api/compile.json)
+ *   CODE_EXEC_COMPILER  (default gcc-13.2.0)
+ *
+ * Grading of `code` challenges does NOT depend on this endpoint — it is
+ * keypoint-based and works offline (see utils/answer.ts). This route only
+ * powers the optional "Compiler & Exécuter" button, and fails gracefully.
  */
+const WANDBOX_URL = process.env.CODE_EXEC_URL || "https://wandbox.org/api/compile.json";
+const WANDBOX_COMPILER = process.env.CODE_EXEC_COMPILER || "gcc-13.2.0";
+
 const lastRun = new Map<string, number>();
 const COOLDOWN_MS = 1500;
 const MAX_CODE_LEN = 20_000;
+
+interface WandboxResponse {
+  status?: string;
+  compiler_message?: string;
+  compiler_error?: string;
+  program_message?: string;
+  program_output?: string;
+  program_error?: string;
+}
 
 router.post("/", authRequired, async (req: Request, res: Response) => {
   const { code, stdin } = req.body ?? {};
@@ -30,38 +51,55 @@ router.post("/", authRequired, async (req: Request, res: Response) => {
   }
   lastRun.set(userId, now);
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20_000);
+
   let resp: globalThis.Response;
   try {
-    resp = await fetch("https://emkc.org/api/v2/piston/execute", {
+    resp = await fetch(WANDBOX_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
       body: JSON.stringify({
-        language: "c",
-        version: "10.2.0",
-        files: [{ name: "main.c", content: code }],
+        code,
+        compiler: WANDBOX_COMPILER,
         stdin: typeof stdin === "string" ? stdin.slice(0, 4000) : "",
-        compile_timeout: 10_000,
-        run_timeout: 5_000,
+        options: "warning",
+        "compiler-option-raw": "-std=c11",
       }),
     });
   } catch {
+    clearTimeout(timer);
     throw new HttpError(502, "Le service de compilation est injoignable. Réessaie dans un instant.");
   }
+  clearTimeout(timer);
 
   if (!resp.ok) {
     throw new HttpError(502, `Service de compilation indisponible (${resp.status}).`);
   }
-  const data = (await resp.json()) as {
-    compile?: { stdout: string; stderr: string; code: number | null };
-    run?: { stdout: string; stderr: string; code: number | null; signal: string | null };
-  };
+
+  const data = (await resp.json()) as WandboxResponse;
+
+  // Map Wandbox's flat shape to our { compile, run } contract.
+  const compileErr = data.compiler_error ?? "";
+  const ran =
+    data.program_output !== undefined ||
+    data.program_error !== undefined ||
+    data.program_message !== undefined;
 
   res.json({
-    compile: data.compile
-      ? { stdout: data.compile.stdout, stderr: data.compile.stderr, code: data.compile.code }
-      : null,
-    run: data.run
-      ? { stdout: data.run.stdout, stderr: data.run.stderr, code: data.run.code, signal: data.run.signal }
+    compile: {
+      stdout: data.compiler_message ?? "",
+      stderr: compileErr,
+      code: compileErr && !ran ? 1 : 0,
+    },
+    run: ran
+      ? {
+          stdout: data.program_output ?? "",
+          stderr: data.program_error ?? "",
+          code: data.status !== undefined ? Number(data.status) : 0,
+          signal: null,
+        }
       : null,
   });
 });

@@ -18,6 +18,7 @@ import { algoControle } from "./algo/algoControle";
 import { asdMemoire } from "./algo/asdMemoire";
 import { asdComplexitePiles } from "./algo/asdComplexitePiles";
 import { asdArbres } from "./algo/asdArbres";
+import { tpCAtelier } from "./algo/tpCAtelier";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -26,6 +27,7 @@ export const algoCourses: CourseSeed[] = [
   ...asdMemoire,
   ...asdComplexitePiles,
   ...asdArbres,
+  ...tpCAtelier,
 ];
 
 /** Every course, in display order. */
