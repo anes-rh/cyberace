@@ -57,7 +57,7 @@ export default function CheckpointPage() {
               <Icon name={cp.icon} className="h-8 w-8" />
             </div>
             <div>
-              <p className="font-mono text-xs uppercase tracking-widest" style={{ color: cp.accent }}>Checkpoint {cp.order} / 4</p>
+              <p className="font-mono text-xs uppercase tracking-widest" style={{ color: cp.accent }}>Checkpoint {cp.order}</p>
               <h1 className="mt-1 font-display text-3xl font-semibold">{cp.title}</h1>
               <p className="mt-1 max-w-xl text-sm text-muted">{cp.description}</p>
             </div>
