@@ -474,6 +474,217 @@ Fin.
 **L'idée** : transformer la multiplication en additions répétées. \`A × B\` = « ajouter \`A\` à lui-même \`B\` fois ». Le test \`Si A ≠ 0\` est une petite optimisation : si \`A = 0\`, le produit est 0 sans avoir à boucler. (On pourrait aussi boucler sur \`A\` fois en ajoutant \`B\` — même résultat.)`,
         tags: ["boucle", "code", "pour", "L1"],
       },
+      {
+        id: "algo-iter-code-factorielle",
+        title: "La factorielle N!",
+        order: 7,
+        difficulty: "medium",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🧮 Produit cumulé
+
+Écris un algorithme qui **lit un entier \`N ≥ 0\`** et calcule sa **factorielle** :
+
+\`\`\`
+N! = 1 × 2 × 3 × … × N       (avec 0! = 1)
+\`\`\`
+
+Affiche le résultat. ⚠️ Attention à la **valeur initiale** de l'accumulateur : ici on multiplie, pas on additionne !`,
+        points: 200,
+        timeLimitSec: 600,
+        starter: `Algorithme Factorielle ;
+Var N, I, F : entier ;
+Debut
+    Ecrire("Donner un entier N") ; Lire(N) ;
+
+Fin.`,
+        hints: [
+          { text: "Initialise F à 1 (pas 0 : sinon tout produit reste 0 !). Puis Pour I ← 1 à N : F ← F × I.", cost: 25 },
+          { text: "Si N = 0, la boucle Pour ne s'exécute pas et F reste à 1 → 0! = 1. C'est correct !", cost: 30 },
+          { text: "📖 Correction complète :\n```\nF <- 1 ;\nPour I <- 1 à N Faire\n    F <- F * I ;\nFait ;\nEcrire('N! = ', F) ;\n```", cost: 70 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.75,
+          keypoints: [
+            { label: "Initialise l'accumulateur F à 1 (élément neutre du produit)", pattern: "F\\s*(←|<-)\\s*1", flags: "i" },
+            { label: "Boucle de 1 à N", pattern: "(Pour|Tant\\s*que)[\\s\\S]{0,40}N", flags: "i" },
+            { label: "Multiplie F par le compteur à chaque tour", pattern: "F\\s*(←|<-)\\s*F\\s*\\*", flags: "i" },
+            { label: "Affiche le résultat", pattern: "[EÉ]crire\\s*\\(", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+Algorithme Factorielle ;
+Var N, I, F : entier ;
+Debut
+    Ecrire("Donner un entier N") ; Lire(N) ;
+    F ← 1 ;                    // élément NEUTRE de la multiplication
+    Pour I ← 1 à N Faire
+        F ← F × I ;
+    Fait ;
+    Ecrire('N! = ', F) ;
+Fin.
+\`\`\`
+
+**Le piège n°1** : initialiser \`F ← 0\`. Comme \`0 × quoi que ce soit = 0\`, le résultat resterait **0**. Pour un **produit**, l'accumulateur démarre à **1** (comme il démarre à **0** pour une **somme**).
+
+**Bonus élégant** : si \`N = 0\`, la boucle \`Pour I ← 1 à 0\` ne tourne **jamais** → \`F\` garde sa valeur \`1\` → on obtient bien \`0! = 1\` sans cas particulier. 🎯`,
+        tags: ["boucle", "code", "factorielle", "L1"],
+      },
+      {
+        id: "algo-iter-code-pgcd",
+        title: "PGCD par soustractions successives",
+        order: 8,
+        difficulty: "medium",
+        type: "code",
+        language: "pseudo",
+        prompt: `## ➖ L'algorithme d'Euclide (version soustractive)
+
+Écris un algorithme qui lit deux entiers **strictement positifs** \`A\` et \`B\` et calcule leur **PGCD** (plus grand commun diviseur) par **soustractions successives** :
+
+> Tant que \`A ≠ B\`, on **retranche le plus petit du plus grand**. Quand \`A = B\`, cette valeur commune **est** le PGCD.
+
+Affiche le PGCD.`,
+        points: 200,
+        timeLimitSec: 720,
+        starter: `Algorithme PGCD ;
+Var A, B : entier ;
+Debut
+    Ecrire("Donner deux entiers positifs A et B") ; Lire(A, B) ;
+
+Fin.`,
+        hints: [
+          { text: "Boucle Tantque (A <> B). À l'intérieur : Si A > B alors A ← A - B, Sinon B ← B - A.", cost: 25 },
+          { text: "La boucle modifie A ou B à chaque tour → la condition A <> B finit par devenir fausse. À la sortie, A = B = PGCD.", cost: 30 },
+          { text: "📖 Correction complète :\n```\nTantque A <> B Faire\n    Si A > B Alors A <- A - B ;\n    Sinon B <- B - A ;\n    Fsi ;\nFait ;\nEcrire('PGCD = ', A) ;\n```", cost: 70 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.75,
+          keypoints: [
+            { label: "Boucle Tantque tant que A et B diffèrent", pattern: "Tant\\s*que[\\s\\S]{0,20}A[\\s\\S]{0,10}(<>|≠|!=)[\\s\\S]{0,6}B", flags: "i" },
+            { label: "Compare A et B (Si A > B)", pattern: "Si[\\s\\S]{0,10}A\\s*>\\s*B", flags: "i" },
+            { label: "Retranche B de A", pattern: "A\\s*(←|<-)\\s*A\\s*-\\s*B", flags: "i" },
+            { label: "Retranche A de B (branche Sinon)", pattern: "B\\s*(←|<-)\\s*B\\s*-\\s*A", flags: "i" },
+            { label: "Affiche le PGCD (la valeur commune)", pattern: "[EÉ]crire\\s*\\(", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+Algorithme PGCD ;
+Var A, B : entier ;
+Debut
+    Ecrire("Donner deux entiers positifs A et B") ; Lire(A, B) ;
+    Tantque A <> B Faire
+        Si A > B Alors A ← A - B ;
+        Sinon B ← B - A ;
+        Fsi ;
+    Fait ;
+    Ecrire('PGCD = ', A) ;   // à la sortie, A = B = PGCD
+Fin.
+\`\`\`
+
+**Pourquoi ça marche ?** Le PGCD de deux nombres divise aussi leur **différence** : \`pgcd(A, B) = pgcd(A−B, B)\`. En retranchant sans cesse le plus petit du plus grand, on fait décroître les valeurs **sans changer le PGCD**, jusqu'à ce que les deux soient égaux — et un nombre est son propre PGCD avec lui-même.
+
+**Trace** pour \`A=12, B=8\` : (12,8) → (4,8) → (4,4) → stop → PGCD = **4**.
+
+C'est un bel exemple de \`Tantque\` : le nombre de tours est **inconnu à l'avance** (il dépend des valeurs), et la condition est bien **modifiée dans la boucle**.`,
+        tags: ["boucle", "code", "tantque", "pgcd", "L1"],
+      },
+      {
+        id: "algo-iter-trace-imbriquee",
+        title: "Compter dans deux boucles imbriquées",
+        order: 9,
+        difficulty: "medium",
+        type: "numeric",
+        prompt: `## 🪆 Trace de boucles imbriquées
+
+Déroule ce fragment et donne la **valeur finale de \`c\`** :
+
+\`\`\`
+c ← 0 ;
+Pour i ← 1 à 4 Faire
+    Pour j ← 1 à i Faire
+        c ← c + 1 ;
+    Fait ;
+Fait ;
+\`\`\``,
+        points: 200,
+        timeLimitSec: 420,
+        hints: [
+          { text: "La boucle interne tourne i fois à chaque valeur de i : 1 fois (i=1), 2 fois (i=2), 3 fois (i=3), 4 fois (i=4).", cost: 20 },
+          { text: "📖 Correction complète : c = 1 + 2 + 3 + 4 = 10. La borne de la boucle interne (i) change à chaque tour de la boucle externe.", cost: 60 },
+        ],
+        answer: 10,
+        explanation: `La boucle **interne** \`Pour j ← 1 à i\` dépend de \`i\` : elle s'exécute **\`i\` fois** à chaque tour de la boucle externe.
+
+| i | tours internes | c ajouté |
+|---|---|---|
+| 1 | 1 | +1 |
+| 2 | 2 | +2 |
+| 3 | 3 | +3 |
+| 4 | 4 | +4 |
+
+Total : \`c = 1 + 2 + 3 + 4 = \`**\`10\`**.
+
+C'est le motif d'une complexité en **O(n²)** : quand la borne interne suit l'externe, le nombre total de tours est \`1+2+…+n = n(n+1)/2\`.`,
+        tags: ["boucle", "imbriquee", "trace", "L1"],
+      },
+      {
+        id: "algo-iter-code-premier",
+        title: "Nombre premier ?",
+        order: 10,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🔍 Test de primalité
+
+Écris un algorithme qui lit un entier \`N ≥ 2\` et **affiche s'il est premier ou non**.
+
+> Un nombre est **premier** s'il n'est divisible que par 1 et par lui-même. Astuce : cherche un diviseur entre \`2\` et \`N-1\` ; dès qu'on en trouve un (\`N mod i = 0\`), \`N\` **n'est pas premier**.
+
+Utilise un objet booléen (ex. \`estPremier\`) ou un compteur de diviseurs.`,
+        points: 350,
+        timeLimitSec: 900,
+        starter: `Algorithme Premier ;
+Var N, I : entier ; estPremier : booleen ;
+Debut
+    Ecrire("Donner un entier N >= 2") ; Lire(N) ;
+
+Fin.`,
+        hints: [
+          { text: "Initialise estPremier ← vrai. Parcours I de 2 à N-1 : si N mod I = 0, alors estPremier ← faux.", cost: 30 },
+          { text: "À la fin, Si estPremier Alors affiche « premier » Sinon « non premier ». On peut s'arrêter au 1er diviseur trouvé (Tantque).", cost: 40 },
+          { text: "📖 Correction complète :\n```\nestPremier <- vrai ;\nPour I <- 2 à N-1 Faire\n    Si (N mod I = 0) Alors estPremier <- faux ; Fsi ;\nFait ;\nSi estPremier Alors Ecrire('premier') Sinon Ecrire('non premier') Fsi ;\n```", cost: 80 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.75,
+          keypoints: [
+            { label: "Initialise un booléen estPremier à vrai", pattern: "estPremier\\s*(←|<-)\\s*vrai", flags: "i" },
+            { label: "Boucle sur les diviseurs candidats (de 2 à N-1)", pattern: "(Pour|Tant\\s*que)[\\s\\S]{0,40}(N-1|N\\s*-\\s*1|N)", flags: "i" },
+            { label: "Teste la divisibilité avec mod", pattern: "N\\s*mod\\s*I", flags: "i" },
+            { label: "Marque non premier quand un diviseur est trouvé", pattern: "estPremier\\s*(←|<-)\\s*faux", flags: "i" },
+            { label: "Affiche le verdict selon estPremier", pattern: "Si\\s+estPremier[\\s\\S]{0,60}[EÉ]crire", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+Algorithme Premier ;
+Var N, I : entier ; estPremier : booleen ;
+Debut
+    Ecrire("Donner un entier N >= 2") ; Lire(N) ;
+    estPremier ← vrai ;                    // hypothèse de départ
+    Pour I ← 2 à N-1 Faire
+        Si (N mod I = 0) Alors             // I divise N → pas premier
+            estPremier ← faux ;
+        Fsi ;
+    Fait ;
+    Si estPremier Alors Ecrire('N est premier')
+    Sinon Ecrire('N n''est pas premier') Fsi ;
+Fin.
+\`\`\`
+
+**Le raisonnement** : on **suppose** \`N\` premier (\`estPremier ← vrai\`), puis on cherche un **contre-exemple** : un diviseur \`I\` entre 2 et N−1. Si \`N mod I = 0\`, on a trouvé → \`estPremier ← faux\`.
+
+**Optimisation (astuce)** : inutile d'aller jusqu'à N−1 — un diviseur ne peut dépasser **√N** (au-delà, son co-diviseur serait plus petit et déjà trouvé). Avec une boucle \`Tantque (I×I ≤ N Et estPremier)\`, on passe de **O(N)** à **O(√N)** — beaucoup plus rapide pour les grands nombres.`,
+        tags: ["boucle", "code", "premier", "L1"],
+      },
     ],
   },
   {
@@ -918,6 +1129,192 @@ Fsi ;
 
 **Pourquoi \`I ≤ N\` en premier dans le ET ?** Grâce au court-circuit, si \`I\` dépasse \`N\`, la 2ᵉ condition \`T[I] ≠ V\` n'est **pas évaluée** — sinon on lirait \`T[I]\` **hors des bornes** du tableau (plantage). Complexité : **O(n)** dans le pire cas (valeur absente ou en dernière position).`,
         tags: ["tableau", "recherche", "code", "L1"],
+      },
+      {
+        id: "algo-tab-min-position",
+        title: "Minimum et sa position",
+        order: 7,
+        difficulty: "medium",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🔎 Trouver le plus petit ET où il est
+
+Le tableau \`T\` contient \`N\` entiers. Écris le fragment qui trouve la **valeur minimale** \`min\` **et sa position** \`pos\` (le premier indice où elle apparaît), puis les affiche. Suppose \`T\` rempli et \`N\` connu.
+
+💡 Il faut suivre **deux** informations en même temps : la valeur du min et son indice.`,
+        points: 200,
+        timeLimitSec: 600,
+        starter: `Var T : Tableau[1..100] de entier ;
+    I, N, min, pos : entier ;
+Debut
+    // ... T rempli, N connu ...
+
+Fin.`,
+        hints: [
+          { text: "Initialise min ← T[1] et pos ← 1. Puis pour I ← 2 à N : si T[I] < min, mets à jour min ET pos.", cost: 25 },
+          { text: "Les deux affectations vont ensemble : min ← T[I] ; pos ← I ; dans le même Si.", cost: 30 },
+          { text: "📖 Correction complète :\n```\nmin <- T[1] ; pos <- 1 ;\nPour I <- 2 à N Faire\n    Si T[I] < min Alors min <- T[I] ; pos <- I ; Fsi ;\nFait ;\nEcrire('min = ', min, ' en position ', pos) ;\n```", cost: 70 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.75,
+          keypoints: [
+            { label: "Initialise min avec le 1er élément et pos à 1", pattern: "min\\s*(←|<-)\\s*T\\s*\\[\\s*1\\s*\\]", flags: "i" },
+            { label: "Parcourt le reste du tableau", pattern: "Pour[\\s\\S]{0,30}(à|a)[\\s\\S]{0,6}N", flags: "i" },
+            { label: "Compare l'élément courant au minimum (T[I] < min)", pattern: "T\\s*\\[\\s*I\\s*\\]\\s*<\\s*min", flags: "i" },
+            { label: "Met à jour la position quand un plus petit est trouvé", pattern: "pos\\s*(←|<-)\\s*I", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+min ← T[1] ; pos ← 1 ;              // on part du 1er élément
+Pour I ← 2 à N Faire
+    Si T[I] < min Alors
+        min ← T[I] ; pos ← I ;      // les DEUX ensemble
+    Fsi ;
+Fait ;
+Ecrire('min = ', min, ' en position ', pos) ;
+\`\`\`
+
+**La clé** : ne pas se contenter de suivre la valeur — dès qu'on trouve un nouveau minimum, on note **aussi** son **indice**. Les deux affectations \`min ← T[I]\` et \`pos ← I\` sont **solidaires** (dans le même \`Si\`). Initialiser avec \`T[1]\` (et non 0 ou une constante énorme) garantit que le min appartient bien au tableau. Complexité : **O(n)**, un seul passage.`,
+        tags: ["tableau", "code", "minimum", "L1"],
+      },
+      {
+        id: "algo-tab-occurrences",
+        title: "Compter les occurrences d'une valeur",
+        order: 8,
+        difficulty: "easy",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🔢 Combien de fois ?
+
+Écris le fragment qui compte **combien de fois** la valeur \`V\` apparaît dans le tableau \`T\` de \`N\` entiers, et affiche ce compte. (\`V\` et \`N\` déjà lus, \`T\` rempli.)`,
+        points: 100,
+        timeLimitSec: 420,
+        starter: `Var T : Tableau[1..100] de entier ;
+    I, N, V, nb : entier ;
+Debut
+    // ... T rempli, N et V lus ...
+
+Fin.`,
+        hints: [
+          { text: "Initialise nb ← 0. Pour chaque I de 1 à N : si T[I] = V, incrémente nb.", cost: 15 },
+          { text: "📖 Correction complète :\n```\nnb <- 0 ;\nPour I <- 1 à N Faire\n    Si T[I] = V Alors nb <- nb + 1 ; Fsi ;\nFait ;\nEcrire(V, ' apparait ', nb, ' fois') ;\n```", cost: 50 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.75,
+          keypoints: [
+            { label: "Initialise le compteur nb à 0", pattern: "nb\\s*(←|<-)\\s*0", flags: "i" },
+            { label: "Parcourt tout le tableau", pattern: "Pour[\\s\\S]{0,30}(à|a)[\\s\\S]{0,6}N", flags: "i" },
+            { label: "Teste l'égalité T[I] = V", pattern: "T\\s*\\[\\s*I\\s*\\]\\s*=\\s*V", flags: "i" },
+            { label: "Incrémente le compteur", pattern: "nb\\s*(←|<-)\\s*nb\\s*\\+\\s*1", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+nb ← 0 ;
+Pour I ← 1 à N Faire
+    Si T[I] = V Alors nb ← nb + 1 ; Fsi ;
+Fait ;
+Ecrire(V, ' apparaît ', nb, ' fois') ;
+\`\`\`
+
+Un **compteur conditionnel** : on balaie tout le tableau et on incrémente \`nb\` **uniquement** quand l'élément vaut \`V\`. À la différence de la recherche séquentielle, ici on **ne s'arrête pas** au premier trouvé — il faut tout parcourir pour compter. Complexité : **O(n)**.`,
+        tags: ["tableau", "code", "comptage", "L1"],
+      },
+      {
+        id: "algo-tab-inverser",
+        title: "Inverser un tableau sur place",
+        order: 9,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🔄 Miroir
+
+Écris le fragment qui **inverse l'ordre** des \`N\` éléments du tableau \`T\` **sur place** (sans tableau auxiliaire) : le 1ᵉʳ échange avec le dernier, le 2ᵉ avec l'avant-dernier, etc. Puis affiche le tableau inversé.
+
+💡 Échange \`T[I]\` avec \`T[N-I+1]\`, en n'allant que **jusqu'au milieu**.`,
+        points: 350,
+        timeLimitSec: 900,
+        starter: `Var T : Tableau[1..100] de entier ;
+    I, N, temp : entier ;
+Debut
+    // ... T rempli, N connu ...
+
+Fin.`,
+        hints: [
+          { text: "Boucle I de 1 à N div 2. Échange T[I] et T[N-I+1] via une variable temp.", cost: 30 },
+          { text: "L'échange à 3 temps : temp ← T[I] ; T[I] ← T[N-I+1] ; T[N-I+1] ← temp. Ne pas dépasser N div 2 (sinon on ré-inverse !).", cost: 40 },
+          { text: "📖 Correction complète :\n```\nPour I <- 1 à N div 2 Faire\n    temp <- T[I] ;\n    T[I] <- T[N-I+1] ;\n    T[N-I+1] <- temp ;\nFait ;\n```", cost: 80 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.75,
+          keypoints: [
+            { label: "Ne boucle que jusqu'au milieu (N div 2)", pattern: "(à|a)[\\s\\S]{0,10}N\\s*div\\s*2", flags: "i" },
+            { label: "Sauvegarde T[I] dans une variable temporaire", pattern: "temp\\s*(←|<-)\\s*T\\s*\\[\\s*I\\s*\\]", flags: "i" },
+            { label: "Copie l'élément symétrique T[N-I+1] dans T[I]", pattern: "T\\s*\\[\\s*I\\s*\\]\\s*(←|<-)\\s*T\\s*\\[\\s*N\\s*-\\s*I\\s*\\+\\s*1", flags: "i" },
+            { label: "Place temp dans la case symétrique", pattern: "T\\s*\\[\\s*N\\s*-\\s*I\\s*\\+\\s*1\\s*\\]\\s*(←|<-)\\s*temp", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+Pour I ← 1 à N div 2 Faire
+    temp ← T[I] ;                 // 1) on met de côté
+    T[I] ← T[N-I+1] ;             // 2) le symétrique prend la place
+    T[N-I+1] ← temp ;            // 3) l'ancien va à la place symétrique
+Fait ;
+\`\`\`
+
+**Deux subtilités** :
+1. **L'échange à trois temps** avec \`temp\` : sans variable tampon, \`T[I] ← T[N-I+1]\` **écraserait** \`T[I]\` avant de pouvoir le recopier.
+2. **S'arrêter au milieu** (\`N div 2\`) : si on allait jusqu'à \`N\`, on ré-échangerait chaque paire une 2ᵉ fois → le tableau reviendrait **à l'endroit** ! L'élément central (si \`N\` est impair) reste à sa place, c'est normal.
+
+Complexité **O(n)**, mémoire **O(1)** (in-place, aucun tableau auxiliaire).`,
+        tags: ["tableau", "code", "echange", "L1"],
+      },
+      {
+        id: "algo-tab-moyenne-au-dessus",
+        title: "Compter les valeurs au-dessus de la moyenne",
+        order: 10,
+        difficulty: "medium",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 📊 Deux passages sur le tableau
+
+Écris le fragment qui calcule la **moyenne** des \`N\` valeurs de \`T\`, puis compte **combien d'éléments sont strictement supérieurs** à cette moyenne, et l'affiche.
+
+💡 Il faut **deux parcours** : un pour la somme (donc la moyenne), un pour comparer chaque élément à la moyenne.`,
+        points: 200,
+        timeLimitSec: 720,
+        starter: `Var T : Tableau[1..100] de entier ;
+    I, N, som, nb : entier ; moy : reel ;
+Debut
+    // ... T rempli, N connu ...
+
+Fin.`,
+        hints: [
+          { text: "1er passage : som ← 0 puis cumule T[I] ; moy ← som / N. 2e passage : compte les T[I] > moy.", cost: 25 },
+          { text: "On ne peut pas compter les éléments > moyenne avant de connaître la moyenne → d'où les deux boucles séparées.", cost: 30 },
+          { text: "📖 Correction complète :\n```\nsom <- 0 ;\nPour I <- 1 à N Faire som <- som + T[I] ; Fait ;\nmoy <- som / N ;\nnb <- 0 ;\nPour I <- 1 à N Faire Si T[I] > moy Alors nb <- nb + 1 ; Fsi ; Fait ;\nEcrire(nb, ' valeurs au-dessus de la moyenne') ;\n```", cost: 70 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "1er passage : cumule la somme des éléments", pattern: "som\\s*(←|<-)\\s*som\\s*\\+\\s*T\\s*\\[\\s*I\\s*\\]", flags: "i" },
+            { label: "Calcule la moyenne (somme / N)", pattern: "moy\\s*(←|<-)\\s*som\\s*/\\s*N", flags: "i" },
+            { label: "2e passage : compare chaque élément à la moyenne", pattern: "T\\s*\\[\\s*I\\s*\\]\\s*>\\s*moy", flags: "i" },
+            { label: "Compte les éléments au-dessus", pattern: "nb\\s*(←|<-)\\s*nb\\s*\\+\\s*1", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+som ← 0 ;
+Pour I ← 1 à N Faire som ← som + T[I] ; Fait ;   // 1er passage : somme
+moy ← som / N ;                                   // moyenne (réel !)
+nb ← 0 ;
+Pour I ← 1 à N Faire
+    Si T[I] > moy Alors nb ← nb + 1 ; Fsi ;       // 2e passage : comparaison
+Fait ;
+Ecrire(nb, ' valeurs au-dessus de la moyenne') ;
+\`\`\`
+
+**Pourquoi deux boucles ?** On ne peut **pas** compter les éléments supérieurs à la moyenne **pendant** qu'on la calcule : la moyenne n'est connue **qu'après** avoir tout additionné. C'est le cas classique où **stocker le tableau** est indispensable (une variable simple, écrasée à chaque lecture, ne permettrait pas le 2ᵉ passage). Note : \`moy\` est un **réel** (division), \`som\` et les \`T[I]\` sont des entiers. Complexité : **O(n)** (deux passages restent linéaires).`,
+        tags: ["tableau", "code", "moyenne", "L1"],
       },
     ],
   },
