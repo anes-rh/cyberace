@@ -506,6 +506,149 @@ Fait ;
 **Pourquoi ça marche ?** Le successeur infixe est la **plus petite valeur supérieure** à celle du nœud. La placer là **conserve** l'invariant ABR : tout ce qui est à gauche reste plus petit, tout ce qui est à droite reste plus grand.`,
         tags: ["arbre", "suppression"],
       },
+      {
+        id: "asd-arb-compter-noeuds",
+        title: "Compter les nœuds d'un arbre",
+        order: 7,
+        difficulty: "medium",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🌳 Récursivité sur un arbre
+
+Écris la fonction récursive \`Fonction NbNoeuds(E/ a : noeud) : entier\` qui retourne le **nombre total de nœuds** de l'arbre binaire d'adresse \`a\`.
+
+💡 Le nombre de nœuds = **1** (la racine) **+** les nœuds du sous-arbre gauche **+** ceux du sous-arbre droit. Cas de base : un arbre **vide** contient **0** nœud.`,
+        points: 200,
+        timeLimitSec: 600,
+        starter: `Fonction NbNoeuds (E/ a : noeud) : entier
+Debut
+
+Fin ;`,
+        hints: [
+          { text: "Cas de base : Si arbre vide (a = nil / non Nonvide(a)) → retourner 0.", cost: 25 },
+          { text: "Cas récursif : retourner 1 + NbNoeuds(filsgauche(a)) + NbNoeuds(filsdroit(a)).", cost: 30 },
+          { text: "📖 Correction complète :\n```\nSi Nonvide(a) Alors\n    retourner 1 + NbNoeuds(filsgauche(a)) + NbNoeuds(filsdroit(a)) ;\nSinon retourner 0 ;\nFsi ;\n```", cost: 70 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "Cas de base : arbre vide retourne 0", pattern: "[Rr]etourner\\s*\\(?\\s*0", flags: "i" },
+            { label: "Appel récursif sur le sous-arbre gauche", pattern: "NbNoeuds\\s*\\(\\s*(filsgauche|\\(\\s*\\^)", flags: "i" },
+            { label: "Appel récursif sur le sous-arbre droit", pattern: "NbNoeuds\\s*\\([\\s\\S]{0,30}(filsdroit|succd)", flags: "i" },
+            { label: "Combine 1 + gauche + droit", pattern: "1\\s*\\+[\\s\\S]{0,40}\\+", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+Fonction NbNoeuds (E/ a : noeud) : entier
+Debut
+    Si Nonvide(a) Alors
+        retourner 1 + NbNoeuds(filsgauche(a)) + NbNoeuds(filsdroit(a)) ;
+    Sinon
+        retourner 0 ;                 // cas de base : arbre vide
+    Fsi ;
+Fin ;
+\`\`\`
+
+**Le schéma récursif universel sur les arbres** : *quelque chose sur la racine* **combiné avec** *le résultat sur le sous-arbre gauche* **et** *sur le sous-arbre droit*. Ici : \`1\` (la racine compte pour un nœud) + le compte à gauche + le compte à droite.
+
+Le **cas de base** (\`a\` vide → 0) est ce qui **arrête** la récursion : sans lui, on déréférencerait \`nil\` et le programme planterait. Chaque nœud est visité **une seule fois** → complexité **O(n)**.`,
+        tags: ["arbre", "code", "recursivite", "comptage"],
+      },
+      {
+        id: "asd-arb-hauteur",
+        title: "Hauteur d'un arbre",
+        order: 8,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 📏 La profondeur maximale
+
+Écris la fonction récursive \`Fonction Hauteur(E/ a : noeud) : entier\` qui retourne la **hauteur** de l'arbre : le nombre de niveaux depuis la racine jusqu'à la feuille la plus profonde.
+
+Conventions : un arbre **vide** a une hauteur de **0** ; une **feuille seule** a une hauteur de **1**.
+
+💡 Hauteur = **1 + le maximum** entre la hauteur du sous-arbre gauche et celle du sous-arbre droit. Suppose une fonction \`max(x, y)\` disponible.`,
+        points: 350,
+        timeLimitSec: 900,
+        starter: `Fonction Hauteur (E/ a : noeud) : entier
+Debut
+
+Fin ;`,
+        hints: [
+          { text: "Cas de base : arbre vide → retourner 0.", cost: 30 },
+          { text: "Cas récursif : retourner 1 + max(Hauteur(filsgauche(a)), Hauteur(filsdroit(a))).", cost: 40 },
+          { text: "📖 Correction complète :\n```\nSi Nonvide(a) Alors\n    retourner 1 + max(Hauteur(filsgauche(a)), Hauteur(filsdroit(a))) ;\nSinon retourner 0 ;\nFsi ;\n```", cost: 80 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "Cas de base : arbre vide retourne 0", pattern: "[Rr]etourner\\s*\\(?\\s*0", flags: "i" },
+            { label: "Prend le maximum des deux sous-arbres", pattern: "max\\s*\\(", flags: "i" },
+            { label: "Appel récursif sur les deux fils", pattern: "Hauteur\\s*\\([\\s\\S]{0,30}(filsgauche|filsdroit|\\^)", flags: "i" },
+            { label: "Ajoute 1 pour le niveau courant", pattern: "1\\s*\\+\\s*max", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+Fonction Hauteur (E/ a : noeud) : entier
+Debut
+    Si Nonvide(a) Alors
+        retourner 1 + max(Hauteur(filsgauche(a)), Hauteur(filsdroit(a))) ;
+    Sinon
+        retourner 0 ;
+    Fsi ;
+Fin ;
+\`\`\`
+
+**L'astuce du \`max\`** : la hauteur est dictée par la branche **la plus longue**. On calcule donc récursivement la hauteur de **chaque** sous-arbre, on garde la **plus grande** (\`max\`), et on ajoute **1** pour le niveau de la racine courante.
+
+Différence avec \`NbNoeuds\` : là on **additionne** les deux côtés (on veut le total), ici on prend le **maximum** (on veut le plus profond). Même squelette récursif, opération différente. Complexité **O(n)**.`,
+        tags: ["arbre", "code", "recursivite", "hauteur"],
+      },
+      {
+        id: "asd-arb-compter-feuilles",
+        title: "Compter les feuilles",
+        order: 9,
+        difficulty: "medium",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🍃 Seulement le bout des branches
+
+Écris \`Fonction NbFeuilles(E/ a : noeud) : entier\` qui compte les **feuilles** de l'arbre (les nœuds **sans aucun fils**).
+
+Rappels : arbre vide → 0 feuille ; un nœud est une **feuille** si \`filsgauche(a)\` **et** \`filsdroit(a)\` valent nil (helper \`Feuille(a)\` disponible).`,
+        points: 200,
+        timeLimitSec: 720,
+        starter: `Fonction NbFeuilles (E/ a : noeud) : entier
+Debut
+
+Fin ;`,
+        hints: [
+          { text: "Trois cas : arbre vide → 0 ; feuille → 1 ; sinon → NbFeuilles(gauche) + NbFeuilles(droit).", cost: 25 },
+          { text: "Une feuille ne compte PAS 1 + ses fils (elle n'en a pas) : elle retourne juste 1.", cost: 30 },
+          { text: "📖 Correction complète :\n```\nSi non Nonvide(a) Alors retourner 0 ;\nSinon Si Feuille(a) Alors retourner 1 ;\nSinon retourner NbFeuilles(filsgauche(a)) + NbFeuilles(filsdroit(a)) ;\nFsi ; Fsi ;\n```", cost: 70 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "Cas arbre vide : retourne 0", pattern: "[Rr]etourner\\s*\\(?\\s*0", flags: "i" },
+            { label: "Cas feuille : retourne 1", pattern: "(Feuille\\s*\\([\\s\\S]{0,20})?[Rr]etourner\\s*\\(?\\s*1", flags: "i" },
+            { label: "Cas interne : somme des feuilles des deux sous-arbres", pattern: "NbFeuilles\\s*\\([\\s\\S]{0,40}\\+[\\s\\S]{0,20}NbFeuilles", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+Fonction NbFeuilles (E/ a : noeud) : entier
+Debut
+    Si non Nonvide(a) Alors retourner 0 ;          // arbre vide
+    Sinon Si Feuille(a) Alors retourner 1 ;        // feuille = 1
+    Sinon retourner NbFeuilles(filsgauche(a))      // nœud interne :
+                  + NbFeuilles(filsdroit(a)) ;     // somme des deux côtés
+    Fsi ; Fsi ;
+Fin ;
+\`\`\`
+
+**Trois cas au lieu de deux** : ici il faut distinguer la **feuille** (qui compte pour 1 et **arrête** la descente) du **nœud interne** (qui ne compte pas lui-même, mais additionne les feuilles de ses sous-arbres). Contrairement à \`NbNoeuds\`, on n'ajoute **jamais** de \`1\` pour un nœud interne — seules les feuilles rapportent. Complexité **O(n)**.`,
+        tags: ["arbre", "code", "recursivite", "feuilles"],
+      },
     ],
   },
 ];
