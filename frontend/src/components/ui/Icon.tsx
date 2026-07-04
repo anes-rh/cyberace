@@ -1,13 +1,13 @@
 import {
   KeyRound, Grid3x3, Network, Wifi, Binary, Siren, Orbit, Database, CreditCard,
-  Ghost, Fingerprint, Cloud, Brain, Bug, Trophy, Flag, Shield, ShieldCheck, Cpu,
+  Ghost, Fingerprint, Cloud, Brain, Bug, Trophy, Flag, Shield, ShieldCheck, Cpu, Route,
   type LucideProps,
 } from "lucide-react";
 import type { ComponentType } from "react";
 
 const MAP: Record<string, ComponentType<LucideProps>> = {
   KeyRound, Grid3x3, Network, Wifi, Binary, Siren, Orbit, Database, CreditCard,
-  Ghost, Fingerprint, Cloud, Brain, Bug, Trophy, Flag, Shield, ShieldCheck, Cpu,
+  Ghost, Fingerprint, Cloud, Brain, Bug, Trophy, Flag, Shield, ShieldCheck, Cpu, Route,
 };
 
 /** Renders a lucide icon by its string name (used for course/badge icons). */

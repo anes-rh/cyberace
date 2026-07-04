@@ -65,7 +65,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-muted">
           Pas encore de profil ?{" "}
-          <Link href="/register" className="text-primary hover:underline">Rejoindre la course</Link>
+          <Link href="/register" className="text-primary hover:underline">S&apos;inscrire</Link>
         </p>
       </motion.div>
     </AuthLayout>

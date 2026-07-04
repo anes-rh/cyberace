@@ -9,19 +9,18 @@ import { Button, buttonVariants } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/utils";
 
-const LINKS = [
-  // Generic, checkpoint-agnostic link to the 3D roadmap (all checkpoints).
-  { href: "/", label: "La route des checkpoints" },
-  { href: "/leaderboard", label: "Classement" },
-];
-
 export default function Navbar() {
   const { user, logout, loading } = useAuth();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  const authedLinks = user ? [{ href: "/dashboard", label: "Dashboard" }] : [];
-  const allLinks = [...LINKS, ...authedLinks];
+  // Order: Accueil · Apprentissage · Dashboard (logged-in only) · Classement.
+  const allLinks = [
+    { href: "/", label: "Accueil" },
+    { href: "/apprentissage", label: "Apprentissage" },
+    ...(user ? [{ href: "/dashboard", label: "Dashboard" }] : []),
+    { href: "/leaderboard", label: "Classement" },
+  ];
 
   return (
     <header className="sticky top-0 z-50 border-b border-line/60 bg-bg/70 backdrop-blur-xl">
@@ -76,7 +75,7 @@ export default function Navbar() {
                 Connexion
               </Link>
               <Link href="/register" className={buttonVariants({ variant: "primary", size: "sm" })}>
-                Rejoindre
+                S&apos;inscrire
               </Link>
             </>
           )}
@@ -114,7 +113,7 @@ export default function Navbar() {
                     Connexion
                   </Link>
                   <Link href="/register" onClick={() => setOpen(false)} className={cn(buttonVariants({ variant: "primary", size: "sm" }), "flex-1")}>
-                    Rejoindre
+                    S&apos;inscrire
                   </Link>
                 </>
               )}

@@ -163,7 +163,7 @@ export function ChallengePlayer({
               <p className="text-muted">Connecte-toi pour soumettre ta réponse et marquer des points.</p>
               <div className="mt-3 flex justify-center gap-2">
                 <Link href="/login"><Button variant="glass" size="sm">Connexion</Button></Link>
-                <Link href="/register"><Button size="sm">Rejoindre la course</Button></Link>
+                <Link href="/register"><Button size="sm">S&apos;inscrire</Button></Link>
               </div>
             </div>
           ) : solved ? (

@@ -14,10 +14,10 @@ export default function Footer() {
           </span>
         </div>
         <p className="text-center text-faint">
-          Plateforme de courses de cybersécurité · Programme M1-SSI · Contenu à visée pédagogique.
+          CyberAce — Apprends l&apos;informatique et la cybersécurité en t&apos;amusant.
         </p>
         <div className="flex gap-4">
-          <Link href="/courses" className="hover:text-fg">Courses</Link>
+          <Link href="/apprentissage" className="hover:text-fg">Apprentissage</Link>
           <Link href="/leaderboard" className="hover:text-fg">Classement</Link>
         </div>
       </div>

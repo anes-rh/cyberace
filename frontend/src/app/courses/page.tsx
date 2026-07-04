@@ -36,7 +36,7 @@ export default function CoursesPage() {
         <p className="font-mono text-xs uppercase tracking-widest text-primary">Grille de départ</p>
         <h1 className="mt-2 font-display text-4xl font-bold">Tous les circuits</h1>
         <p className="mt-2 max-w-2xl text-muted">
-          {courses.length} courses couvrant le programme M1-SSI et des défis inédits (OSINT, forensic, cloud, web, social engineering éthique).
+          {courses.length} circuits couvrant l&apos;informatique et la cybersécurité, avec des défis inédits (OSINT, forensic, cloud, web, social engineering éthique).
         </p>
       </header>
 
