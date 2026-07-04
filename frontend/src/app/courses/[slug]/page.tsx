@@ -8,7 +8,7 @@ import { Check, Flag, Lightbulb, Trophy, Target, ChevronRight, ArrowLeft } from 
 import { Icon } from "@/components/ui/Icon";
 import { DifficultyBadge } from "@/components/ui/DifficultyBadge";
 import { Progress } from "@/components/ui/Progress";
-import { Markdown } from "@/components/Markdown";
+import { Markdown, slugifyHeading } from "@/components/Markdown";
 import { FullScreenLoader } from "@/components/ui/Spinner";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -98,6 +98,7 @@ export default function CourseDetailPage() {
               </ul>
             </div>
           )}
+          <LessonTOC lesson={course.lesson} />
           <Markdown>{course.lesson}</Markdown>
         </section>
 
@@ -137,5 +138,41 @@ export default function CourseDetailPage() {
         </aside>
       </div>
     </div>
+  );
+}
+
+/**
+ * Anchored table of contents for long lessons (university-grade chapters).
+ * Parses `## ` headings outside code fences; hidden under 4 sections so the
+ * shorter legacy lessons keep their current compact look.
+ */
+function LessonTOC({ lesson }: { lesson: string }) {
+  const headings: string[] = [];
+  let inFence = false;
+  for (const line of lesson.split("\n")) {
+    if (/^\s*```/.test(line)) inFence = !inFence;
+    else if (!inFence) {
+      const m = line.match(/^##\s+(.+?)\s*$/);
+      if (m) headings.push(m[1]);
+    }
+  }
+  if (headings.length < 4) return null;
+  return (
+    <nav aria-label="Sommaire du cours" className="mb-6 rounded-xl border border-line bg-surface/50 p-4">
+      <p className="mb-2 text-sm font-medium text-fg">Sommaire</p>
+      <ol className="grid gap-x-6 gap-y-1.5 text-sm sm:grid-cols-2">
+        {headings.map((h, i) => (
+          <li key={`${h}-${i}`} className="flex items-baseline gap-2">
+            <span className="font-mono text-[11px] text-faint tnum">{String(i + 1).padStart(2, "0")}</span>
+            <a
+              href={`#${slugifyHeading(h)}`}
+              className="text-muted transition-colors hover:text-primary"
+            >
+              {h.replace(/^[^\p{L}\p{N}]+\s*/u, "")}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
   );
 }

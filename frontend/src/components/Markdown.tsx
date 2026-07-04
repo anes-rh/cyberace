@@ -1,6 +1,28 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
+
+/** Stable anchor id from a heading text (shared with the lesson TOC). */
+export function slugifyHeading(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+/** Flatten React children into plain text (for heading ids). */
+function nodeText(node: ReactNode): string {
+  if (node == null || typeof node === "boolean") return "";
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(nodeText).join("");
+  if (typeof node === "object" && "props" in node) {
+    return nodeText((node as { props: { children?: ReactNode } }).props.children);
+  }
+  return "";
+}
 
 /** Markdown renderer themed for CyberAce (lessons + challenge prompts). */
 export function Markdown({ children, className }: { children: string; className?: string }) {
@@ -10,7 +32,12 @@ export function Markdown({ children, className }: { children: string; className?
         remarkPlugins={[remarkGfm]}
         components={{
           h2: ({ children }) => (
-            <h2 className="mt-8 font-display text-xl font-semibold text-fg first:mt-0">{children}</h2>
+            <h2
+              id={slugifyHeading(nodeText(children))}
+              className="mt-8 scroll-mt-24 font-display text-xl font-semibold text-fg first:mt-0"
+            >
+              {children}
+            </h2>
           ),
           h3: ({ children }) => (
             <h3 className="mt-6 font-display text-lg font-semibold text-primary">{children}</h3>
