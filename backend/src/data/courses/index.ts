@@ -23,6 +23,7 @@ import { codesComplexes } from "./algo/codesComplexes";
 import { numeration } from "./reseaux/numeration";
 import { tp0PacketTracer } from "./reseaux/tp0PacketTracer";
 import { introOsi } from "./reseaux/introOsi";
+import { ipv4Flsm } from "./reseaux/ipv4Flsm";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -40,6 +41,7 @@ export const reseauxCourses: CourseSeed[] = [
   ...numeration,
   ...tp0PacketTracer,
   ...introOsi,
+  ...ipv4Flsm,
 ];
 
 /** Every course, in display order. */
