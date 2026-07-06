@@ -28,6 +28,8 @@ import { vlsm } from "./reseaux/vlsm";
 import { routageStatique } from "./reseaux/routageStatique";
 import { routageDynamique } from "./reseaux/routageDynamique";
 import { rip } from "./reseaux/rip";
+import { ospf } from "./reseaux/ospf";
+import { vlan } from "./reseaux/vlan";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -50,6 +52,8 @@ export const reseauxCourses: CourseSeed[] = [
   ...routageStatique,
   ...routageDynamique,
   ...rip,
+  ...ospf,
+  ...vlan,
 ];
 
 /** Every course, in display order. */
