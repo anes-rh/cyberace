@@ -22,6 +22,7 @@ import { tpCAtelier } from "./algo/tpCAtelier";
 import { codesComplexes } from "./algo/codesComplexes";
 import { numeration } from "./reseaux/numeration";
 import { tp0PacketTracer } from "./reseaux/tp0PacketTracer";
+import { introOsi } from "./reseaux/introOsi";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -38,6 +39,7 @@ export const algoCourses: CourseSeed[] = [
 export const reseauxCourses: CourseSeed[] = [
   ...numeration,
   ...tp0PacketTracer,
+  ...introOsi,
 ];
 
 /** Every course, in display order. */
