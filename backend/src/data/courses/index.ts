@@ -34,6 +34,9 @@ import { stpEtherchannel } from "./reseaux/stpEtherchannel";
 import { fhrp } from "./reseaux/fhrp";
 import { bgp } from "./reseaux/bgp";
 import { greVpn } from "./reseaux/greVpn";
+import { wan } from "./reseaux/wan";
+import { ipv6 } from "./reseaux/ipv6";
+import { dhcp } from "./reseaux/dhcp";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -62,6 +65,9 @@ export const reseauxCourses: CourseSeed[] = [
   ...fhrp,
   ...bgp,
   ...greVpn,
+  ...wan,
+  ...ipv6,
+  ...dhcp,
 ];
 
 /** Every course, in display order. */
