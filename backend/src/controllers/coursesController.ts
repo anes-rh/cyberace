@@ -82,6 +82,8 @@ export async function getCourse(req: Request, res: Response): Promise<void> {
       summary: course.summary,
       objectives: course.objectives,
       lesson: course.lesson,
+      videos: course.videos ?? [],
+      resources: course.resources ?? [],
       badge: course.badge,
     },
     challenges: serialized,

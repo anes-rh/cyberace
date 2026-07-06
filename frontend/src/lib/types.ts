@@ -137,10 +137,26 @@ export interface CourseDetail {
     summary: string;
     objectives: string[];
     lesson: string;
+    videos?: CourseVideo[];
+    resources?: CourseResource[];
     badge: Badge;
   };
   challenges: Challenge[];
   progress: { solvedCount: number; total: number; ratio: number; badgeEarned: boolean };
+}
+
+export interface CourseVideo {
+  title: string;
+  youtubeId: string;
+  moreUrl?: string;
+}
+
+export interface CourseResource {
+  label: string;
+  url: string;
+  kind: "installer" | "pkt-start" | "pkt-solution" | "link";
+  os?: "win" | "linux" | "mac";
+  note?: string;
 }
 
 export interface LabItem extends Challenge {

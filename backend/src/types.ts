@@ -72,6 +72,31 @@ export interface BadgeSeed {
   description: string;
 }
 
+/** An embedded YouTube lesson shown on a course/TP page. */
+export interface CourseVideo {
+  title: string;
+  /** YouTube video id (the `v=` part), e.g. "0lZo5CWndTY". */
+  youtubeId: string;
+  /** Optional extra "pour aller plus loin" playlist/URL. */
+  moreUrl?: string;
+}
+
+/** A downloadable resource (Packet Tracer installer, .pkt topology, link…). */
+export interface CourseResource {
+  label: string;
+  url: string;
+  /**
+   * installer  : Packet Tracer setup (paired with `os` for the OS selector)
+   * pkt-start  : starting .pkt topology to download
+   * pkt-solution: solution .pkt to compare against
+   * link       : any external resource
+   */
+  kind: "installer" | "pkt-start" | "pkt-solution" | "link";
+  /** For installers: which OS this file targets. */
+  os?: "win" | "linux" | "mac";
+  note?: string;
+}
+
 export type CheckpointStatus = "empty" | "active";
 
 export interface CheckpointSeed {
@@ -108,6 +133,10 @@ export interface CourseSeed {
   objectives: string[];
   /** Markdown mini-course. */
   lesson: string;
+  /** Embedded YouTube lessons (TP pages especially). */
+  videos?: CourseVideo[];
+  /** Downloadable resources: PT installers, .pkt files, links. */
+  resources?: CourseResource[];
   badge: BadgeSeed;
   challenges: ChallengeSeed[];
 }

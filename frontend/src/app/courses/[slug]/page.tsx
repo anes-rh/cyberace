@@ -9,6 +9,7 @@ import { Icon } from "@/components/ui/Icon";
 import { DifficultyBadge } from "@/components/ui/DifficultyBadge";
 import { Progress } from "@/components/ui/Progress";
 import { Markdown, slugifyHeading } from "@/components/Markdown";
+import { LessonMedia } from "@/components/LessonMedia";
 import { FullScreenLoader } from "@/components/ui/Spinner";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -102,6 +103,7 @@ export default function CourseDetailPage() {
           )}
           <LessonTOC lesson={course.lesson} />
           <Markdown>{course.lesson}</Markdown>
+          <LessonMedia videos={course.videos} resources={course.resources} />
         </section>
 
         {/* Challenge list */}
