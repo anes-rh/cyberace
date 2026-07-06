@@ -1,0 +1,257 @@
+import type { CourseSeed } from "../../../types";
+
+/** Réseaux — Chapitre 13 : tunnels GRE & VPN. */
+export const greVpn: CourseSeed[] = [
+  {
+    slug: "res-gre-vpn",
+    title: "Tunnels GRE & VPN",
+    checkpoint: "reseaux",
+    codename: "Tunnel Run",
+    domain: "Réseaux — WAN sécurisé",
+    theme: "circuit",
+    icon: "Network",
+    accent: "#5FB3C6",
+    order: 14,
+    difficulty: "medium",
+    summary:
+      "Relier deux sites distants à travers Internet comme s'ils étaient voisins : le tunnel GRE encapsule le trafic, le VPN le chiffre (IPsec). Encapsulation, tunnel logique, site-à-site vs accès distant, et configuration d'un tunnel GRE.",
+    objectives: [
+      "Comprendre le principe d'un tunnel (encapsulation dans un autre paquet)",
+      "Expliquer ce qu'est GRE et ce qu'il n'apporte pas (pas de chiffrement)",
+      "Distinguer VPN site-à-site et VPN accès distant",
+      "Comprendre le rôle d'IPsec (confidentialité, intégrité, authentification)",
+      "Configurer une interface tunnel GRE",
+    ],
+    lesson: `# 🚇 Tunnels GRE & VPN — le Tunnel Run
+
+Deux sites d'une entreprise, à 500 km, reliés par… **Internet** (public, non fiable). Comment les faire dialoguer **comme s'ils étaient sur le même LAN**, et **en sécurité** ? Réponse : un **tunnel** (GRE) éventuellement **chiffré** (VPN/IPsec). 🏎️
+
+> 📎 Prérequis : encapsulation (Intro/OSI), adressage IP, routage.
+
+---
+
+## 1. Le principe du tunnel : un paquet dans un paquet 🪆
+
+Un **tunnel** **encapsule** un paquet dans un **autre** paquet pour le transporter à travers un réseau intermédiaire. Le paquet « privé » voyage caché dans un paquet « public » routable sur Internet :
+
+\`\`\`
+ Paquet original :               [ IP privée | Données ]
+ Encapsulé (tunnel) :  [ IP publique | GRE | IP privée | Données ]
+                        └── routé sur Internet ──┘   └── ré-extrait à l'arrivée ──┘
+\`\`\`
+
+À la sortie du tunnel, l'en-tête externe est **retiré** et le paquet original poursuit sa route. Les deux sites ont l'**illusion** d'être directement connectés.
+
+---
+
+## 2. GRE : le tunnel simple (mais non sécurisé) 🚿
+
+**GRE** (*Generic Routing Encapsulation*, protocole Cisco/standard) crée un tunnel **point-à-point** entre deux routeurs. Ses atouts :
+- **polyvalent** : encapsule presque tout (IP, mais aussi multicast, IPv6…) — utile car IPsec seul ne transporte pas le **multicast** (donc pas les IGP comme OSPF) ;
+- **simple** à configurer.
+
+⚠️ **GRE ne chiffre RIEN** : les données transitent **en clair**. Pour la confidentialité, on **combine** GRE **avec IPsec** (« GRE over IPsec »).
+
+---
+
+## 3. Le VPN : un tunnel de confiance 🔐
+
+Un **VPN** (*Virtual Private Network*) établit un **tunnel sécurisé** sur un réseau public. Deux grandes familles :
+
+| Type | Qui | Exemple |
+|---|---|---|
+| **Site-à-site** | relie deux **réseaux** (deux routeurs/pare-feu) | siège ↔ agence, en permanence |
+| **Accès distant** | relie **un utilisateur** au réseau de l'entreprise | télétravailleur avec un client VPN |
+
+La sécurité est assurée par **IPsec**, qui apporte :
+- **Confidentialité** (chiffrement — on ne peut pas lire) ;
+- **Intégrité** (les données n'ont pas été altérées) ;
+- **Authentification** (on parle bien au bon site) ;
+- **anti-rejeu** (une trame capturée ne peut être rejouée).
+
+---
+
+## 4. Configuration d'un tunnel GRE 🖥️
+
+On crée une **interface virtuelle Tunnel** de chaque côté, avec une IP « privée » de tunnel, une **source** et une **destination** (les IP **publiques** réelles des routeurs) :
+
+\`\`\`
+R1(config)# interface Tunnel0
+R1(config-if)# ip address 172.16.0.1 255.255.255.252   ! IP interne du tunnel
+R1(config-if)# tunnel source 203.0.113.1               ! IP publique locale
+R1(config-if)# tunnel destination 198.51.100.1         ! IP publique du site distant
+R1(config-if)# tunnel mode gre ip
+\`\`\`
+
+Ensuite, on **route** le trafic des LAN distants **via** l'interface Tunnel0 (route statique ou IGP par-dessus le tunnel). Vérification : \`show interfaces tunnel0\`, \`ping\` de l'IP de tunnel distante.
+
+---
+
+## 🧠 Ce qu'il faut retenir
+
+- Un **tunnel** **encapsule** un paquet dans un autre pour traverser un réseau intermédiaire.
+- **GRE** = tunnel simple et polyvalent (transporte multicast/IGP) mais **en clair** (aucun chiffrement).
+- **VPN** = tunnel **sécurisé** ; **site-à-site** (deux réseaux) vs **accès distant** (un utilisateur).
+- **IPsec** apporte confidentialité, intégrité, authentification, anti-rejeu.
+- On combine souvent **GRE + IPsec** (GRE pour le multicast/IGP, IPsec pour le chiffrement).
+- Config GRE : interface **Tunnel**, \`tunnel source\` / \`tunnel destination\` (IP **publiques**).
+
+## ⚠️ Erreurs fréquentes des débutants
+
+**1. Croire que GRE chiffre.** GRE **encapsule** mais **ne sécurise pas** : le trafic est **en clair**. Pour la confidentialité, il faut **IPsec** (souvent GRE **over** IPsec).
+
+**2. Confondre l'IP du tunnel et l'IP publique.** L'interface Tunnel a une IP **interne** (ex. 172.16.0.1) ; \`tunnel source/destination\` utilisent les IP **publiques réelles** des routeurs.
+
+**3. Oublier de router à travers le tunnel.** Créer le tunnel ne suffit pas : il faut **diriger** le trafic des LAN distants **vers** l'interface Tunnel (route ou IGP).
+
+**4. Vouloir passer un IGP dans IPsec seul.** IPsec pur ne transporte pas le **multicast** → OSPF/EIGRP ne passent pas. On ajoute **GRE** (qui, lui, transporte le multicast).
+
+**5. Confondre site-à-site et accès distant.** Le site-à-site relie des **réseaux** (toujours actif entre deux routeurs) ; l'accès distant relie **un poste** au réseau (client VPN de l'utilisateur).`,
+    badge: {
+      id: "badge-tunnel-run",
+      name: "Tunnel Run",
+      icon: "Network",
+      description: "Comprend les tunnels GRE et les VPN (site-à-site, IPsec) pour relier des sites distants.",
+    },
+    challenges: [
+      {
+        id: "res-gre-chiffre",
+        title: "GRE chiffre-t-il ?",
+        order: 1,
+        difficulty: "medium",
+        type: "mcq",
+        prompt: `## 🚿 La limite de GRE
+
+Le tunnel **GRE** assure-t-il la **confidentialité** (le chiffrement) des données ?`,
+        points: 200,
+        timeLimitSec: 300,
+        hints: [
+          { text: "GRE encapsule, mais rien n'est caché. Que faut-il ajouter pour chiffrer ?", cost: 20 },
+          { text: "📖 Correction complète : non, GRE transporte en clair ; il faut IPsec pour chiffrer.", cost: 50 },
+        ],
+        options: [
+          "Non : GRE encapsule mais transporte en clair ; il faut IPsec pour chiffrer",
+          "Oui, GRE chiffre tout automatiquement",
+          "Oui, mais seulement en IPv6",
+          "GRE supprime les données",
+        ],
+        answer: 0,
+        explanation: `**GRE n'apporte AUCUN chiffrement** : il **encapsule** le paquet mais les données voyagent **en clair**. Pour la confidentialité, on combine GRE avec **IPsec** (« GRE over IPsec ») : GRE pour la **polyvalence** (multicast, IGP), IPsec pour la **sécurité**.`,
+        tags: ["gre", "vpn", "chiffrement"],
+      },
+      {
+        id: "res-vpn-types",
+        title: "Site-à-site ou accès distant ?",
+        order: 2,
+        difficulty: "medium",
+        type: "mcq",
+        prompt: `## 🔐 Type de VPN
+
+Un télétravailleur se connecte au réseau de son entreprise depuis son ordinateur portable via un **client VPN**. De quel type de VPN s'agit-il ?`,
+        points: 200,
+        timeLimitSec: 300,
+        hints: [
+          { text: "Est-ce qu'on relie deux réseaux, ou un seul utilisateur au réseau ?", cost: 20 },
+          { text: "📖 Correction complète : VPN d'accès distant (un utilisateur → le réseau).", cost: 50 },
+        ],
+        options: [
+          "VPN d'accès distant (un utilisateur vers le réseau)",
+          "VPN site-à-site (deux réseaux)",
+          "Un tunnel GRE en clair",
+          "Un VLAN",
+        ],
+        answer: 0,
+        explanation: `Un **télétravailleur** avec un **client VPN** = **VPN d'accès distant** : il relie **un utilisateur** (son poste) au réseau de l'entreprise. Le **site-à-site** relie **deux réseaux** entiers (deux routeurs/pare-feu), typiquement siège ↔ agence, de façon permanente.`,
+        tags: ["vpn", "acces-distant", "site-a-site"],
+      },
+      {
+        id: "res-vpn-ipsec",
+        title: "Ce qu'apporte IPsec",
+        order: 3,
+        difficulty: "medium",
+        type: "multi",
+        prompt: `## 🛡️ Services de sécurité
+
+Coche **tous** les services de sécurité qu'apporte **IPsec** dans un VPN :`,
+        points: 200,
+        timeLimitSec: 420,
+        options: [
+          "Confidentialité (chiffrement)",
+          "Intégrité (données non altérées)",
+          "Authentification (bon interlocuteur)",
+          "Augmentation de la bande passante",
+        ],
+        answer: [0, 1, 2],
+        hints: [
+          { text: "IPsec sécurise ; il n'accélère pas les liens.", cost: 20 },
+          { text: "📖 Correction complète : confidentialité + intégrité + authentification (et anti-rejeu). Pas de gain de débit.", cost: 50 },
+        ],
+        explanation: `IPsec apporte la **confidentialité** (chiffrement), l'**intégrité** (détection d'altération), l'**authentification** (on parle au bon site) et l'**anti-rejeu**. En revanche, il **n'augmente pas** la bande passante — au contraire, le chiffrement ajoute un léger surcoût. Sécurité ≠ performance.`,
+        tags: ["vpn", "ipsec", "securite"],
+      },
+      {
+        id: "res-gre-multicast",
+        title: "Pourquoi GRE avec IPsec ?",
+        order: 4,
+        difficulty: "hard",
+        type: "mcq",
+        prompt: `## 🧩 GRE over IPsec
+
+Pourquoi combine-t-on souvent **GRE avec IPsec** plutôt qu'IPsec seul, notamment pour faire passer un protocole de routage comme **OSPF** entre deux sites ?`,
+        points: 350,
+        timeLimitSec: 420,
+        hints: [
+          { text: "OSPF utilise le multicast. IPsec seul sait-il transporter du multicast ?", cost: 30 },
+          { text: "📖 Correction complète : IPsec seul ne transporte pas le multicast ; GRE le fait, donc GRE porte OSPF et IPsec chiffre.", cost: 70 },
+        ],
+        options: [
+          "IPsec seul ne transporte pas le multicast ; GRE le fait (donc peut porter OSPF), et IPsec chiffre le tout",
+          "GRE est plus sécurisé qu'IPsec",
+          "IPsec ne fonctionne qu'en couche 2",
+          "GRE remplace le routage",
+        ],
+        answer: 0,
+        explanation: `IPsec **classique ne transporte pas le multicast** — or les IGP comme **OSPF/EIGRP** en dépendent. **GRE**, lui, encapsule le multicast (et bien d'autres protocoles). On empile donc : **GRE** transporte le trafic (y compris OSPF), **IPsec** le **chiffre**. C'est le fameux **« GRE over IPsec »**.`,
+        tags: ["gre", "ipsec", "multicast", "ospf"],
+      },
+      {
+        id: "res-gre-config",
+        title: "Configurer un tunnel GRE",
+        order: 5,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🖥️ Config Cisco
+
+Sur R1, crée une interface **Tunnel0** avec l'IP interne \`172.16.0.1/30\`, une **source** \`203.0.113.1\` (IP publique locale) et une **destination** \`198.51.100.1\` (IP publique du site distant).`,
+        points: 350,
+        timeLimitSec: 600,
+        starter: `interface Tunnel0
+`,
+        hints: [
+          { text: "ip address, puis tunnel source, puis tunnel destination.", cost: 30 },
+          { text: "📖 Correction complète :\n```\ninterface Tunnel0\nip address 172.16.0.1 255.255.255.252\ntunnel source 203.0.113.1\ntunnel destination 198.51.100.1\n```", cost: 80 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "Crée l'interface Tunnel0", pattern: "interface\\s+Tunnel0", flags: "i" },
+            { label: "Donne l'IP interne du tunnel", pattern: "ip\\s+address\\s+172\\.16\\.0\\.1", flags: "i" },
+            { label: "Définit la source (IP publique locale)", pattern: "tunnel\\s+source\\s+203\\.0\\.113\\.1", flags: "i" },
+            { label: "Définit la destination (IP publique distante)", pattern: "tunnel\\s+destination\\s+198\\.51\\.100\\.1", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+interface Tunnel0
+ip address 172.16.0.1 255.255.255.252   ! IP INTERNE du tunnel
+tunnel source 203.0.113.1               ! IP PUBLIQUE locale (réelle)
+tunnel destination 198.51.100.1         ! IP PUBLIQUE du site distant
+tunnel mode gre ip
+\`\`\`
+
+L'interface **Tunnel0** a une IP **interne** (172.16.0.1) ; \`source\`/\`destination\` utilisent les **IP publiques réelles**. Ensuite, il faut **router** les LAN distants **via** ce tunnel (route statique ou OSPF par-dessus). Vérifie avec \`ping 172.16.0.2\` (l'autre bout).`,
+        tags: ["gre", "config", "cisco", "tunnel"],
+      },
+    ],
+  },
+];
