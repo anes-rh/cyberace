@@ -30,6 +30,8 @@ import { routageDynamique } from "./reseaux/routageDynamique";
 import { rip } from "./reseaux/rip";
 import { ospf } from "./reseaux/ospf";
 import { vlan } from "./reseaux/vlan";
+import { stpEtherchannel } from "./reseaux/stpEtherchannel";
+import { fhrp } from "./reseaux/fhrp";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -54,6 +56,8 @@ export const reseauxCourses: CourseSeed[] = [
   ...rip,
   ...ospf,
   ...vlan,
+  ...stpEtherchannel,
+  ...fhrp,
 ];
 
 /** Every course, in display order. */

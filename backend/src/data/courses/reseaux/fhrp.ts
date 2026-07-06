@@ -1,0 +1,240 @@
+import type { CourseSeed } from "../../../types";
+
+/** Réseaux — Chapitre 11 : FHRP (HSRP, VRRP, GLBP). */
+export const fhrp: CourseSeed[] = [
+  {
+    slug: "res-fhrp",
+    title: "FHRP — redondance de passerelle (HSRP, VRRP, GLBP)",
+    checkpoint: "reseaux",
+    codename: "Backup Driver",
+    domain: "Réseaux — haute disponibilité",
+    theme: "circuit",
+    icon: "Network",
+    accent: "#5FB3C6",
+    order: 12,
+    difficulty: "medium",
+    summary:
+      "Une passerelle qui tombe, c'est tout un LAN coupé d'Internet. Les FHRP créent une passerelle virtuelle redondante : HSRP (Cisco, actif/veille), VRRP (standard) et GLBP (répartition de charge). IP et MAC virtuelles partagées.",
+    objectives: [
+      "Comprendre le problème du point unique de défaillance de la passerelle",
+      "Expliquer le principe d'une passerelle virtuelle (IP + MAC virtuelles)",
+      "Distinguer HSRP, VRRP et GLBP",
+      "Comprendre les rôles actif / veille (HSRP)",
+      "Savoir ce qu'apporte GLBP (répartition de charge)",
+    ],
+    lesson: `# 🛟 FHRP — le Backup Driver
+
+Tous les PC d'un LAN pointent vers **une** passerelle par défaut. Si ce routeur **tombe**, plus personne ne sort du réseau — même s'il existe un **second** routeur ! Les **FHRP** (*First Hop Redundancy Protocols*) résolvent ça : ils présentent aux PC **une passerelle virtuelle** que deux routeurs se partagent. 🏎️
+
+> 📎 Prérequis : passerelle par défaut, adressage IP/MAC (modules IPv4 & Intro/OSI).
+
+---
+
+## 1. Le problème : la passerelle, point unique de défaillance 💥
+
+\`\`\`
+ PC ── passerelle par défaut = 192.168.1.1 (R1)
+                                  │
+                             si R1 tombe → PC coincé,
+                             même si R2 (192.168.1.2) est là !
+\`\`\`
+
+Reconfigurer la passerelle de **tous** les PC à la main est impensable. Il faut une passerelle **qui survive** à la panne d'un routeur.
+
+---
+
+## 2. La solution : une passerelle virtuelle 🎭
+
+Un FHRP fait coopérer **deux (ou plus)** routeurs pour simuler **un seul** routeur virtuel :
+- une **adresse IP virtuelle** (VIP) → c'est **elle** que les PC mettent en passerelle (ex. 192.168.1.**254**) ;
+- une **adresse MAC virtuelle** → les PC continuent d'envoyer au même MAC quoi qu'il arrive.
+
+Un routeur est **actif** (il répond réellement pour la VIP) ; l'autre est en **veille**. Si l'actif tombe, la veille **reprend** la VIP et la MAC virtuelle **en quelques secondes** — **transparent** pour les PC (leur config ne change pas). ✅
+
+---
+
+## 3. Les trois FHRP 🔀
+
+| Protocole | Origine | Rôles | Répartition de charge |
+|---|---|---|---|
+| **HSRP** | Cisco (propriétaire) | **Active** / **Standby** | non (un seul actif) |
+| **VRRP** | **standard** (RFC) | **Master** / **Backup** | non |
+| **GLBP** | Cisco (propriétaire) | AVG + plusieurs actifs | **OUI** (équilibre entre routeurs) |
+
+- **HSRP** : le plus courant en environnement Cisco. Un routeur **Active**, un **Standby**. Élection par **priorité** (défaut 100) puis IP la plus haute.
+- **VRRP** : équivalent **standard** (multi-constructeur). Rôles **Master/Backup**.
+- **GLBP** : va plus loin — plusieurs routeurs sont **actifs simultanément** et se **partagent la charge** (un AVG distribue des MAC virtuelles différentes aux PC).
+
+---
+
+## 4. Configuration HSRP (exemple) 🖥️
+
+Sur **R1** et **R2**, sur l'interface du LAN :
+\`\`\`
+R1(config-if)# standby 1 ip 192.168.1.254        ! IP virtuelle (passerelle des PC)
+R1(config-if)# standby 1 priority 110            ! priorité (plus haut = Active)
+R1(config-if)# standby 1 preempt                 ! reprend le rôle Active s'il revient
+R2(config-if)# standby 1 ip 192.168.1.254
+R2(config-if)# standby 1 priority 100
+\`\`\`
+
+Les **PC** utilisent \`192.168.1.254\` comme passerelle. \`show standby\` affiche l'état (Active/Standby), la VIP et la MAC virtuelle.
+
+> 🧠 \`preempt\` = un routeur de priorité plus haute **reprend** le rôle Active quand il redevient disponible (sinon il resterait Standby).
+
+---
+
+## 🧠 Ce qu'il faut retenir
+
+- Sans FHRP, la **passerelle** est un **point unique de défaillance** pour tout le LAN.
+- Un FHRP crée une **passerelle virtuelle** (IP + MAC virtuelles) que les PC utilisent.
+- Un routeur **Active** (HSRP) / **Master** (VRRP) répond ; l'autre reprend en cas de panne, **de façon transparente**.
+- **HSRP** & **GLBP** = Cisco ; **VRRP** = **standard**. Seul **GLBP** fait de la **répartition de charge**.
+- \`preempt\` fait reprendre le rôle au routeur de plus haute priorité quand il revient.
+
+## ⚠️ Erreurs fréquentes des débutants
+
+**1. Donner aux PC l'IP réelle d'un routeur comme passerelle.** Il faut leur donner l'**IP virtuelle** (VIP) du FHRP, pas l'IP physique de R1 — sinon la redondance ne sert à rien.
+
+**2. Oublier de configurer le FHRP des deux côtés.** Les **deux** routeurs doivent partager le **même groupe** et la **même VIP**, sinon pas de bascule.
+
+**3. Confondre HSRP et EtherChannel/STP.** HSRP protège la **passerelle** (couche 3) ; STP/EtherChannel gèrent les **boucles/liens** (couche 2). Problèmes différents.
+
+**4. Croire que HSRP répartit la charge.** HSRP/VRRP n'ont qu'**un** routeur actif à la fois (l'autre attend). Pour **équilibrer** la charge entre routeurs, c'est **GLBP**.
+
+**5. Oublier \`preempt\`.** Sans lui, après une panne le routeur principal **ne reprend pas** automatiquement le rôle Active en revenant — le secours (moins prioritaire) reste actif.`,
+    badge: {
+      id: "badge-backup-driver",
+      name: "Backup Driver",
+      icon: "Network",
+      description: "Met en place une passerelle redondante (HSRP/VRRP/GLBP) contre la panne du premier saut.",
+    },
+    challenges: [
+      {
+        id: "res-fhrp-probleme",
+        title: "Le problème résolu par FHRP",
+        order: 1,
+        difficulty: "easy",
+        type: "mcq",
+        prompt: `## 💥 Point unique de défaillance
+
+Que résout un protocole **FHRP** (comme HSRP) ?`,
+        points: 100,
+        timeLimitSec: 240,
+        hints: [
+          { text: "Pense à ce qui arrive à tout un LAN quand SA passerelle par défaut tombe.", cost: 15 },
+          { text: "📖 Correction complète : la panne de la passerelle par défaut (point unique de défaillance).", cost: 40 },
+        ],
+        options: [
+          "La panne de la passerelle par défaut (redondance du premier saut)",
+          "La lenteur des câbles",
+          "Le manque d'adresses IP",
+          "Les boucles de couche 2",
+        ],
+        answer: 0,
+        explanation: `Un **FHRP** protège la **passerelle par défaut** : si le routeur passerelle tombe, tout le LAN perd l'accès aux autres réseaux. Le FHRP crée une **passerelle virtuelle** portée par plusieurs routeurs, qui **survit** à la panne de l'un d'eux. (Les boucles de couche 2, c'est STP ; ce sont des problèmes différents.)`,
+        tags: ["fhrp", "passerelle", "haute-dispo"],
+      },
+      {
+        id: "res-fhrp-vip",
+        title: "Que mettent les PC en passerelle ?",
+        order: 2,
+        difficulty: "medium",
+        type: "mcq",
+        prompt: `## 🎭 Passerelle virtuelle
+
+Avec HSRP configuré (VIP = 192.168.1.254, R1 = .1, R2 = .2), **quelle adresse** les PC doivent-ils mettre comme **passerelle par défaut** ?`,
+        points: 200,
+        timeLimitSec: 300,
+        hints: [
+          { text: "Pour bénéficier de la redondance, il faut pointer vers l'adresse partagée, pas vers un routeur précis.", cost: 20 },
+          { text: "📖 Correction complète : l'IP virtuelle (VIP) 192.168.1.254.", cost: 50 },
+        ],
+        options: ["192.168.1.254 (l'IP virtuelle)", "192.168.1.1 (R1)", "192.168.1.2 (R2)", "127.0.0.1"],
+        answer: 0,
+        explanation: `Les PC pointent vers l'**IP virtuelle** \`192.168.1.254\`. C'est **elle** (avec sa MAC virtuelle) qui survit à la panne d'un routeur : peu importe que R1 ou R2 soit **Active**, les PC voient toujours la même passerelle. Leur mettre l'IP réelle de R1 (.1) annulerait toute la redondance.`,
+        tags: ["fhrp", "vip", "passerelle"],
+      },
+      {
+        id: "res-fhrp-hsrp-vrrp",
+        title: "Standard ou propriétaire ?",
+        order: 3,
+        difficulty: "medium",
+        type: "mcq",
+        prompt: `## 🔀 Les trois FHRP
+
+Parmi HSRP, VRRP et GLBP, lequel est un **standard ouvert** (multi-constructeur) ?`,
+        points: 200,
+        timeLimitSec: 300,
+        hints: [
+          { text: "HSRP et GLBP sont propriétaires Cisco. Il en reste un.", cost: 20 },
+          { text: "📖 Correction complète : VRRP est le standard (RFC) ; HSRP et GLBP sont Cisco.", cost: 50 },
+        ],
+        options: ["VRRP", "HSRP", "GLBP", "Aucun"],
+        answer: 0,
+        explanation: `**VRRP** est le **standard** (défini par une RFC, multi-constructeur). **HSRP** et **GLBP** sont **propriétaires Cisco**. Fonctionnellement, VRRP (Master/Backup) ressemble à HSRP (Active/Standby) ; **GLBP** se distingue en offrant en plus de la **répartition de charge**.`,
+        tags: ["fhrp", "vrrp", "hsrp", "standard"],
+      },
+      {
+        id: "res-fhrp-glbp",
+        title: "La spécificité de GLBP",
+        order: 4,
+        difficulty: "medium",
+        type: "mcq",
+        prompt: `## ⚖️ Répartition de charge
+
+Qu'est-ce qui distingue **GLBP** de HSRP et VRRP ?`,
+        points: 200,
+        timeLimitSec: 300,
+        hints: [
+          { text: "HSRP/VRRP n'ont qu'un routeur actif. GLBP en utilise plusieurs à la fois.", cost: 20 },
+          { text: "📖 Correction complète : GLBP répartit la charge entre plusieurs routeurs actifs simultanément.", cost: 50 },
+        ],
+        options: [
+          "GLBP répartit la charge entre plusieurs routeurs actifs simultanément",
+          "GLBP est plus lent",
+          "GLBP ne fonctionne qu'en IPv6",
+          "GLBP n'a pas d'IP virtuelle",
+        ],
+        answer: 0,
+        explanation: `Avec **HSRP/VRRP**, un **seul** routeur est actif (l'autre attend, sa bande passante est inutilisée). **GLBP** (*Gateway Load Balancing Protocol*) fait travailler **plusieurs routeurs en même temps** : un AVG distribue des **MAC virtuelles** différentes aux PC, ce qui **équilibre** le trafic sortant tout en gardant la redondance.`,
+        tags: ["fhrp", "glbp", "load-balancing"],
+      },
+      {
+        id: "res-fhrp-config",
+        title: "Configurer HSRP",
+        order: 5,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🖥️ Config Cisco
+
+Sur l'interface LAN de R1, configure **HSRP groupe 1** avec l'**IP virtuelle \`192.168.1.254\`** et une **priorité de 110**.`,
+        points: 350,
+        timeLimitSec: 480,
+        starter: `interface gig0/0
+`,
+        hints: [
+          { text: "standby 1 ip 192.168.1.254, puis standby 1 priority 110.", cost: 30 },
+          { text: "📖 Correction complète :\n```\ninterface gig0/0\nstandby 1 ip 192.168.1.254\nstandby 1 priority 110\n```", cost: 70 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "Définit l'IP virtuelle du groupe HSRP (standby ... ip)", pattern: "standby\\s+1\\s+ip\\s+192\\.168\\.1\\.254", flags: "i" },
+            { label: "Définit la priorité du routeur", pattern: "standby\\s+1\\s+priority\\s+110", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+interface gig0/0
+standby 1 ip 192.168.1.254      ! IP virtuelle = passerelle des PC
+standby 1 priority 110          ! priorité (plus haute → Active)
+standby 1 preempt               ! reprend le rôle Active en revenant (recommandé)
+\`\`\`
+
+Le \`1\` est le **numéro de groupe** HSRP (identique sur R1 et R2). Priorité **110 > 100** (défaut) → R1 devient **Active**. \`preempt\` lui fait **reprendre** le rôle après une panne. Vérifie avec \`show standby\`.`,
+        tags: ["fhrp", "hsrp", "config", "cisco"],
+      },
+    ],
+  },
+];
