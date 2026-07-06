@@ -43,24 +43,49 @@ export function computeLevel(xp: number): LevelInfo {
   };
 }
 
+/** -20% of the base points per wrong attempt made before solving. */
+export const ERROR_PENALTY_RATE = 0.2;
+
+/**
+ * Effective base points still up for grabs after `errorCount` wrong attempts.
+ * Linear decay of 20% of the ORIGINAL base per error: 100% → 80% → … → 0%.
+ * Reaches 0 at 5 errors and never goes negative. This is THE single source of
+ * truth for the "points possibles" shown to the user and for crediting XP.
+ */
+export function pointsForAttempt(basePoints: number, errorCount: number): number {
+  const factor = Math.max(0, 1 - ERROR_PENALTY_RATE * Math.max(0, errorCount));
+  return Math.round(basePoints * factor);
+}
+
 /**
  * Compute points awarded for a correct solve.
- *  - Speed bonus: up to +30% for solving well under the reference time.
+ *  - Error penalty: -20% of the base per wrong attempt on THIS challenge
+ *    (dégressif linéaire jusqu'à 0). Applied centrally so every checkpoint /
+ *    challenge type behaves the same.
+ *  - Speed bonus: up to +30% for solving well under the reference time
+ *    (scaled by the same error factor, so it also vanishes once base hits 0).
  *  - Hint penalty: subtract the cost of every hint that was unlocked.
- *  - Floor: a correct answer always keeps at least 10% of the base points.
+ *  - Floor at 0: a solve after 5+ errors credits 0 pt but still counts as done.
  */
 export function computeAward(params: {
   basePoints: number;
   timeLimitSec: number;
   timeMs: number;
   hintCost: number;
-}): { awarded: number; speedBonus: number; hintPenalty: number } {
+  errorCount?: number;
+}): { awarded: number; speedBonus: number; hintPenalty: number; errorPenalty: number; effectiveBase: number } {
   const { basePoints, timeLimitSec, timeMs, hintCost } = params;
+  const errorCount = Math.max(0, params.errorCount ?? 0);
+  const factor = Math.max(0, 1 - ERROR_PENALTY_RATE * errorCount);
+
+  const effectiveBase = Math.round(basePoints * factor);
+  const errorPenalty = basePoints - effectiveBase;
+
   const timeSec = timeMs / 1000;
   const ratio = timeLimitSec > 0 ? Math.max(0, (timeLimitSec - timeSec) / timeLimitSec) : 0;
-  const speedBonus = Math.round(basePoints * 0.3 * ratio);
+  const speedBonus = Math.round(basePoints * 0.3 * ratio * factor);
   const hintPenalty = Math.max(0, Math.round(hintCost));
-  const floor = Math.round(basePoints * 0.1);
-  const awarded = Math.max(floor, basePoints + speedBonus - hintPenalty);
-  return { awarded, speedBonus, hintPenalty };
+
+  const awarded = Math.max(0, effectiveBase + speedBonus - hintPenalty);
+  return { awarded, speedBonus, hintPenalty, errorPenalty, effectiveBase };
 }

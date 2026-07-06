@@ -51,6 +51,9 @@ export function ChallengePlayer({
   const [feedback, setFeedback] = useState<SubmitResult["feedback"] | null>(null);
   const [running, setRunning] = useState(false);
   const [runResult, setRunResult] = useState<ExecuteResult | null>(null);
+  // Error penalty: wrong attempts so far, and points still winnable now.
+  const [errorCount, setErrorCount] = useState(challenge.errorCount ?? 0);
+  const [pointsPossible, setPointsPossible] = useState(challenge.pointsPossible ?? challenge.points);
 
   const solved = result?.correct === true;
 
@@ -102,6 +105,8 @@ export function ChallengePlayer({
         onSolved?.();
       } else {
         setFeedback(r.feedback ?? null);
+        if (typeof r.errorCount === "number") setErrorCount(r.errorCount);
+        if (typeof r.pointsPossible === "number") setPointsPossible(r.pointsPossible);
         setWrong(true);
         setTimeout(() => setWrong(false), 600);
       }
@@ -130,7 +135,15 @@ export function ChallengePlayer({
           <div className="mb-4 flex flex-wrap items-center gap-3">
             <DifficultyBadge difficulty={challenge.difficulty} />
             <span className="inline-flex items-center gap-1.5 text-sm text-muted">
-              <Flag className="h-4 w-4 text-primary" /> {challenge.points} pts
+              <Flag className="h-4 w-4 text-primary" />
+              {solved || errorCount === 0 ? (
+                <>{challenge.points} pts</>
+              ) : (
+                <>
+                  <span className="font-semibold text-fg tnum">{pointsPossible} pts</span> en jeu
+                  <span className="ml-1 text-faint line-through tnum">{challenge.points}</span>
+                </>
+              )}
             </span>
             {challenge.tags.map((t) => (
               <span key={t} className="rounded-full bg-surface-2 px-2 py-0.5 font-mono text-[11px] text-faint">
@@ -170,6 +183,29 @@ export function ChallengePlayer({
             <SolvedPanel result={result!} nextHref={nextHref} />
           ) : (
             <div className="space-y-4">
+              {/* Live stake: points winnable right now, given past errors. */}
+              <div className="flex items-center justify-between rounded-xl border border-primary/25 bg-primary/5 px-4 py-2.5">
+                <span className="flex items-center gap-2 text-sm text-muted">
+                  <Flag className="h-4 w-4 text-primary" /> En jeu maintenant
+                </span>
+                <span className="text-right">
+                  <span className={cn("font-display text-lg font-bold tnum", pointsPossible > 0 ? "text-primary" : "text-faint")}>
+                    {pointsPossible}
+                  </span>
+                  <span className="text-sm text-muted"> pts</span>
+                  {errorCount > 0 && (
+                    <span className="ml-2 text-[11px] text-warning">
+                      {errorCount} erreur{errorCount > 1 ? "s" : ""} · −20 %/erreur
+                    </span>
+                  )}
+                </span>
+              </div>
+              {pointsPossible === 0 && (
+                <p className="-mt-1 text-xs text-faint">
+                  Plus de points à gagner sur ce défi, mais le valider le marquera comme <span className="text-fg">complété</span>.
+                </p>
+              )}
+
               {(challenge.type === "text" || challenge.type === "numeric") && (
                 <input
                   value={text}
@@ -326,9 +362,16 @@ export function ChallengePlayer({
               {error && <p className="text-sm text-danger">{error}</p>}
               <AnimatePresence>
                 {wrong && (
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2 text-sm text-danger">
-                    <X className="h-4 w-4" /> Mauvaise réponse — réessaie (un indice peut aider).
-                  </motion.p>
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-1">
+                    <p className="flex items-center gap-2 text-sm text-danger">
+                      <X className="h-4 w-4" /> Mauvaise réponse.
+                    </p>
+                    <p className="text-xs text-muted">
+                      {pointsPossible > 0
+                        ? `Au prochain essai : ${pointsPossible} pts en jeu (une erreur = −20 % du montant de base).`
+                        : "Plus de points à gagner, mais une bonne réponse validera quand même le défi."}
+                    </p>
+                  </motion.div>
                 )}
               </AnimatePresence>
 
@@ -403,8 +446,13 @@ function SolvedPanel({ result, nextHref }: { result: SubmitResult; nextHref?: st
       </div>
 
       {result.breakdown && (
-        <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
           <Stat label="Base" value={`${result.breakdown.base}`} />
+          <Stat
+            label={result.breakdown.errorCount ? `Erreurs (${result.breakdown.errorCount})` : "Erreurs"}
+            value={`-${result.breakdown.errorPenalty ?? 0}`}
+            accent="text-danger"
+          />
           <Stat label="Bonus vitesse" value={`+${result.breakdown.speedBonus}`} accent="text-success" />
           <Stat label="Indices" value={`-${result.breakdown.hintPenalty}`} accent="text-warning" />
         </div>

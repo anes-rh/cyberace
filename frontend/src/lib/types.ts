@@ -117,6 +117,10 @@ export interface Challenge {
   solved: boolean;
   solvedPoints: number | null;
   explanation: string | null;
+  /** Wrong attempts already made on this challenge (drives the penalty). */
+  errorCount?: number;
+  /** Points still winnable right now (base − 20%×errorCount, floored at 0). */
+  pointsPossible?: number;
 }
 
 export interface CourseDetail {
@@ -147,11 +151,15 @@ export interface SubmitResult {
   correct: boolean;
   alreadySolved?: boolean;
   awarded?: number;
-  breakdown?: { base: number; speedBonus: number; hintPenalty: number };
+  breakdown?: { base: number; speedBonus: number; hintPenalty: number; errorPenalty?: number; errorCount?: number };
   explanation?: string;
   level?: LevelInfo;
   newBadge?: Badge | null;
   courseCompleted?: boolean;
+  /** Wrong attempts so far after this submission (on a wrong answer). */
+  errorCount?: number;
+  /** Points winnable on the NEXT attempt (on a wrong answer). */
+  pointsPossible?: number;
   /** `code` challenges: pedagogical keypoint feedback on a wrong submission. */
   feedback?: { missing: string[]; matched: number; total: number };
 }

@@ -1,12 +1,18 @@
 import { Request, Response } from "express";
+import { Types } from "mongoose";
 import { Challenge } from "../models/Challenge";
 import { Course } from "../models/Course";
 import { User } from "../models/User";
 import { Attempt } from "../models/Attempt";
 import { serializeChallenge } from "../utils/serialize";
 import { checkAnswer, codeFeedback } from "../utils/answer";
-import { computeAward, computeLevel } from "../utils/scoring";
+import { computeAward, computeLevel, pointsForAttempt } from "../utils/scoring";
 import { HttpError } from "../middleware/error";
+
+/** Number of wrong attempts a user has already made on a challenge. */
+function countErrors(userId: Types.ObjectId, challengeId: string): Promise<number> {
+  return Attempt.countDocuments({ user: userId, challengeId, correct: false });
+}
 
 /** GET /api/labs — flat list of all challenges (optional filters). */
 export async function listLabs(req: Request, res: Response): Promise<void> {
@@ -48,7 +54,14 @@ export async function getLab(req: Request, res: Response): Promise<void> {
     "slug title codename accent icon domain theme"
   ).lean();
 
-  res.json({ challenge: serializeChallenge(challenge, user), course });
+  // How many wrong attempts so far → drives the "points possibles" display.
+  const errorCount = user ? await countErrors(user._id, challengeId) : 0;
+  const pointsPossible = pointsForAttempt(challenge.points, errorCount);
+
+  res.json({
+    challenge: { ...serializeChallenge(challenge, user), errorCount, pointsPossible },
+    course,
+  });
 }
 
 /** POST /api/labs/:challengeId/hint  { index } */
@@ -128,22 +141,26 @@ export async function submitAnswer(req: Request, res: Response): Promise<void> {
       hintsUsed: unlocked.length,
       submitted: typeof answer === "string" ? answer.slice(0, 120) : JSON.stringify(answer).slice(0, 120),
     });
+    // Total errors so far (incl. the one just recorded) → points left for the
+    // NEXT attempt. -20% of base per error, down to 0 at 5 errors.
+    const errorCount = await countErrors(user._id, challengeId);
+    const pointsPossible = pointsForAttempt(challenge.points, errorCount);
     // Code challenges: tell the player WHICH expected keypoints are missing
     // (pedagogical labels only — the solution itself never leaves the server).
-    if (challenge.type === "code") {
-      const fb = codeFeedback(challenge, answer);
-      res.json({ correct: false, feedback: { missing: fb.missing, matched: fb.matched, total: fb.total } });
-      return;
-    }
-    res.json({ correct: false });
+    const feedback =
+      challenge.type === "code" ? (() => { const fb = codeFeedback(challenge, answer); return { missing: fb.missing, matched: fb.matched, total: fb.total }; })() : undefined;
+    res.json({ correct: false, errorCount, pointsPossible, ...(feedback ? { feedback } : {}) });
     return;
   }
 
-  const { awarded, speedBonus, hintPenalty } = computeAward({
+  // Errors made BEFORE this correct answer (no false attempt is logged now).
+  const errorCount = await countErrors(user._id, challengeId);
+  const { awarded, speedBonus, hintPenalty, errorPenalty } = computeAward({
     basePoints: challenge.points,
     timeLimitSec: challenge.timeLimitSec,
     timeMs: safeTimeMs,
     hintCost,
+    errorCount,
   });
 
   user.solved.push({
@@ -186,7 +203,7 @@ export async function submitAnswer(req: Request, res: Response): Promise<void> {
   res.json({
     correct: true,
     awarded,
-    breakdown: { base: challenge.points, speedBonus, hintPenalty },
+    breakdown: { base: challenge.points, speedBonus, hintPenalty, errorPenalty, errorCount },
     explanation: challenge.explanation,
     level: computeLevel(user.xp),
     newBadge,
