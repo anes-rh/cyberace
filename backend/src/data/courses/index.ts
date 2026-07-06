@@ -21,6 +21,7 @@ import { asdArbres } from "./algo/asdArbres";
 import { tpCAtelier } from "./algo/tpCAtelier";
 import { codesComplexes } from "./algo/codesComplexes";
 import { numeration } from "./reseaux/numeration";
+import { tp0PacketTracer } from "./reseaux/tp0PacketTracer";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -36,6 +37,7 @@ export const algoCourses: CourseSeed[] = [
 /** Courses of the "Réseaux" checkpoint (prérequis → L3/M1). */
 export const reseauxCourses: CourseSeed[] = [
   ...numeration,
+  ...tp0PacketTracer,
 ];
 
 /** Every course, in display order. */
