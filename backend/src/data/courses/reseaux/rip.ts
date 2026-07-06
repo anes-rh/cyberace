@@ -1,0 +1,277 @@
+import type { CourseSeed } from "../../../types";
+
+/** Réseaux — Chapitre 7 : protocole RIP (v1 & v2). */
+export const rip: CourseSeed[] = [
+  {
+    slug: "res-rip",
+    title: "Protocole RIP — v1 et v2",
+    checkpoint: "reseaux",
+    codename: "Hop Rally",
+    domain: "Réseaux — routage",
+    theme: "circuit",
+    icon: "Network",
+    accent: "#5FB3C6",
+    order: 8,
+    difficulty: "medium",
+    summary:
+      "Le doyen des protocoles dynamiques : RIP, à vecteur de distance, compte les sauts (max 15). Différences RIPv1 (classful) / RIPv2 (VLSM, multicast), mécanismes anti-boucle, et configuration Cisco complète.",
+    objectives: [
+      "Comprendre RIP : vecteur de distance, métrique = sauts, max 15",
+      "Différencier RIPv1 (classful, broadcast) et RIPv2 (CIDR/VLSM, multicast)",
+      "Connaître les mécanismes anti-boucle (split horizon, holddown, poison)",
+      "Configurer RIP sur un routeur Cisco (router rip, network, version 2)",
+      "Vérifier avec show ip route et show ip protocols",
+    ],
+    lesson: `# 🐢 Protocole RIP — le Hop Rally
+
+**RIP** (*Routing Information Protocol*) est le plus ancien protocole de routage dynamique — simple à comprendre, idéal pour débuter. C'est un protocole **à vecteur de distance** : chaque routeur annonce périodiquement ses réseaux à ses voisins. 🏎️
+
+> 📎 Prérequis : le module **Routage dynamique** (vecteur de distance, AD, métrique).
+
+---
+
+## 1. Le principe : compter les sauts 👣
+
+La **métrique** de RIP est le **nombre de sauts** (*hop count*) = le nombre de routeurs à traverser.
+- Le chemin avec **le moins de sauts** gagne.
+- **Maximum = 15**. Une distance de **16 = ∞ = réseau inatteignable** — c'est ce qui **limite la taille** d'un réseau RIP (16 routeurs de diamètre max).
+
+⚠️ RIP **ignore la vitesse** des liens : un chemin en 1 saut sur une liaison lente battra un chemin en 2 sauts sur de la fibre. C'est sa grande faiblesse.
+
+---
+
+## 2. Les échanges & les temporisateurs ⏱️
+
+RIP envoie **toute sa table** à ses voisins **toutes les 30 secondes** (mise à jour périodique). Temporisateurs classiques :
+
+| Timer | Durée | Rôle |
+|---|---|---|
+| **Update** | 30 s | envoi périodique de la table |
+| **Invalid** | 180 s | une route non rafraîchie est marquée invalide |
+| **Holddown** | 180 s | on ignore les nouvelles infos douteuses le temps de se stabiliser |
+| **Flush** | 240 s | la route est **supprimée** de la table |
+
+---
+
+## 3. RIPv1 vs RIPv2 ⚔️
+
+| | **RIPv1** | **RIPv2** |
+|---|---|---|
+| Masque envoyé ? | **Non** (*classful*) | **Oui** (*classless*, CIDR/VLSM) |
+| Diffusion des updates | **broadcast** (255.255.255.255) | **multicast** (224.0.0.9) |
+| VLSM / sous-réseaux discontinus | **impossible** | **possible** |
+| Authentification | non | oui |
+
+> 🧠 **Conclusion** : on utilise **RIPv2** en pratique. RIPv1 ne transporte pas le masque → incompatible avec le **VLSM** (chapitre 4). Il faut souvent \`no auto-summary\` pour éviter que RIPv2 résume automatiquement aux frontières de classe.
+
+---
+
+## 4. Éviter les boucles 🔄
+
+Comme RIP fonctionne « par ouï-dire », il peut créer des **boucles**. Parades :
+- **Split horizon** : ne pas réannoncer une route **par l'interface d'où on l'a apprise**.
+- **Route poisoning** : annoncer une route tombée avec une métrique **16** (∞) pour prévenir explicitement.
+- **Holddown** : ignorer temporairement les changements suspects.
+- **Compteur de sauts max (15)** : borne ultime contre les boucles infinies.
+
+---
+
+## 5. Configuration Cisco 🖥️
+
+\`\`\`
+Router(config)# router rip
+Router(config-router)# version 2                 ! utiliser RIPv2
+Router(config-router)# no auto-summary           ! pas de résumé automatique (VLSM)
+Router(config-router)# network 192.168.1.0       ! annoncer ce réseau connecté
+Router(config-router)# network 10.0.0.0
+\`\`\`
+
+**Points clés** :
+- \`network <réseau>\` indique **quelles interfaces** participent à RIP (celles dont l'IP tombe dans ce réseau) **et** quels réseaux sont annoncés.
+- \`version 2\` est quasi obligatoire (VLSM, multicast).
+- \`no auto-summary\` évite le résumé aux frontières de classe (indispensable avec des sous-réseaux discontinus).
+
+**Vérification** :
+\`\`\`
+Router# show ip route          ! les routes RIP sont marquées "R"
+Router# show ip protocols      ! version, réseaux annoncés, timers
+Router# debug ip rip           ! voir les updates en direct (à désactiver après)
+\`\`\`
+Une route RIP apparaît avec le code **R** et une AD de **120** : \`R 192.168.2.0/24 [120/1] via 10.0.0.2\` (\`[120/1]\` = AD 120, **1 saut**).
+
+---
+
+## 🧠 Ce qu'il faut retenir
+
+- RIP = **vecteur de distance**, métrique = **sauts**, **max 15** (16 = inatteignable).
+- Updates **périodiques toutes les 30 s** (toute la table).
+- **RIPv1 classful** (pas de masque, broadcast) vs **RIPv2 classless** (VLSM, multicast 224.0.0.9).
+- Anti-boucle : **split horizon**, **route poisoning**, **holddown**, max 15.
+- Config : \`router rip\` → \`version 2\` → \`no auto-summary\` → \`network …\`. Code **R**, AD **120**.
+
+## ⚠️ Erreurs fréquentes des débutants
+
+**1. Oublier \`version 2\`.** Par défaut le routeur peut se comporter en RIPv1 → pas de masque transmis → le **VLSM casse**. Toujours forcer \`version 2\`.
+
+**2. Oublier \`no auto-summary\`.** Sans ça, RIPv2 **résume** aux frontières de classe (A/B/C) et casse les **sous-réseaux discontinus**.
+
+**3. Mettre un masque dans \`network\`.** La commande \`network\` prend une adresse **classful** (ex \`network 10.0.0.0\`), sans masque. On annonce le réseau, pas le sous-réseau.
+
+**4. Dépasser 15 sauts.** Au-delà de 15 routeurs de diamètre, RIP considère la destination **inatteignable**. RIP ne convient **qu'aux petits réseaux**.
+
+**5. Choisir un chemin lent.** RIP compte les **sauts**, pas la vitesse : il peut préférer 1 saut lent à 2 sauts rapides. Pour tenir compte de la bande passante, il faut **OSPF**.`,
+    videos: [
+      { title: "RIP — cours", youtubeId: "g7AfJ0RM4l0", moreUrl: "https://www.youtube.com/playlist?list=PLgAuOjTVwB6xyoFFor4O5ly03N4_ekV0D" },
+      { title: "RIPv2 — TP Packet Tracer", youtubeId: "pX3d6aXk1yk" },
+      { title: "RIPv1 — TP Packet Tracer", youtubeId: "7r08d0nsPO0" },
+    ],
+    badge: {
+      id: "badge-hop-rally",
+      name: "Hop Rally",
+      icon: "Network",
+      description: "Configure RIPv2 et comprend le vecteur de distance et ses garde-fous anti-boucle.",
+    },
+    challenges: [
+      {
+        id: "res-rip-max-hop",
+        title: "Le mur des 15 sauts",
+        order: 1,
+        difficulty: "easy",
+        type: "numeric",
+        prompt: `## 👣 Métrique RIP
+
+En RIP, quelle valeur de saut signifie « réseau **inatteignable** » (l'infini) ?`,
+        points: 100,
+        timeLimitSec: 240,
+        hints: [
+          { text: "Le maximum utilisable est 15 ; l'infini est juste au-dessus.", cost: 15 },
+          { text: "📖 Correction complète : 16 = infini = inatteignable.", cost: 40 },
+        ],
+        answer: 16,
+        explanation: `RIP tolère au **maximum 15 sauts**. La valeur **16** signifie **infini / inatteignable** — c'est ce qui borne la taille d'un réseau RIP et sert au *route poisoning* (annoncer une route morte avec 16). Au-delà de 15 routeurs de diamètre, RIP ne convient plus.`,
+        tags: ["rip", "metrique"],
+      },
+      {
+        id: "res-rip-v1-v2",
+        title: "Pourquoi RIPv2 ?",
+        order: 2,
+        difficulty: "medium",
+        type: "mcq",
+        prompt: `## ⚔️ v1 vs v2
+
+Quelle est la **différence clé** qui rend RIPv2 indispensable dès qu'on fait du **VLSM** ?`,
+        points: 200,
+        timeLimitSec: 300,
+        hints: [
+          { text: "VLSM = masques variables. Que faut-il transmettre pour que le voisin connaisse le sous-réseau exact ?", cost: 20 },
+          { text: "📖 Correction complète : RIPv2 transmet le masque (classless) ; RIPv1 non (classful).", cost: 50 },
+        ],
+        options: [
+          "RIPv2 transmet le masque de sous-réseau (classless), RIPv1 non (classful)",
+          "RIPv2 est plus rapide de 30 secondes",
+          "RIPv2 compte jusqu'à 30 sauts",
+          "RIPv1 n'existe pas sur Cisco",
+        ],
+        answer: 0,
+        explanation: `**RIPv2 est *classless*** : il **transmet le masque** dans ses mises à jour, ce qui permet le **VLSM** et les sous-réseaux discontinus. **RIPv1** est *classful* (il n'envoie **pas** le masque) → incompatible avec le VLSM. RIPv2 utilise aussi le **multicast** (224.0.0.9) au lieu du broadcast et supporte l'authentification.`,
+        tags: ["rip", "vlsm", "v1-v2"],
+      },
+      {
+        id: "res-rip-config-network",
+        title: "Activer RIPv2",
+        order: 3,
+        difficulty: "medium",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🖥️ Config Cisco
+
+Écris les commandes qui **activent RIP version 2**, **désactivent le résumé automatique** et **annoncent** le réseau \`192.168.1.0\`.
+
+(Une commande par ligne, dans l'ordre logique.)`,
+        points: 200,
+        timeLimitSec: 600,
+        starter: `router rip
+`,
+        hints: [
+          { text: "Après 'router rip' : version 2, puis no auto-summary, puis network 192.168.1.0.", cost: 25 },
+          { text: "network prend l'adresse SANS masque.", cost: 30 },
+          { text: "📖 Correction complète :\n```\nrouter rip\nversion 2\nno auto-summary\nnetwork 192.168.1.0\n```", cost: 70 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.75,
+          keypoints: [
+            { label: "Entre dans la configuration RIP (router rip)", pattern: "router\\s+rip", flags: "i" },
+            { label: "Force la version 2", pattern: "version\\s+2", flags: "i" },
+            { label: "Désactive le résumé automatique", pattern: "no\\s+auto-?summary", flags: "i" },
+            { label: "Annonce le réseau 192.168.1.0", pattern: "network\\s+192\\.168\\.1\\.0", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+router rip
+version 2            ! RIPv2 : transmet le masque (VLSM), multicast 224.0.0.9
+no auto-summary      ! pas de résumé aux frontières de classe
+network 192.168.1.0  ! annonce ce réseau et active RIP sur ses interfaces
+\`\`\`
+
+\`network 192.168.1.0\` fait **deux** choses : il **annonce** ce réseau aux voisins **et** active RIP sur les interfaces dont l'IP tombe dedans. Sans \`version 2\` + \`no auto-summary\`, le VLSM casserait.`,
+        tags: ["rip", "config", "cisco", "code"],
+      },
+      {
+        id: "res-rip-split-horizon",
+        title: "Le split horizon",
+        order: 4,
+        difficulty: "hard",
+        type: "mcq",
+        prompt: `## 🔄 Anti-boucle
+
+En quoi consiste le mécanisme **split horizon** de RIP ?`,
+        points: 350,
+        timeLimitSec: 420,
+        hints: [
+          { text: "Il empêche de renvoyer une info… à celui qui vient de te la donner.", cost: 30 },
+          { text: "📖 Correction complète : ne pas réannoncer une route par l'interface par laquelle on l'a apprise.", cost: 70 },
+        ],
+        options: [
+          "Ne pas réannoncer une route par l'interface d'où on l'a apprise",
+          "Diviser la bande passante en deux",
+          "Envoyer les updates deux fois plus vite",
+          "Couper la route toutes les 30 secondes",
+        ],
+        answer: 0,
+        explanation: `Le **split horizon** interdit de **réannoncer** une route **par l'interface** qui a servi à l'**apprendre**. Logique : « inutile de dire à mon voisin comment atteindre un réseau… que c'est **lui** qui m'a appris ». Ça évite les boucles de retour immédiates, aux côtés du *route poisoning* (métrique 16), du *holddown* et de la limite des 15 sauts.`,
+        tags: ["rip", "anti-boucle", "split-horizon"],
+      },
+      {
+        id: "res-rip-code-r",
+        title: "Lire une route RIP",
+        order: 5,
+        difficulty: "medium",
+        type: "mcq",
+        prompt: `## 🔎 show ip route
+
+Tu vois cette ligne :
+
+\`\`\`
+R 192.168.2.0/24 [120/1] via 10.0.0.2
+\`\`\`
+
+**Que signifie \`[120/1]\` ?**`,
+        points: 200,
+        timeLimitSec: 300,
+        hints: [
+          { text: "Le format est toujours [distance administrative / métrique].", cost: 20 },
+          { text: "📖 Correction complète : AD 120 (RIP) et métrique 1 (1 saut).", cost: 50 },
+        ],
+        options: [
+          "Distance administrative 120 (RIP) et métrique 1 saut",
+          "120 secondes et 1 minute",
+          "120 hôtes et 1 sous-réseau",
+          "Version 120, révision 1",
+        ],
+        answer: 0,
+        explanation: `Le format est toujours **[distance administrative / métrique]**. Ici **120** = l'AD de **RIP** (donc le code **R**), et **1** = la métrique = **1 saut** pour atteindre \`192.168.2.0/24\` via \`10.0.0.2\`. C'est ainsi qu'on lit toute route dynamique dans \`show ip route\`.`,
+        tags: ["rip", "table", "lecture"],
+      },
+    ],
+  },
+];
