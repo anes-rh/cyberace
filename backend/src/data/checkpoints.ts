@@ -42,11 +42,12 @@ export const allCheckpoints: CheckpointSeed[] = [
     slug: "reseaux",
     title: "Réseaux",
     order: 4,
-    status: "empty",
+    status: "active",
     icon: "Network",
     accent: "#5FB3C6",
-    description: "Modèles OSI et TCP/IP, adressage, routage, commutation et protocoles.",
-    tagline: "Bientôt disponible",
+    description:
+      "Du binaire à BGP : numération & masques, modèles OSI/TCP-IP, adressage IPv4 (FLSM/VLSM) et IPv6, routage statique et dynamique (RIP, OSPF, BGP), VLAN, STP, FHRP, DHCP — cours détaillés, TD corrigés et TP guidés Packet Tracer avec vidéos et fichiers .pkt.",
+    tagline: "Réseaux L3 → M1",
   },
   {
     slug: "cybersecurite",

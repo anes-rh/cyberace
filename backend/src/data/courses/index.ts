@@ -20,6 +20,7 @@ import { asdComplexitePiles } from "./algo/asdComplexitePiles";
 import { asdArbres } from "./algo/asdArbres";
 import { tpCAtelier } from "./algo/tpCAtelier";
 import { codesComplexes } from "./algo/codesComplexes";
+import { numeration } from "./reseaux/numeration";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -32,9 +33,15 @@ export const algoCourses: CourseSeed[] = [
   ...codesComplexes,
 ];
 
+/** Courses of the "Réseaux" checkpoint (prérequis → L3/M1). */
+export const reseauxCourses: CourseSeed[] = [
+  ...numeration,
+];
+
 /** Every course, in display order. */
 export const allCourses: CourseSeed[] = [
   ...algoCourses,
+  ...reseauxCourses,
   crypto,
   accessControl,
   activeDirectory,
