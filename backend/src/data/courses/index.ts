@@ -24,6 +24,8 @@ import { numeration } from "./reseaux/numeration";
 import { tp0PacketTracer } from "./reseaux/tp0PacketTracer";
 import { introOsi } from "./reseaux/introOsi";
 import { ipv4Flsm } from "./reseaux/ipv4Flsm";
+import { vlsm } from "./reseaux/vlsm";
+import { routageStatique } from "./reseaux/routageStatique";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -42,6 +44,8 @@ export const reseauxCourses: CourseSeed[] = [
   ...tp0PacketTracer,
   ...introOsi,
   ...ipv4Flsm,
+  ...vlsm,
+  ...routageStatique,
 ];
 
 /** Every course, in display order. */
