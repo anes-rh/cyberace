@@ -22,6 +22,14 @@ export const rip: CourseSeed[] = [
       "Configurer RIP sur un routeur Cisco (router rip, network, version 2)",
       "Vérifier avec show ip route et show ip protocols",
     ],
+    resources: [
+      {
+        label: "Architecture 1 — topologie de départ (.pka)",
+        url: "/pka/res-rip-architecture-1.pka",
+        kind: "pkt-start",
+        note: "À ouvrir dans Cisco Packet Tracer : R1, R2 et R3 reliés, non configurés. Active RIPv2 sur les 3 routeurs et annonce les réseaux selon l'Architecture 1.",
+      },
+    ],
     lesson: `# 🐢 Protocole RIP — le Hop Rally
 
 **RIP** (*Routing Information Protocol*) est le plus ancien protocole de routage dynamique — simple à comprendre, idéal pour débuter. C'est un protocole **à vecteur de distance** : chaque routeur annonce périodiquement ses réseaux à ses voisins. 🏎️

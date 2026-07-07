@@ -22,6 +22,14 @@ export const greVpn: CourseSeed[] = [
       "Comprendre le rôle d'IPsec (confidentialité, intégrité, authentification)",
       "Configurer une interface tunnel GRE",
     ],
+    resources: [
+      {
+        label: "Architecture 1 — topologie de départ (.pka)",
+        url: "/pka/res-gre-vpn-architecture-1.pka",
+        kind: "pkt-start",
+        note: "À ouvrir dans Cisco Packet Tracer : R1 et R2 reliés (les deux sites), non configurés. Monte le tunnel GRE (Tunnel0, source/destination, routage à travers) selon l'Architecture 1.",
+      },
+    ],
     lesson: `# 🚇 Tunnels GRE & VPN — le Tunnel Run
 
 Deux sites d'une entreprise, à 500 km, reliés par… **Internet** (public, non fiable). Comment les faire dialoguer **comme s'ils étaient sur le même LAN**, et **en sécurité** ? Réponse : un **tunnel** (GRE) éventuellement **chiffré** (VPN/IPsec). 🏎️

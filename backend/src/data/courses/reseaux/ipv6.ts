@@ -22,6 +22,14 @@ export const ipv6: CourseSeed[] = [
       "Comprendre le préfixe /64, l'ID d'interface et la génération EUI-64",
       "Décrire SLAAC (autoconfiguration) et configurer IPv6 sur une interface",
     ],
+    resources: [
+      {
+        label: "Architecture 1 — topologie de départ (.pka)",
+        url: "/pka/res-ipv6-architecture-1.pka",
+        kind: "pkt-start",
+        note: "À ouvrir dans Cisco Packet Tracer : R1 et R2 reliés, non configurés. Active le routage IPv6, adresse les interfaces et ajoute les routes statiques IPv6 selon l'Architecture 1.",
+      },
+    ],
     lesson: `# 🌐 IPv6 — le Next Address
 
 L'**IPv4** (32 bits) offre ~4,3 milliards d'adresses… épuisées depuis des années. La NAT a repoussé l'échéance, mais la vraie solution s'appelle **IPv6** : **128 bits**, soit **3,4 × 10³⁸** adresses — assez pour attribuer une adresse à chaque grain de sable de la planète, des milliards de fois. 🏎️

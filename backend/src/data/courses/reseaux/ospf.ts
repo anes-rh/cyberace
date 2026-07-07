@@ -22,6 +22,14 @@ export const ospf: CourseSeed[] = [
       "Savoir à quoi servent le DR et le BDR sur un réseau multi-accès",
       "Configurer OSPF (router ospf, network wildcard area)",
     ],
+    resources: [
+      {
+        label: "Architecture 1 — topologie de départ (.pka)",
+        url: "/pka/res-ospf-architecture-1.pka",
+        kind: "pkt-start",
+        note: "À ouvrir dans Cisco Packet Tracer : R1, R2 et R3 reliés, non configurés. Configure OSPF (processus 1, area 0, router-id, wildcards) selon l'Architecture 1.",
+      },
+    ],
     lesson: `# 🗺️ OSPF — le Dijkstra Drive
 
 **OSPF** (*Open Shortest Path First*) est **le** protocole IGP le plus utilisé en entreprise. Contrairement à RIP (« ouï-dire »), chaque routeur OSPF possède la **carte complète** du réseau et calcule le **plus court chemin** avec **Dijkstra**. Résultat : convergence rapide, pas de boucle, prise en compte de la **vitesse** des liens. 🏎️
