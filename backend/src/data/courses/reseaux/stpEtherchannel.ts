@@ -22,6 +22,14 @@ export const stpEtherchannel: CourseSeed[] = [
       "Comprendre EtherChannel (agrégation de liens) et LACP/PAgP",
       "Configurer un EtherChannel de base",
     ],
+    resources: [
+      {
+        label: "Architecture 1 — topologie de départ (.pka)",
+        url: "/pka/res-stp-etherchannel-architecture-1.pka",
+        kind: "pkt-start",
+        note: "À ouvrir dans Cisco Packet Tracer : SW1 et SW2 reliés, non configurés. Ajoute un second lien, agrège en EtherChannel (LACP) et choisis la racine STP selon l'Architecture 1.",
+      },
+    ],
     lesson: `# 🔁 Redondance couche 2 — le Loop Guard
 
 Pour la **fiabilité**, on double les liens entre switches. Mais en couche 2, **une boucle physique = catastrophe** : les trames de diffusion tournent **à l'infini**. Deux outils : **STP** (casse les boucles) et **EtherChannel** (agrège les liens utilement). 🏎️
