@@ -22,6 +22,14 @@ export const bgp: CourseSeed[] = [
       "Comprendre le vecteur de chemin (AS-PATH) et la prévention des boucles",
       "Configurer une session BGP de base (router bgp, neighbor, network)",
     ],
+    resources: [
+      {
+        label: "Architecture 1 — topologie de départ (.pka)",
+        url: "/pka/res-bgp-architecture-1.pka",
+        kind: "pkt-start",
+        note: "À ouvrir dans Cisco Packet Tracer : R1 et R2 reliés (deux AS), non configurés. Établis la session eBGP et annonce les réseaux selon l'Architecture 1.",
+      },
+    ],
     lesson: `# 🌍 BGP — le Border Grand Prix
 
 Les IGP (RIP, OSPF) routent **à l'intérieur** d'une organisation. Mais Internet, c'est **des dizaines de milliers d'organisations** (opérateurs, entreprises) qui doivent s'interconnecter. Le protocole qui fait tenir tout ça : **BGP** (*Border Gateway Protocol*), le seul **EGP** utilisé. 🏎️

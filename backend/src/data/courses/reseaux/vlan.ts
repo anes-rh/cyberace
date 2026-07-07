@@ -22,6 +22,14 @@ export const vlan: CourseSeed[] = [
       "Router entre VLAN via router-on-a-stick (sous-interfaces)",
       "Connaître l'alternative du switch de couche 3 (SVI)",
     ],
+    resources: [
+      {
+        label: "Architecture 1 — topologie de départ (.pka)",
+        url: "/pka/res-vlan-architecture-1.pka",
+        kind: "pkt-start",
+        note: "À ouvrir dans Cisco Packet Tracer : R1 relié à un switch SW1 avec plusieurs PC, non configurés. Crée les VLAN, le trunk et le routage inter-VLAN (router-on-a-stick) selon l'Architecture 1.",
+      },
+    ],
     lesson: `# 🛣️ VLAN & routage inter-VLAN — le Lane Split
 
 Un **switch** met tous ses ports dans **un seul** réseau de diffusion (LAN). Problème : sur un gros site, tout le monde reçoit tous les broadcasts, et aucune séparation (compta/RH/invités partagent le même réseau). Les **VLAN** découpent **logiquement** un switch en **plusieurs réseaux** — comme des voies séparées sur une autoroute. 🏎️
