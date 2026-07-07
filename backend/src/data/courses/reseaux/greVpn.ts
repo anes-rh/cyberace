@@ -252,6 +252,70 @@ tunnel mode gre ip
 L'interface **Tunnel0** a une IP **interne** (172.16.0.1) ; \`source\`/\`destination\` utilisent les **IP publiques réelles**. Ensuite, il faut **router** les LAN distants **via** ce tunnel (route statique ou OSPF par-dessus). Vérifie avec \`ping 172.16.0.2\` (l'autre bout).`,
         tags: ["gre", "config", "cisco", "tunnel"],
       },
+      {
+        id: "res-tp-gre",
+        title: "TP — Tunnel GRE site à site complet",
+        order: 6,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🧪 TP 10 — Architecture : deux sites reliés par Internet (niveau : avancé+)
+
+\`\`\`
+  SITE A                    ☁️ INTERNET ☁️                    SITE B
+  LAN 192.168.1.0/24                                LAN 192.168.2.0/24
+     │                                                        │
+   [ R1 ]──── 203.0.113.1 ══════ tunnel ══════ 198.51.100.1 ────[ R2 ]
+              (IP publique)   Tunnel0 :        (IP publique)
+                              172.16.0.0/30
+                              R1 = .1   R2 = .2
+\`\`\`
+
+**Mission :** monte le tunnel **des deux côtés** ET fais-y passer le trafic :
+1. **R1** : \`Tunnel0\` en \`172.16.0.1/30\`, source/destination publiques, puis **route statique** vers le LAN B **via le tunnel** ;
+2. **R2** : symétrique (\`172.16.0.2/30\` + route vers le LAN A).
+
+Préfixe les blocs par \`! === R1 ===\` et \`! === R2 ===\`.`,
+        points: 500,
+        timeLimitSec: 1500,
+        starter: `! === R1 ===
+interface Tunnel0
+`,
+        hints: [
+          { text: "Chaque côté : interface Tunnel0 / ip address 172.16.0.X 255.255.255.252 / tunnel source <ma publique> / tunnel destination <sa publique>. Puis ip route <LAN distant> 255.255.255.0 <IP tunnel distante>.", cost: 50 },
+          { text: "📖 Correction complète :\n```\n! === R1 ===\ninterface Tunnel0\nip address 172.16.0.1 255.255.255.252\ntunnel source 203.0.113.1\ntunnel destination 198.51.100.1\nip route 192.168.2.0 255.255.255.0 172.16.0.2\n! === R2 ===\ninterface Tunnel0\nip address 172.16.0.2 255.255.255.252\ntunnel source 198.51.100.1\ntunnel destination 203.0.113.1\nip route 192.168.1.0 255.255.255.0 172.16.0.1\n```", cost: 110 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.6,
+          keypoints: [
+            { label: "IP de tunnel côté R1 (.1/30)", pattern: "ip\\s+address\\s+172\\.16\\.0\\.1\\s+255\\.255\\.255\\.252", flags: "i" },
+            { label: "R1 : source = sa propre IP publique", pattern: "tunnel\\s+source\\s+203\\.0\\.113\\.1", flags: "i" },
+            { label: "R1 : destination = IP publique de R2", pattern: "tunnel\\s+destination\\s+198\\.51\\.100\\.1", flags: "i" },
+            { label: "R1 : route le LAN B via le tunnel", pattern: "ip\\s+route\\s+192\\.168\\.2\\.0\\s+255\\.255\\.255\\.0\\s+172\\.16\\.0\\.2", flags: "i" },
+            { label: "IP de tunnel côté R2 (.2/30)", pattern: "ip\\s+address\\s+172\\.16\\.0\\.2\\s+255\\.255\\.255\\.252", flags: "i" },
+            { label: "R2 : source = sa propre IP publique", pattern: "tunnel\\s+source\\s+198\\.51\\.100\\.1", flags: "i" },
+            { label: "R2 : destination = IP publique de R1", pattern: "tunnel\\s+destination\\s+203\\.0\\.113\\.1", flags: "i" },
+            { label: "R2 : route le LAN A via le tunnel", pattern: "ip\\s+route\\s+192\\.168\\.1\\.0\\s+255\\.255\\.255\\.0\\s+172\\.16\\.0\\.1", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+! === R1 ===
+interface Tunnel0
+ ip address 172.16.0.1 255.255.255.252
+ tunnel source 203.0.113.1               ! MA publique
+ tunnel destination 198.51.100.1         ! SA publique
+ip route 192.168.2.0 255.255.255.0 172.16.0.2   ! LAN B → via le tunnel !
+! === R2 ===
+interface Tunnel0
+ ip address 172.16.0.2 255.255.255.252
+ tunnel source 198.51.100.1
+ tunnel destination 203.0.113.1
+ip route 192.168.1.0 255.255.255.0 172.16.0.1
+\`\`\`
+
+Les pièges croisés : la \`source\` de R1 est la \`destination\` de R2 (et inversement). Et le tunnel **monté ne suffit pas** — sans les routes statiques qui pointent **dans** le tunnel, le trafic inter-LAN partirait vers Internet et serait perdu. Vérifie : \`show interfaces tunnel0\` (up/up), \`ping 172.16.0.2\`, puis ping **LAN à LAN**. Pour chiffrer : ajouter IPsec par-dessus (GRE over IPsec).`,
+        tags: ["tp", "gre", "tunnel", "config", "architecture"],
+      },
     ],
   },
 ];

@@ -241,6 +241,66 @@ channel-group 1 mode active     ! LACP actif (802.3ad)
 Les deux ports forment le **Port-Channel 1**. En **LACP**, les deux extrémités négocient (\`active/active\` ou \`active/passive\`). Tous les ports agrégés doivent avoir les **mêmes** réglages (vitesse, duplex, VLAN). Vérifie avec \`show etherchannel summary\` (état **SU** = en service, layer2/3).`,
         tags: ["etherchannel", "config", "cisco", "lacp"],
       },
+      {
+        id: "res-tp-etherchannel",
+        title: "TP — EtherChannel + racine STP",
+        order: 6,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🧪 TP 7 — Architecture : cœur de réseau redondant (niveau : avancé)
+
+\`\`\`
+        ┌───────── Fa0/1 ─────────┐
+   [ SW1 ]                      [ SW2 ]
+        └───────── Fa0/2 ─────────┘
+     (2 liens physiques → 1 lien logique LACP)
+
+   SW1 doit devenir la RACINE STP du VLAN 1.
+\`\`\`
+
+**Mission :**
+1. Sur **SW1** et **SW2** : agrège \`Fa0/1-2\` en **Port-Channel 1** avec **LACP actif** ;
+2. passe le Port-Channel en **trunk** ;
+3. force **SW1** comme **racine STP** du VLAN 1 (priorité \`4096\`).
+
+Préfixe les blocs par \`! === SW1 ===\` et \`! === SW2 ===\`.`,
+        points: 450,
+        timeLimitSec: 1200,
+        starter: `! === SW1 ===
+interface range fa0/1 - 2
+`,
+        hints: [
+          { text: "interface range fa0/1 - 2 → channel-group 1 mode active. Puis interface port-channel 1 → switchport mode trunk. Racine : spanning-tree vlan 1 priority 4096.", cost: 45 },
+          { text: "📖 Correction complète :\n```\n! === SW1 ===\ninterface range fa0/1 - 2\nchannel-group 1 mode active\ninterface port-channel 1\nswitchport mode trunk\nspanning-tree vlan 1 priority 4096\n! === SW2 ===\ninterface range fa0/1 - 2\nchannel-group 1 mode active\ninterface port-channel 1\nswitchport mode trunk\n```", cost: 100 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "Sélectionne la plage de ports", pattern: "interface\\s+range\\s+fa0/1\\s*-\\s*2", flags: "i" },
+            { label: "Agrège en groupe 1 avec LACP actif", pattern: "channel-group\\s+1\\s+mode\\s+active", flags: "i" },
+            { label: "Configure l'interface Port-Channel 1", pattern: "interface\\s+port-channel\\s*1", flags: "i" },
+            { label: "Passe l'agrégat en trunk", pattern: "switchport\\s+mode\\s+trunk", flags: "i" },
+            { label: "Force SW1 racine STP (priorité 4096)", pattern: "spanning-tree\\s+vlan\\s+1\\s+priority\\s+4096", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+! === SW1 ===
+interface range fa0/1 - 2
+ channel-group 1 mode active        ! LACP actif (802.3ad)
+interface port-channel 1
+ switchport mode trunk
+spanning-tree vlan 1 priority 4096  ! priorité basse → SW1 gagne l'élection racine
+! === SW2 ===
+interface range fa0/1 - 2
+ channel-group 1 mode active
+interface port-channel 1
+ switchport mode trunk
+\`\`\`
+
+Sans EtherChannel, STP **bloquerait** l'un des deux liens (boucle !) → 50 % de la capacité perdue. Agrégés en Port-Channel, STP les voit comme **UN seul lien** : les deux câbles travaillent (~200 Mbit/s) **et** la redondance reste. La priorité **4096 < 32768** (défaut) garantit que SW1 est racine — on **choisit** sa racine, on ne la subit pas. Vérifie : \`show etherchannel summary\` (flag **SU**) et \`show spanning-tree\` (« This bridge is the root »).`,
+        tags: ["tp", "stp", "etherchannel", "config", "architecture"],
+      },
     ],
   },
 ];

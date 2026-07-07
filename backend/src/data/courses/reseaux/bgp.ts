@@ -253,6 +253,62 @@ neighbor 10.0.0.2 remote-as 65002   ! AS différent → session eBGP
 \`router bgp 65001\` fixe **notre** AS. \`neighbor 10.0.0.2 remote-as 65002\` **déclare** le voisin (BGP ne le découvre pas tout seul) ; comme 65002 ≠ 65001, c'est de l'**eBGP**. On ajouterait \`network … mask …\` pour annoncer nos réseaux. Vérifie l'état **Established** avec \`show ip bgp summary\`.`,
         tags: ["bgp", "config", "cisco", "neighbor"],
       },
+      {
+        id: "res-tp-bgp",
+        title: "TP — Peering eBGP entre deux AS",
+        order: 6,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🧪 TP 9 — Architecture : deux systèmes autonomes (niveau : avancé)
+
+\`\`\`
+        AS 65001                          AS 65002
+   LAN 10.1.1.0/24                   LAN 10.2.2.0/24
+        │                                 │
+      [ R1 ]── 203.0.113.0/30 lien inter-AS ──[ R2 ]
+          .1                             .2
+\`\`\`
+
+**Mission :** établis la session **eBGP** et fais s'échanger les deux LAN :
+1. **R1** (AS 65001) : déclare R2 comme voisin et **annonce** \`10.1.1.0/24\` (avec \`mask\`) ;
+2. **R2** (AS 65002) : symétrique.
+
+Préfixe les blocs par \`! === R1 ===\` et \`! === R2 ===\`.`,
+        points: 500,
+        timeLimitSec: 1200,
+        starter: `! === R1 ===
+router bgp 65001
+`,
+        hints: [
+          { text: "router bgp <mon AS> / neighbor <IP voisin> remote-as <son AS> / network <LAN> mask 255.255.255.0 — des deux côtés.", cost: 50 },
+          { text: "📖 Correction complète :\n```\n! === R1 ===\nrouter bgp 65001\nneighbor 203.0.113.2 remote-as 65002\nnetwork 10.1.1.0 mask 255.255.255.0\n! === R2 ===\nrouter bgp 65002\nneighbor 203.0.113.1 remote-as 65001\nnetwork 10.2.2.0 mask 255.255.255.0\n```", cost: 110 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "Démarre BGP dans l'AS 65001", pattern: "router\\s+bgp\\s+65001", flags: "i" },
+            { label: "R1 déclare son voisin eBGP", pattern: "neighbor\\s+203\\.0\\.113\\.2\\s+remote-as\\s+65002", flags: "i" },
+            { label: "R1 annonce son LAN avec mask", pattern: "network\\s+10\\.1\\.1\\.0\\s+mask\\s+255\\.255\\.255\\.0", flags: "i" },
+            { label: "Démarre BGP dans l'AS 65002", pattern: "router\\s+bgp\\s+65002", flags: "i" },
+            { label: "R2 déclare son voisin eBGP", pattern: "neighbor\\s+203\\.0\\.113\\.1\\s+remote-as\\s+65001", flags: "i" },
+            { label: "R2 annonce son LAN avec mask", pattern: "network\\s+10\\.2\\.2\\.0\\s+mask\\s+255\\.255\\.255\\.0", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+! === R1 ===
+router bgp 65001
+ neighbor 203.0.113.2 remote-as 65002   ! AS distant ≠ le mien → eBGP
+ network 10.1.1.0 mask 255.255.255.0    ! j'annonce MON LAN
+! === R2 ===
+router bgp 65002
+ neighbor 203.0.113.1 remote-as 65001
+ network 10.2.2.0 mask 255.255.255.0
+\`\`\`
+
+Contrairement à OSPF/RIP, BGP ne **découvre pas** ses voisins : on les **déclare** à la main (session TCP **179**). Le \`network … mask …\` n'annonce la route que si elle existe déjà dans la table locale. Une fois la session **Established** (\`show ip bgp summary\`), chaque AS voit le LAN de l'autre avec son **AS-PATH**. C'est exactement — en miniature — ce que font les opérateurs sur Internet.`,
+        tags: ["tp", "bgp", "ebgp", "config", "architecture"],
+      },
     ],
   },
 ];

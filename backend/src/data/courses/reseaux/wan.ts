@@ -283,6 +283,71 @@ interface Serial0/0/0
 Il faut aussi, en amont, un \`username <nom-du-pair> password <secret>\` **identique des deux côtés** (le hostname du pair sert de nom). Vérifie avec \`show interfaces serial 0/0/0\` (doit indiquer *Encapsulation PPP*, LCP *Open*).`,
         tags: ["wan", "ppp", "chap", "config", "cisco"],
       },
+      {
+        id: "res-tp-wan",
+        title: "TP — Liaison série PPP + CHAP de bout en bout",
+        order: 6,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🧪 TP 11 — Architecture : liaison WAN authentifiée (niveau : avancé+)
+
+\`\`\`
+   [ R1 ]════════ liaison série 10.0.0.0/30 ════════[ R2 ]
+   S0/0/0 (DCE)  .1                        .2  S0/0/0 (DTE)
+   hostname R1                                  hostname R2
+        Authentification CHAP, secret partagé : cisco123
+\`\`\`
+
+**Mission :** configure la liaison **complète des deux côtés** :
+1. Sur chaque routeur : le compte du **pair** (\`username <pair> password cisco123\`) ;
+2. \`S0/0/0\` : adresse IP /30, \`encapsulation ppp\`, \`ppp authentication chap\` ;
+3. **R1 est le DCE** → il fournit l'horloge : \`clock rate 128000\` ;
+4. active les interfaces.
+
+Préfixe les blocs par \`! === R1 ===\` et \`! === R2 ===\`.`,
+        points: 500,
+        timeLimitSec: 1500,
+        starter: `! === R1 ===
+username R2 password cisco123
+`,
+        hints: [
+          { text: "R1 déclare username R2, R2 déclare username R1 (même mot de passe !). Le clock rate va du côté DCE uniquement (R1).", cost: 50 },
+          { text: "📖 Correction complète :\n```\n! === R1 ===\nusername R2 password cisco123\ninterface s0/0/0\nip address 10.0.0.1 255.255.255.252\nencapsulation ppp\nppp authentication chap\nclock rate 128000\nno shutdown\n! === R2 ===\nusername R1 password cisco123\ninterface s0/0/0\nip address 10.0.0.2 255.255.255.252\nencapsulation ppp\nppp authentication chap\nno shutdown\n```", cost: 110 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "R1 déclare le compte du pair R2", pattern: "username\\s+R2\\s+password\\s+cisco123", flags: "i" },
+            { label: "R2 déclare le compte du pair R1", pattern: "username\\s+R1\\s+password\\s+cisco123", flags: "i" },
+            { label: "IP de R1 sur la liaison (.1/30)", pattern: "ip\\s+address\\s+10\\.0\\.0\\.1\\s+255\\.255\\.255\\.252", flags: "i" },
+            { label: "IP de R2 sur la liaison (.2/30)", pattern: "ip\\s+address\\s+10\\.0\\.0\\.2\\s+255\\.255\\.255\\.252", flags: "i" },
+            { label: "Encapsulation PPP", pattern: "encapsulation\\s+ppp", flags: "i" },
+            { label: "Authentification CHAP", pattern: "ppp\\s+authentication\\s+chap", flags: "i" },
+            { label: "Horloge côté DCE (R1)", pattern: "clock\\s+rate\\s+128000", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+! === R1 ===
+username R2 password cisco123    ! le compte du PAIR (pas le mien !)
+interface s0/0/0
+ ip address 10.0.0.1 255.255.255.252
+ encapsulation ppp
+ ppp authentication chap
+ clock rate 128000               ! R1 = DCE → fournit l'horloge
+ no shutdown
+! === R2 ===
+username R1 password cisco123    ! même secret des deux côtés
+interface s0/0/0
+ ip address 10.0.0.2 255.255.255.252
+ encapsulation ppp
+ ppp authentication chap
+ no shutdown
+\`\`\`
+
+Le principe croisé de CHAP : **R1 stocke le compte de R2** et inversement — le \`username\` correspond au **hostname du pair**, et le mot de passe doit être **identique** des deux côtés (il sert au hachage du défi, jamais transmis). Sans \`clock rate\` côté **DCE**, le lien reste down quoi qu'il arrive. Vérifie : \`show interfaces s0/0/0\` → *Encapsulation PPP, LCP Open* puis ping 10.0.0.2.`,
+        tags: ["tp", "wan", "ppp", "chap", "architecture"],
+      },
     ],
   },
 ];

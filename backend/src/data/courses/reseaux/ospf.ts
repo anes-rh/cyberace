@@ -265,6 +265,66 @@ network 192.168.1.0 0.0.0.255 area 0
 \`router ospf 1\` démarre le processus (le \`1\` est **local**). \`network 192.168.1.0 0.0.0.255 area 0\` annonce le /24 (wildcard **0.0.0.255**) dans la **zone backbone**. On peut fixer \`router-id 1.1.1.1\` pour une identité stable. Vérifie avec \`show ip ospf neighbor\` (état **FULL**).`,
         tags: ["ospf", "config", "cisco", "code"],
       },
+      {
+        id: "res-tp-ospf",
+        title: "TP — OSPF zone 0 sur 3 routeurs",
+        order: 6,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🧪 TP 5 — Architecture : triangle OSPF (niveau : intermédiaire+)
+
+\`\`\`
+                    [ R1 ]─ G0/0 ─ LAN 192.168.1.0/24
+                   /      \\
+      10.0.12.0/30         10.0.13.0/30
+                 /            \\
+   LAN ─[ R2 ]── 10.0.23.0/30 ──[ R3 ]─ LAN
+   192.168.2.0/24            192.168.3.0/24
+\`\`\`
+
+**Mission :** configure **OSPF processus 1, zone 0** sur les 3 routeurs :
+1. \`router-id\` : \`1.1.1.1\` (R1), \`2.2.2.2\` (R2), \`3.3.3.3\` (R3) ;
+2. annonce chaque réseau avec le **bon wildcard** (/24 → \`0.0.0.255\`, /30 → \`0.0.0.3\`) dans \`area 0\` ;
+3. passe l'interface **LAN** de chaque routeur en \`passive-interface\` (pas de Hello vers les PC !).
+
+Préfixe chaque bloc par \`! === R1 ===\`, etc.`,
+        points: 450,
+        timeLimitSec: 1500,
+        starter: `! === R1 ===
+router ospf 1
+`,
+        hints: [
+          { text: "Par routeur : router ospf 1 / router-id X.X.X.X / network <LAN> 0.0.0.255 area 0 / network <liens> 0.0.0.3 area 0 / passive-interface g0/0.", cost: 45 },
+          { text: "📖 Correction complète (R1 ; R2/R3 symétriques) :\n```\n! === R1 ===\nrouter ospf 1\nrouter-id 1.1.1.1\nnetwork 192.168.1.0 0.0.0.255 area 0\nnetwork 10.0.12.0 0.0.0.3 area 0\nnetwork 10.0.13.0 0.0.0.3 area 0\npassive-interface g0/0\n```", cost: 100 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "Démarre le processus OSPF 1", pattern: "router\\s+ospf\\s+1", flags: "i" },
+            { label: "Fixe le router-id de R1", pattern: "router-id\\s+1\\.1\\.1\\.1", flags: "i" },
+            { label: "Fixe le router-id de R2", pattern: "router-id\\s+2\\.2\\.2\\.2", flags: "i" },
+            { label: "Fixe le router-id de R3", pattern: "router-id\\s+3\\.3\\.3\\.3", flags: "i" },
+            { label: "Annonce un LAN /24 avec wildcard 0.0.0.255 en area 0", pattern: "network\\s+192\\.168\\.\\d\\.0\\s+0\\.0\\.0\\.255\\s+area\\s+0", flags: "i" },
+            { label: "Annonce un lien /30 avec wildcard 0.0.0.3 en area 0", pattern: "network\\s+10\\.0\\.\\d+\\.0\\s+0\\.0\\.0\\.3\\s+area\\s+0", flags: "i" },
+            { label: "Passe l'interface LAN en passive", pattern: "passive-interface", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+! === R1 ===
+router ospf 1
+ router-id 1.1.1.1
+ network 192.168.1.0 0.0.0.255 area 0    ! LAN /24 → wildcard 0.0.0.255
+ network 10.0.12.0 0.0.0.3 area 0        ! lien /30 → wildcard 0.0.0.3
+ network 10.0.13.0 0.0.0.3 area 0
+ passive-interface g0/0                  ! pas de Hello vers les PC
+\`\`\`
+
+(R2 : router-id 2.2.2.2, réseaux 192.168.2.0, 10.0.12.0, 10.0.23.0 ; R3 : 3.3.3.3, 192.168.3.0, 10.0.13.0, 10.0.23.0.)
+
+Le **wildcard** est l'inverse du masque (/30 → 0.0.0.3). \`passive-interface\` supprime les Hello inutiles côté LAN (sécurité + économie). Contrairement à RIP, OSPF choisira le chemin au meilleur **coût** (bande passante), pas au moins de sauts. Vérifie : \`show ip ospf neighbor\` (état **FULL**), \`show ip route ospf\` (codes **O [110/…]**).`,
+        tags: ["tp", "ospf", "config", "cisco", "architecture"],
+      },
     ],
   },
 ];

@@ -310,6 +310,75 @@ interface GigabitEthernet0/0
 Sans **\`ipv6 unicast-routing\`**, le routeur porte l'adresse mais **ne route pas** et n'émet pas de **RA** (SLAAC KO côté clients). Vérifie avec \`show ipv6 interface brief\` et \`show ipv6 route\`.`,
         tags: ["ipv6", "config", "cisco", "unicast-routing"],
       },
+      {
+        id: "res-tp-ipv6",
+        title: "TP — Réseau IPv6 routé de bout en bout",
+        order: 6,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🧪 TP 12 — Architecture : deux LAN IPv6 interconnectés (niveau : avancé+)
+
+\`\`\`
+  LAN A                                                   LAN B
+  2001:db8:1::/64                                2001:db8:2::/64
+     │                                                     │
+   G0/0 ::1                                            ::1 G0/0
+   [ R1 ]────── lien 2001:db8:12::/64 ──────[ R2 ]
+         G0/1 ::1                    ::2 G0/1
+\`\`\`
+
+**Mission :** monte le réseau IPv6 **complet** :
+1. **active le routage IPv6** sur les deux routeurs (l'oubli classique !) ;
+2. adresse les 4 interfaces (\`::1\` sur les LAN et le lien côté R1, \`::2\` côté R2) ;
+3. ajoute la **route statique IPv6** vers le LAN distant sur chaque routeur.
+
+Préfixe les blocs par \`! === R1 ===\` et \`! === R2 ===\`.`,
+        points: 550,
+        timeLimitSec: 1500,
+        starter: `! === R1 ===
+ipv6 unicast-routing
+`,
+        hints: [
+          { text: "ipv6 unicast-routing (les 2 !), ipv6 address <préfixe>::X/64 sur chaque interface, puis ipv6 route 2001:db8:2::/64 2001:db8:12::2 (et le miroir sur R2).", cost: 55 },
+          { text: "📖 Correction complète :\n```\n! === R1 ===\nipv6 unicast-routing\ninterface g0/0\nipv6 address 2001:db8:1::1/64\nno shutdown\ninterface g0/1\nipv6 address 2001:db8:12::1/64\nno shutdown\nipv6 route 2001:db8:2::/64 2001:db8:12::2\n! === R2 ===\nipv6 unicast-routing\ninterface g0/0\nipv6 address 2001:db8:2::1/64\nno shutdown\ninterface g0/1\nipv6 address 2001:db8:12::2/64\nno shutdown\nipv6 route 2001:db8:1::/64 2001:db8:12::1\n```", cost: 120 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.6,
+          keypoints: [
+            { label: "Active le routage IPv6", pattern: "ipv6\\s+unicast-routing", flags: "i" },
+            { label: "Adresse du LAN A sur R1", pattern: "ipv6\\s+address\\s+2001:db8:1::1/64", flags: "i" },
+            { label: "Adresse du lien côté R1", pattern: "ipv6\\s+address\\s+2001:db8:12::1/64", flags: "i" },
+            { label: "Adresse du lien côté R2", pattern: "ipv6\\s+address\\s+2001:db8:12::2/64", flags: "i" },
+            { label: "Adresse du LAN B sur R2", pattern: "ipv6\\s+address\\s+2001:db8:2::1/64", flags: "i" },
+            { label: "R1 : route statique vers le LAN B", pattern: "ipv6\\s+route\\s+2001:db8:2::/64\\s+2001:db8:12::2", flags: "i" },
+            { label: "R2 : route statique vers le LAN A", pattern: "ipv6\\s+route\\s+2001:db8:1::/64\\s+2001:db8:12::1", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+! === R1 ===
+ipv6 unicast-routing                       ! sans ça : pas de routage, pas de RA
+interface g0/0
+ ipv6 address 2001:db8:1::1/64
+ no shutdown
+interface g0/1
+ ipv6 address 2001:db8:12::1/64
+ no shutdown
+ipv6 route 2001:db8:2::/64 2001:db8:12::2  ! LAN B via R2
+! === R2 ===  (miroir)
+ipv6 unicast-routing
+interface g0/0
+ ipv6 address 2001:db8:2::1/64
+ no shutdown
+interface g0/1
+ ipv6 address 2001:db8:12::2/64
+ no shutdown
+ipv6 route 2001:db8:1::/64 2001:db8:12::1
+\`\`\`
+
+La logique est identique à IPv4 (adresser → router → les 2 sens), mais **trois différences** : le \`ipv6 unicast-routing\` global **obligatoire**, la notation **préfixe/longueur** (\`/64\` collé à l'adresse, pas de masque décimal), et les PC des LAN qui s'autoconfigureront en **SLAAC** grâce aux RA des routeurs. Vérifie : \`show ipv6 interface brief\`, \`show ipv6 route\`, puis \`ping 2001:db8:2::1\` depuis R1.`,
+        tags: ["tp", "ipv6", "routage", "config", "architecture"],
+      },
     ],
   },
 ];

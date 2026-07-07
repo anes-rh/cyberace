@@ -277,6 +277,83 @@ Deux PC sont sur le **même switch** mais l'un est dans le **VLAN 10** et l'autr
         explanation: `**Non** : par définition, deux VLAN sont des **réseaux séparés** (couche 2 étanche). Pour qu'ils communiquent, il faut un **équipement de couche 3** — un **routeur** (router-on-a-stick) ou un **switch multicouche** (SVI). C'est tout l'objet du **routage inter-VLAN**.`,
         tags: ["vlan", "inter-vlan", "etancheite"],
       },
+      {
+        id: "res-tp-vlan",
+        title: "TP — Router-on-a-stick complet",
+        order: 6,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🧪 TP 6 — Architecture : 2 VLAN + routage inter-VLAN (niveau : avancé)
+
+\`\`\`
+   VLAN 10 « VENTES »          VLAN 20 « COMPTA »
+   192.168.10.0/24             192.168.20.0/24
+   PC-A (Fa0/1)                PC-B (Fa0/11)
+        │                           │
+        └────────[ SW1 ]────────────┘
+                    │ G0/1 (trunk 802.1Q)
+                    │
+                  G0/0
+                 [ R1 ]
+\`\`\`
+
+**Mission :**
+1. Sur **SW1** : crée les VLAN 10 (\`VENTES\`) et 20 (\`COMPTA\`), mets \`Fa0/1\` en accès VLAN 10, \`Fa0/11\` en accès VLAN 20, et \`G0/1\` en **trunk** ;
+2. Sur **R1** : crée les **sous-interfaces** \`G0/0.10\` et \`G0/0.20\` (encapsulation dot1Q + passerelle .1 de chaque VLAN), puis active \`G0/0\`.
+
+Préfixe les blocs par \`! === SW1 ===\` et \`! === R1 ===\`.`,
+        points: 500,
+        timeLimitSec: 1500,
+        starter: `! === SW1 ===
+vlan 10
+`,
+        hints: [
+          { text: "SW1 : vlan 10/name VENTES, switchport mode access + switchport access vlan X, trunk sur G0/1. R1 : interface g0/0.10, encapsulation dot1Q 10, ip address 192.168.10.1…", cost: 50 },
+          { text: "📖 Correction complète :\n```\n! === SW1 ===\nvlan 10\nname VENTES\nvlan 20\nname COMPTA\ninterface fa0/1\nswitchport mode access\nswitchport access vlan 10\ninterface fa0/11\nswitchport mode access\nswitchport access vlan 20\ninterface g0/1\nswitchport mode trunk\n! === R1 ===\ninterface g0/0.10\nencapsulation dot1Q 10\nip address 192.168.10.1 255.255.255.0\ninterface g0/0.20\nencapsulation dot1Q 20\nip address 192.168.20.1 255.255.255.0\ninterface g0/0\nno shutdown\n```", cost: 110 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "Crée le VLAN 10", pattern: "vlan\\s+10", flags: "i" },
+            { label: "Crée le VLAN 20", pattern: "vlan\\s+20", flags: "i" },
+            { label: "Met un port en accès VLAN 10", pattern: "switchport\\s+access\\s+vlan\\s+10", flags: "i" },
+            { label: "Met un port en accès VLAN 20", pattern: "switchport\\s+access\\s+vlan\\s+20", flags: "i" },
+            { label: "Configure le trunk vers R1", pattern: "switchport\\s+mode\\s+trunk", flags: "i" },
+            { label: "Sous-interface taguée VLAN 10 (dot1Q)", pattern: "encapsulation\\s+dot1q\\s+10", flags: "i" },
+            { label: "Passerelle du VLAN 10", pattern: "ip\\s+address\\s+192\\.168\\.10\\.1\\s+255\\.255\\.255\\.0", flags: "i" },
+            { label: "Sous-interface taguée VLAN 20 (dot1Q)", pattern: "encapsulation\\s+dot1q\\s+20", flags: "i" },
+            { label: "Passerelle du VLAN 20", pattern: "ip\\s+address\\s+192\\.168\\.20\\.1\\s+255\\.255\\.255\\.0", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+! === SW1 ===
+vlan 10
+ name VENTES
+vlan 20
+ name COMPTA
+interface fa0/1
+ switchport mode access
+ switchport access vlan 10
+interface fa0/11
+ switchport mode access
+ switchport access vlan 20
+interface g0/1
+ switchport mode trunk          ! transporte les 2 VLAN tagués 802.1Q
+! === R1 ===
+interface g0/0.10
+ encapsulation dot1Q 10         ! AVANT l'adresse IP !
+ ip address 192.168.10.1 255.255.255.0
+interface g0/0.20
+ encapsulation dot1Q 20
+ ip address 192.168.20.1 255.255.255.0
+interface g0/0
+ no shutdown                    ! l'interface PHYSIQUE doit être up
+\`\`\`
+
+Chaque trame montant le trunk porte son **tag 802.1Q** ; R1 la reçoit sur la bonne **sous-interface**, route, et renvoie taguée pour l'autre VLAN. Deux pièges classiques : (1) \`encapsulation dot1Q\` doit précéder l'IP ; (2) sans \`no shutdown\` sur la **physique** G0/0, toutes les sous-interfaces restent down. Test final : ping PC-A → PC-B (il traverse R1 !).`,
+        tags: ["tp", "vlan", "router-on-a-stick", "config", "architecture"],
+      },
     ],
   },
 ];

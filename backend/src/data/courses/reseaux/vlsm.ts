@@ -250,6 +250,64 @@ Quel est l'**avantage principal** du VLSM sur le FLSM ?`,
         explanation: `Le **VLSM taille chaque sous-réseau à son besoin** (masque variable), là où le **FLSM** impose une taille unique. Résultat : **aucun gaspillage** — un lien point-à-point prend un /30, un grand LAN prend un /25, dans le même espace d'adressage. Le FLSM, lui, aurait donné 62 adresses à un lien qui n'en veut que 2.`,
         tags: ["vlsm", "flsm", "comparaison"],
       },
+      {
+        id: "res-tp-vlsm",
+        title: "TP — Plan VLSM sur 3 LAN",
+        order: 6,
+        difficulty: "medium",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🧪 TP 2 — Architecture : 1 routeur, 3 LAN inégaux (niveau : simple+)
+
+\`\`\`
+   LAN A — 100 hôtes      LAN B — 40 hôtes       LAN C — 10 hôtes
+        │                      │                      │
+     [ SW-A ]               [ SW-B ]               [ SW-C ]
+        │                      │                      │
+       G0/0                   G0/1                   G0/2
+        └───────────────── [ R1 ] ────────────────────┘
+\`\`\`
+
+**Mission :** découpe \`172.16.0.0/24\` en VLSM (du plus grand au plus petit !), puis configure les 3 interfaces de R1 avec la **première adresse utilisable** de chaque sous-réseau et active-les.
+
+| LAN | Besoin | Sous-réseau attendu |
+|---|---|---|
+| A | 100 hôtes | \`172.16.0.0/25\` |
+| B | 40 hôtes | \`172.16.0.128/26\` |
+| C | 10 hôtes | \`172.16.0.192/28\` |`,
+        points: 350,
+        timeLimitSec: 1080,
+        starter: `! === R1 ===
+interface g0/0
+`,
+        hints: [
+          { text: "/25 = 255.255.255.128, /26 = 255.255.255.192, /28 = 255.255.255.240. Premières utilisables : .1, .129, .193.", cost: 35 },
+          { text: "📖 Correction complète :\n```\ninterface g0/0\nip address 172.16.0.1 255.255.255.128\nno shutdown\ninterface g0/1\nip address 172.16.0.129 255.255.255.192\nno shutdown\ninterface g0/2\nip address 172.16.0.193 255.255.255.240\nno shutdown\n```", cost: 80 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "G0/0 : passerelle du LAN A en /25", pattern: "ip\\s+address\\s+172\\.16\\.0\\.1\\s+255\\.255\\.255\\.128", flags: "i" },
+            { label: "G0/1 : passerelle du LAN B en /26", pattern: "ip\\s+address\\s+172\\.16\\.0\\.129\\s+255\\.255\\.255\\.192", flags: "i" },
+            { label: "G0/2 : passerelle du LAN C en /28", pattern: "ip\\s+address\\s+172\\.16\\.0\\.193\\s+255\\.255\\.255\\.240", flags: "i" },
+            { label: "Active les interfaces (no shutdown)", pattern: "no\\s+shut", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+interface g0/0
+ ip address 172.16.0.1 255.255.255.128     ! LAN A : /25 → 126 hôtes (≥ 100)
+ no shutdown
+interface g0/1
+ ip address 172.16.0.129 255.255.255.192   ! LAN B : /26 → 62 hôtes (≥ 40)
+ no shutdown
+interface g0/2
+ ip address 172.16.0.193 255.255.255.240   ! LAN C : /28 → 14 hôtes (≥ 10)
+ no shutdown
+\`\`\`
+
+Règle d'or du VLSM : allouer **du plus grand au plus petit** — le /25 d'abord (0–127), puis le /26 (128–191), puis le /28 (192–207). Il reste même 172.16.0.208 → 172.16.0.255 pour l'avenir. En FLSM, ces 3 LAN auraient exigé trois /25… qui ne tiennent pas dans un /24 !`,
+        tags: ["tp", "vlsm", "config", "cisco", "architecture"],
+      },
     ],
   },
 ];

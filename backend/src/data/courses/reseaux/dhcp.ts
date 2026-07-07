@@ -292,6 +292,88 @@ ip dhcp pool LAN10
 L'**exclusion vient en premier** (mode global), **puis** le pool. Le \`default-router\` doit correspondre à l'**IP de l'interface** du routeur sur ce LAN. Vérifie avec \`show ip dhcp binding\` (baux attribués) et \`show ip dhcp pool\`.`,
         tags: ["dhcp", "config", "cisco", "pool"],
       },
+      {
+        id: "res-tp-dhcp",
+        title: "TP FINAL — Réseau d'entreprise complet",
+        order: 6,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🧪 TP 13 — LE GRAND FINAL : VLAN + DHCP + relais (niveau : expert)
+
+Le TP le plus complet du checkpoint — il combine **router-on-a-stick**, **serveur DHCP** et **relais DHCP** :
+
+\`\`\`
+  VLAN 10 BUREAUX      VLAN 20 WIFI        VLAN 30 PROD
+  192.168.10.0/24      192.168.20.0/24     192.168.30.0/24
+  (DHCP sur R1)        (DHCP sur R1)       (DHCP sur serveur central !)
+       │                    │                    │
+       └────────────── [ SW1 ] ──────────────────┘
+                          │ trunk 802.1Q
+                        G0/0
+                       [ R1 ]─── … ───[ Serveur DHCP central ]
+                                          192.168.99.5
+\`\`\`
+
+**Mission — tout sur R1 :**
+1. Trois **sous-interfaces** \`G0/0.10/.20/.30\` (dot1Q + passerelle \`.1\` de chaque VLAN), et active \`G0/0\` ;
+2. **Exclus** \`.1\` à \`.10\` des VLAN 10 et 20 ;
+3. Deux **pools** \`VLAN10\` et \`VLAN20\` : \`network\`, \`default-router\`, \`dns-server 8.8.8.8\` ;
+4. Le VLAN 30 est servi par le **serveur central** → configure le **relais** sur \`G0/0.30\`.`,
+        points: 600,
+        timeLimitSec: 1800,
+        starter: `! === R1 ===
+interface g0/0.10
+`,
+        hints: [
+          { text: "Sous-interfaces : encapsulation dot1Q <n° VLAN> puis ip address. Pools : ip dhcp pool VLAN10 → network/default-router/dns-server. Le relais : ip helper-address 192.168.99.5 sur g0/0.30 (côté clients !).", cost: 60 },
+          { text: "📖 Correction complète :\n```\ninterface g0/0.10\nencapsulation dot1Q 10\nip address 192.168.10.1 255.255.255.0\ninterface g0/0.20\nencapsulation dot1Q 20\nip address 192.168.20.1 255.255.255.0\ninterface g0/0.30\nencapsulation dot1Q 30\nip address 192.168.30.1 255.255.255.0\nip helper-address 192.168.99.5\ninterface g0/0\nno shutdown\nip dhcp excluded-address 192.168.10.1 192.168.10.10\nip dhcp excluded-address 192.168.20.1 192.168.20.10\nip dhcp pool VLAN10\nnetwork 192.168.10.0 255.255.255.0\ndefault-router 192.168.10.1\ndns-server 8.8.8.8\nip dhcp pool VLAN20\nnetwork 192.168.20.0 255.255.255.0\ndefault-router 192.168.20.1\ndns-server 8.8.8.8\n```", cost: 140 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.6,
+          keypoints: [
+            { label: "Sous-interface taguée VLAN 10", pattern: "encapsulation\\s+dot1q\\s+10", flags: "i" },
+            { label: "Passerelle du VLAN 10", pattern: "ip\\s+address\\s+192\\.168\\.10\\.1\\s+255\\.255\\.255\\.0", flags: "i" },
+            { label: "Sous-interface taguée VLAN 20", pattern: "encapsulation\\s+dot1q\\s+20", flags: "i" },
+            { label: "Passerelle du VLAN 20", pattern: "ip\\s+address\\s+192\\.168\\.20\\.1\\s+255\\.255\\.255\\.0", flags: "i" },
+            { label: "Sous-interface taguée VLAN 30", pattern: "encapsulation\\s+dot1q\\s+30", flags: "i" },
+            { label: "Relais DHCP vers le serveur central", pattern: "ip\\s+helper-address\\s+192\\.168\\.99\\.5", flags: "i" },
+            { label: "Exclusion des .1-.10 du VLAN 10", pattern: "ip\\s+dhcp\\s+excluded-address\\s+192\\.168\\.10\\.1\\s+192\\.168\\.10\\.10", flags: "i" },
+            { label: "Exclusion des .1-.10 du VLAN 20", pattern: "ip\\s+dhcp\\s+excluded-address\\s+192\\.168\\.20\\.1\\s+192\\.168\\.20\\.10", flags: "i" },
+            { label: "Pool DHCP du VLAN 10", pattern: "ip\\s+dhcp\\s+pool\\s+VLAN10", flags: "i" },
+            { label: "Réseau distribué au VLAN 10", pattern: "network\\s+192\\.168\\.10\\.0\\s+255\\.255\\.255\\.0", flags: "i" },
+            { label: "Pool DHCP du VLAN 20 avec sa passerelle", pattern: "default-router\\s+192\\.168\\.20\\.1", flags: "i" },
+            { label: "DNS annoncé aux clients", pattern: "dns-server\\s+8\\.8\\.8\\.8", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+interface g0/0.10
+ encapsulation dot1Q 10
+ ip address 192.168.10.1 255.255.255.0
+interface g0/0.20
+ encapsulation dot1Q 20
+ ip address 192.168.20.1 255.255.255.0
+interface g0/0.30
+ encapsulation dot1Q 30
+ ip address 192.168.30.1 255.255.255.0
+ ip helper-address 192.168.99.5     ! relais : broadcast → unicast vers le serveur
+interface g0/0
+ no shutdown
+ip dhcp excluded-address 192.168.10.1 192.168.10.10
+ip dhcp excluded-address 192.168.20.1 192.168.20.10
+ip dhcp pool VLAN10
+ network 192.168.10.0 255.255.255.0
+ default-router 192.168.10.1
+ dns-server 8.8.8.8
+ip dhcp pool VLAN20
+ network 192.168.20.0 255.255.255.0
+ default-router 192.168.20.1
+ dns-server 8.8.8.8
+\`\`\`
+
+Ce TP réunit tout : le **routage inter-VLAN** (sous-interfaces dot1Q), le **DHCP local** (R1 choisit le pool selon l'interface d'arrivée du Discover — c'est pour ça que chaque \`network\` doit correspondre au sous-réseau de la sous-interface), et le **relais** (le VLAN 30 n'a pas de pool local : son broadcast est relayé en unicast vers 192.168.99.5). C'est l'architecture réelle d'une PME. Vérifie : \`show ip dhcp binding\`, et sur un PC du VLAN 10 → \`ipconfig /renew\` doit ramener une IP entre .11 et .254, passerelle .1, DNS 8.8.8.8. 🏆`,
+        tags: ["tp", "dhcp", "vlan", "relais", "config", "architecture"],
+      },
     ],
   },
 ];

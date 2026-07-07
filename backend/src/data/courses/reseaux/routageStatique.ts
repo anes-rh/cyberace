@@ -271,6 +271,66 @@ Tu as configuré une route statique de R1 vers le LAN B. Le \`ping\` depuis le L
         explanation: `Le routage est **bidirectionnel** : l'aller atteint le LAN B, mais la **réponse** du LAN B vers le LAN A a besoin d'une **route retour** sur R2. Sans \`ip route 192.168.1.0 255.255.255.0 <R1>\` sur R2, la réponse est jetée et le ping « échoue ». Toujours configurer les routes **dans les deux sens**.`,
         tags: ["routage", "statique", "debug"],
       },
+      {
+        id: "res-tp-statique",
+        title: "TP — Routes statiques sur 3 routeurs",
+        order: 6,
+        difficulty: "medium",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🧪 TP 3 — Architecture : 3 routeurs en chaîne (niveau : intermédiaire)
+
+\`\`\`
+ LAN 1                                                        LAN 3
+ 192.168.1.0/24                                        192.168.3.0/24
+   │                                                            │
+ [ R1 ]── 10.0.12.0/30 ──[ R2 ]── 10.0.23.0/30 ──[ R3 ]
+  G0/0      .1      .2    routeur    .1      .2    G0/1
+            G0/1     G0/0  central  G0/1     G0/0
+\`\`\`
+
+Les interfaces sont **déjà adressées et actives**. Mais aucun LAN ne joint l'autre !
+
+**Mission :** écris les routes statiques pour que LAN 1 ↔ LAN 3 communiquent dans **les deux sens** :
+1. Sur **R1** : une **route par défaut** vers R2 ;
+2. Sur **R2** : une route vers **chaque LAN** (il ne les connaît pas !) ;
+3. Sur **R3** : une **route par défaut** vers R2.
+
+Préfixe chaque bloc par \`! === R1 ===\`, \`! === R2 ===\`, \`! === R3 ===\`.`,
+        points: 400,
+        timeLimitSec: 1200,
+        starter: `! === R1 ===
+
+! === R2 ===
+
+! === R3 ===
+`,
+        hints: [
+          { text: "Route par défaut : ip route 0.0.0.0 0.0.0.0 <next-hop>. R2 doit connaître 192.168.1.0/24 ET 192.168.3.0/24.", cost: 40 },
+          { text: "📖 Correction complète :\n```\n! === R1 ===\nip route 0.0.0.0 0.0.0.0 10.0.12.2\n! === R2 ===\nip route 192.168.1.0 255.255.255.0 10.0.12.1\nip route 192.168.3.0 255.255.255.0 10.0.23.2\n! === R3 ===\nip route 0.0.0.0 0.0.0.0 10.0.23.1\n```", cost: 90 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "R1 : route par défaut vers R2 (10.0.12.2)", pattern: "ip\\s+route\\s+0\\.0\\.0\\.0\\s+0\\.0\\.0\\.0\\s+10\\.0\\.12\\.2", flags: "i" },
+            { label: "R2 : route vers le LAN 1 via R1", pattern: "ip\\s+route\\s+192\\.168\\.1\\.0\\s+255\\.255\\.255\\.0\\s+10\\.0\\.12\\.1", flags: "i" },
+            { label: "R2 : route vers le LAN 3 via R3", pattern: "ip\\s+route\\s+192\\.168\\.3\\.0\\s+255\\.255\\.255\\.0\\s+10\\.0\\.23\\.2", flags: "i" },
+            { label: "R3 : route par défaut vers R2 (10.0.23.1)", pattern: "ip\\s+route\\s+0\\.0\\.0\\.0\\s+0\\.0\\.0\\.0\\s+10\\.0\\.23\\.1", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+! === R1 ===
+ip route 0.0.0.0 0.0.0.0 10.0.12.2          ! tout ce qui n'est pas local → R2
+! === R2 ===
+ip route 192.168.1.0 255.255.255.0 10.0.12.1  ! LAN 1 est derrière R1
+ip route 192.168.3.0 255.255.255.0 10.0.23.2  ! LAN 3 est derrière R3
+! === R3 ===
+ip route 0.0.0.0 0.0.0.0 10.0.23.1          ! tout → R2
+\`\`\`
+
+R1 et R3 sont des **stub routers** (une seule sortie) → la **route par défaut** suffit. R2, au centre, doit connaître **les deux LAN** — c'est lui qui a besoin des routes précises. Sans la route retour sur R2, le ping partirait… mais la réponse serait jetée. Vérifie avec \`show ip route\` (codes S et S*) puis \`ping\` de bout en bout.`,
+        tags: ["tp", "routage", "statique", "config", "architecture"],
+      },
     ],
   },
 ];

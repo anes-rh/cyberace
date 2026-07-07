@@ -272,6 +272,63 @@ R 192.168.2.0/24 [120/1] via 10.0.0.2
         explanation: `Le format est toujours **[distance administrative / métrique]**. Ici **120** = l'AD de **RIP** (donc le code **R**), et **1** = la métrique = **1 saut** pour atteindre \`192.168.2.0/24\` via \`10.0.0.2\`. C'est ainsi qu'on lit toute route dynamique dans \`show ip route\`.`,
         tags: ["rip", "table", "lecture"],
       },
+      {
+        id: "res-tp-rip",
+        title: "TP — RIPv2 sur un triangle de routeurs",
+        order: 6,
+        difficulty: "medium",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🧪 TP 4 — Architecture : triangle à 3 routeurs (niveau : intermédiaire)
+
+\`\`\`
+                    [ R1 ]─ LAN 192.168.1.0/24
+                   /      \\
+      10.0.12.0/30         10.0.13.0/30
+                 /            \\
+   LAN ─[ R2 ]── 10.0.23.0/30 ──[ R3 ]─ LAN
+   192.168.2.0/24            192.168.3.0/24
+\`\`\`
+
+Interfaces déjà adressées. **Mission :** active **RIPv2** sur les 3 routeurs pour que tous les LAN s'apprennent automatiquement :
+1. \`router rip\` + \`version 2\` partout ;
+2. désactive le résumé automatique ;
+3. annonce les réseaux de **chaque** routeur (⚠️ la commande \`network\` de RIP est **classful** : un seul \`network 10.0.0.0\` couvre tous les liens 10.x !).
+
+Préfixe chaque bloc par \`! === R1 ===\`, etc.`,
+        points: 400,
+        timeLimitSec: 1200,
+        starter: `! === R1 ===
+router rip
+`,
+        hints: [
+          { text: "Sur chaque routeur : router rip / version 2 / no auto-summary / network 10.0.0.0 / network 192.168.X.0.", cost: 40 },
+          { text: "📖 Correction complète :\n```\n! === R1 ===\nrouter rip\nversion 2\nno auto-summary\nnetwork 10.0.0.0\nnetwork 192.168.1.0\n! === R2 ===\nrouter rip\nversion 2\nno auto-summary\nnetwork 10.0.0.0\nnetwork 192.168.2.0\n! === R3 ===\nrouter rip\nversion 2\nno auto-summary\nnetwork 10.0.0.0\nnetwork 192.168.3.0\n```", cost: 90 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "Active le processus RIP", pattern: "router\\s+rip", flags: "i" },
+            { label: "Passe en version 2", pattern: "version\\s+2", flags: "i" },
+            { label: "Désactive le résumé automatique", pattern: "no\\s+auto-summary", flags: "i" },
+            { label: "Annonce les liens 10.x (network classful)", pattern: "network\\s+10\\.0\\.0\\.0", flags: "i" },
+            { label: "Annonce le LAN de R1", pattern: "network\\s+192\\.168\\.1\\.0", flags: "i" },
+            { label: "Annonce le LAN de R2", pattern: "network\\s+192\\.168\\.2\\.0", flags: "i" },
+            { label: "Annonce le LAN de R3", pattern: "network\\s+192\\.168\\.3\\.0", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+! === R1 ===                 ! (même squelette sur R2 et R3)
+router rip
+ version 2                   ! RIPv2 : masques transportés, multicast 224.0.0.9
+ no auto-summary             ! ne résume pas aux frontières classful
+ network 10.0.0.0            ! UN SEUL network couvre 10.0.12.0 ET 10.0.13.0 (classful !)
+ network 192.168.1.0
+\`\`\`
+
+Le piège : la commande \`network\` de RIP est **classful** — inutile (et refusé) d'écrire \`network 10.0.12.0\` ; \`network 10.0.0.0\` active RIP sur **toutes** les interfaces en 10.x. Grâce au triangle, chaque LAN a **deux chemins** ; RIP choisit le moins de **sauts**. Vérifie avec \`show ip route\` (codes **R [120/1]**) et \`show ip protocols\`.`,
+        tags: ["tp", "rip", "config", "cisco", "architecture"],
+      },
     ],
   },
 ];

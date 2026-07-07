@@ -310,6 +310,60 @@ Laquelle de ces adresses est une adresse **privée** (non routable sur Internet)
         explanation: `**10.5.4.3** appartient à \`10.0.0.0/8\` → **privée** (RFC 1918). Pièges : \`172.15.0.1\` est **hors** de la plage privée (qui va de 172.**16** à 172.**31**), \`8.8.8.8\` (DNS Google) et \`200.100.50.25\` sont **publiques**.`,
         tags: ["ipv4", "prive", "rfc1918"],
       },
+      {
+        id: "res-tp-flsm",
+        title: "TP — Deux LAN sur un routeur",
+        order: 7,
+        difficulty: "medium",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🧪 TP 1 — Architecture : 1 routeur, 2 LAN (niveau : simple)
+
+\`\`\`
+   LAN A — 60 hôtes                LAN B — 60 hôtes
+   192.168.1.0/26                  192.168.1.64/26
+        │                               │
+     [ SW-A ]                        [ SW-B ]
+        │                               │
+        └── G0/0 ──── [ R1 ] ──── G0/1 ─┘
+\`\`\`
+
+**Mission :** sur R1, configure :
+1. \`G0/0\` avec la **première adresse utilisable** du LAN A ;
+2. \`G0/1\` avec la **première adresse utilisable** du LAN B ;
+3. active les deux interfaces.
+
+*(Rappelle-toi : un /26 = masque 255.255.255.192.)*`,
+        points: 300,
+        timeLimitSec: 900,
+        starter: `! === R1 ===
+interface g0/0
+`,
+        hints: [
+          { text: "Première utilisable de 192.168.1.0/26 → .1 ; de 192.168.1.64/26 → .65. Masque /26 = 255.255.255.192.", cost: 30 },
+          { text: "📖 Correction complète :\n```\ninterface g0/0\nip address 192.168.1.1 255.255.255.192\nno shutdown\ninterface g0/1\nip address 192.168.1.65 255.255.255.192\nno shutdown\n```", cost: 70 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "Configure G0/0 avec la 1re utilisable du LAN A", pattern: "ip\\s+address\\s+192\\.168\\.1\\.1\\s+255\\.255\\.255\\.192", flags: "i" },
+            { label: "Sélectionne l'interface G0/1", pattern: "interface\\s+g\\S*0/1", flags: "i" },
+            { label: "Configure G0/1 avec la 1re utilisable du LAN B", pattern: "ip\\s+address\\s+192\\.168\\.1\\.65\\s+255\\.255\\.255\\.192", flags: "i" },
+            { label: "Active les interfaces (no shutdown)", pattern: "no\\s+shut", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+interface g0/0
+ ip address 192.168.1.1 255.255.255.192    ! 1re utilisable de 192.168.1.0/26
+ no shutdown
+interface g0/1
+ ip address 192.168.1.65 255.255.255.192   ! 1re utilisable de 192.168.1.64/26
+ no shutdown
+\`\`\`
+
+Le /26 laisse 6 bits d'hôte → 62 utilisables par LAN (assez pour 60). LAN A va de .1 à .62 (broadcast .63), LAN B de .65 à .126 (broadcast .127). Les PC prendront R1 comme **passerelle** (.1 ou .65). Teste dans Packet Tracer : \`ping\` d'un PC du LAN A vers un PC du LAN B.`,
+        tags: ["tp", "flsm", "config", "cisco", "architecture"],
+      },
     ],
   },
 ];

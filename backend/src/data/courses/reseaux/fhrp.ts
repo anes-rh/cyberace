@@ -235,6 +235,68 @@ standby 1 preempt               ! reprend le rôle Active en revenant (recommand
 Le \`1\` est le **numéro de groupe** HSRP (identique sur R1 et R2). Priorité **110 > 100** (défaut) → R1 devient **Active**. \`preempt\` lui fait **reprendre** le rôle après une panne. Vérifie avec \`show standby\`.`,
         tags: ["fhrp", "hsrp", "config", "cisco"],
       },
+      {
+        id: "res-tp-fhrp",
+        title: "TP — Passerelle redondante HSRP",
+        order: 6,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🧪 TP 8 — Architecture : passerelle haute dispo (niveau : avancé)
+
+\`\`\`
+                      Internet
+                     /        \\
+                [ R1 ]        [ R2 ]
+             G0/0 .2 │          │ .3 G0/0
+                     └──[ SW ]──┘
+                          │
+                   LAN 192.168.1.0/24
+              Passerelle des PC : 192.168.1.254 (VIRTUELLE)
+\`\`\`
+
+**Mission :** configure **HSRP groupe 1** pour que les PC ne perdent jamais leur passerelle :
+1. **R1** : IP réelle \`.2\`, IP virtuelle \`.254\`, **priorité 110**, **preempt** (R1 = Active) ;
+2. **R2** : IP réelle \`.3\`, même IP virtuelle (R2 = Standby, priorité par défaut).
+
+Préfixe les blocs par \`! === R1 ===\` et \`! === R2 ===\`.`,
+        points: 450,
+        timeLimitSec: 1200,
+        starter: `! === R1 ===
+interface g0/0
+`,
+        hints: [
+          { text: "Chaque routeur : ip address réelle, puis standby 1 ip 192.168.1.254. Sur R1 seulement : standby 1 priority 110 + standby 1 preempt.", cost: 45 },
+          { text: "📖 Correction complète :\n```\n! === R1 ===\ninterface g0/0\nip address 192.168.1.2 255.255.255.0\nstandby 1 ip 192.168.1.254\nstandby 1 priority 110\nstandby 1 preempt\nno shutdown\n! === R2 ===\ninterface g0/0\nip address 192.168.1.3 255.255.255.0\nstandby 1 ip 192.168.1.254\nno shutdown\n```", cost: 100 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "IP réelle de R1 (.2)", pattern: "ip\\s+address\\s+192\\.168\\.1\\.2\\s+255\\.255\\.255\\.0", flags: "i" },
+            { label: "IP virtuelle HSRP (.254)", pattern: "standby\\s+1\\s+ip\\s+192\\.168\\.1\\.254", flags: "i" },
+            { label: "Priorité 110 sur R1", pattern: "standby\\s+1\\s+priority\\s+110", flags: "i" },
+            { label: "Preempt sur R1", pattern: "standby\\s+1\\s+preempt", flags: "i" },
+            { label: "IP réelle de R2 (.3)", pattern: "ip\\s+address\\s+192\\.168\\.1\\.3\\s+255\\.255\\.255\\.0", flags: "i" },
+          ],
+        }),
+        explanation: `\`\`\`
+! === R1 ===
+interface g0/0
+ ip address 192.168.1.2 255.255.255.0
+ standby 1 ip 192.168.1.254     ! IP VIRTUELLE = passerelle des PC
+ standby 1 priority 110         ! 110 > 100 → R1 Active
+ standby 1 preempt              ! reprend le rôle en revenant de panne
+ no shutdown
+! === R2 ===
+interface g0/0
+ ip address 192.168.1.3 255.255.255.0
+ standby 1 ip 192.168.1.254     ! MÊME IP virtuelle, MÊME groupe
+ no shutdown
+\`\`\`
+
+Les PC pointent vers **192.168.1.254** — une adresse qui n'appartient à **aucun** routeur physiquement. R1 (Active) répond ; s'il tombe, R2 (Standby) reprend l'IP **et** la MAC virtuelle en ~10 s : **aucun PC à reconfigurer**. Le \`preempt\` fait que R1 redevient Active à son retour. Teste dans Packet Tracer : ping continu depuis un PC, éteins R1… le ping reprend tout seul !`,
+        tags: ["tp", "fhrp", "hsrp", "config", "architecture"],
+      },
     ],
   },
 ];
