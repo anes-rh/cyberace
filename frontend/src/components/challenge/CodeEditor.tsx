@@ -5,7 +5,7 @@ import type { CodeLanguage } from "@/lib/types";
 
 /**
  * Lightweight code editor: a transparent <textarea> perfectly overlaid on a
- * highlighted <pre>. No heavy dependency, works for pseudo-code USTHB and C.
+ * highlighted <pre>. No heavy dependency, works for pseudo-code CyberAce and C.
  */
 
 const PSEUDO_KEYWORDS = [

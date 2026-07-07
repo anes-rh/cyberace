@@ -140,7 +140,7 @@ html.lenis, html.lenis body { height: auto; }
 .roadmap-badge-title { font-family: var(--font-display); font-weight: 600; font-size: 13px; color: var(--color-fg); }
 .roadmap-badge-state { font-size: 10px; letter-spacing: 0.04em; color: color-mix(in srgb, var(--acc) 70%, #55617a); }
 
-/* ── Code editor (pseudo-code USTHB & C) ─────────────────────────── */
+/* ── Code editor (pseudo-code CyberAce & C) ─────────────────────────── */
 .code-editor {
   display: flex;
   border: 1px solid var(--color-line);

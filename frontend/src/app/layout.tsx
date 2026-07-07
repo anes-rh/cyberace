@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const display = Fraunces({
   weight: ["400", "500", "600", "700"],
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <div className="app-backdrop" />
         <div className="app-grid" />
         <Providers>
+          <ScrollToTop />
           <Navbar />
           <main className="min-h-[70vh]">{children}</main>
           <Footer />

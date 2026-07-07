@@ -118,10 +118,12 @@ export function LessonMedia({ videos, resources }: { videos?: CourseVideo[]; res
 
   return (
     <div className="mt-8 space-y-6 border-t border-line pt-8">
+      {installers.length > 0 && <InstallerPicker installers={installers} />}
+
       {vids.length > 0 && (
-        <div>
+        <div id="lesson-videos" className="scroll-mt-24">
           <h3 className="mb-3 flex items-center gap-2 font-display text-lg font-semibold text-fg">
-            <PlayCircle className="h-5 w-5 text-danger" /> Vidéos {vids.length > 1 ? `(${vids.length})` : ""}
+            <PlayCircle className="h-5 w-5 text-danger" /> Vidéos explicatives {vids.length > 1 ? `(${vids.length})` : ""}
           </h3>
           <div className="grid gap-4">
             {vids.map((v) => (
@@ -130,8 +132,6 @@ export function LessonMedia({ videos, resources }: { videos?: CourseVideo[]; res
           </div>
         </div>
       )}
-
-      {installers.length > 0 && <InstallerPicker installers={installers} />}
 
       {files.length > 0 && (
         <div>

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Check, Flag, Lightbulb, Trophy, Target, ChevronRight, ArrowLeft } from "lucide-react";
+import { Check, Flag, Lightbulb, Trophy, Target, ChevronRight, ArrowLeft, PlayCircle } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { DifficultyBadge } from "@/components/ui/DifficultyBadge";
 import { Progress } from "@/components/ui/Progress";
@@ -100,6 +100,21 @@ export default function CourseDetailPage() {
                 ))}
               </ul>
             </div>
+          )}
+          {course.videos && course.videos.length > 0 && (
+            <a
+              href="#lesson-videos"
+              className="mb-6 flex items-center gap-3 rounded-xl border border-danger/30 bg-danger/5 p-4 text-sm transition-colors hover:border-danger/60"
+            >
+              <PlayCircle className="h-5 w-5 shrink-0 text-danger" />
+              <span className="text-fg">
+                {course.videos.length > 1
+                  ? `${course.videos.length} vidéos explicatives sont disponibles`
+                  : "Une vidéo explicative est disponible"}{" "}
+                tout en bas de cette page.
+                <span className="ml-1 font-medium text-danger">Clique pour y aller ↓</span>
+              </span>
+            </a>
           )}
           <LessonTOC lesson={course.lesson} />
           <Markdown>{course.lesson}</Markdown>

@@ -266,7 +266,7 @@ export function ChallengePlayer({
                     <p className="text-xs text-faint">
                       {challenge.language === "c"
                         ? "Écris ton programme C, compile-le, puis soumets quand la sortie te convient."
-                        : "Écris ton algorithme en pseudo-code USTHB (Algorithme, Var, Debut…Fin, Lire, Ecrire, ←)."}
+                        : "Écris ton algorithme en pseudo-code CyberAce (Algorithme, Var, Debut…Fin, Lire, Ecrire, ←)."}
                     </p>
                     {challenge.language === "c" && (
                       <Button

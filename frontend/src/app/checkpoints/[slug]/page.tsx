@@ -31,7 +31,7 @@ export default function CheckpointPage() {
     return (
       <div className="mx-auto max-w-2xl px-5 py-24 text-center">
         <h1 className="font-display text-2xl font-semibold">Checkpoint introuvable</h1>
-        <Link href="/" className="mt-4 inline-block text-primary hover:underline">← Retour à la route</Link>
+        <Link href="/apprentissage" className="mt-4 inline-block text-primary hover:underline">← La route d&apos;apprentissage</Link>
       </div>
     );
   if (!data) return <FullScreenLoader label="Chargement du checkpoint…" />;
@@ -41,8 +41,8 @@ export default function CheckpointPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10">
-      <Link href="/" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg">
-        <ArrowLeft className="h-4 w-4" /> La route des checkpoints
+      <Link href="/apprentissage" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg">
+        <ArrowLeft className="h-4 w-4" /> La route d&apos;apprentissage
       </Link>
 
       {/* Banner */}
