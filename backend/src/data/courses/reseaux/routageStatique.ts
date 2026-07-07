@@ -22,6 +22,14 @@ export const routageStatique: CourseSeed[] = [
       "Lire une table de routage (codes C, S, S*)",
       "Vérifier la connectivité (ping, traceroute, show ip route)",
     ],
+    resources: [
+      {
+        label: "Architecture 1 — topologie de départ (.pka)",
+        url: "/pka/res-routage-statique-architecture-1.pka",
+        kind: "pkt-start",
+        note: "À ouvrir dans Cisco Packet Tracer : R1, R2 et R3 en chaîne (R2 au centre), non configurés. Adresse les liaisons et écris les routes statiques de l'Architecture 1.",
+      },
+    ],
     lesson: `# 🛠️ Routage statique — le Manual Pit Stop
 
 Un **routeur** relie des réseaux différents et décide, paquet par paquet, **par où sortir**. Pour ça il consulte sa **table de routage**. En **statique**, c'est **toi** qui écris les routes à la main — parfait pour comprendre les fondations avant l'automatisation (routage dynamique). 🏎️

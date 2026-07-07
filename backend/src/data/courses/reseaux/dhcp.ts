@@ -22,6 +22,14 @@ export const dhcp: CourseSeed[] = [
       "Configurer un pool DHCP sur un routeur Cisco et exclure des adresses",
       "Comprendre pourquoi et comment configurer un relais DHCP (ip helper-address)",
     ],
+    resources: [
+      {
+        label: "Architecture 1 — topologie de départ (.pka)",
+        url: "/pka/res-dhcp-architecture-1.pka",
+        kind: "pkt-start",
+        note: "À ouvrir dans Cisco Packet Tracer : R1 relié à un switch, deux PC et un serveur, non configurés. Configure le service DHCP (pool, exclusions, passerelle, DNS) selon l'Architecture 1.",
+      },
+    ],
     lesson: `# 🎟️ DHCP — l'Auto Lease
 
 Imagine configurer **à la main** l'IP, le masque, la passerelle et le DNS sur **500 postes**… puis tout refaire quand le plan d'adressage change. Cauchemar ! Le **DHCP** (*Dynamic Host Configuration Protocol*) fait ça **automatiquement**, en quelques millisecondes, à chaque démarrage d'une machine. 🏎️

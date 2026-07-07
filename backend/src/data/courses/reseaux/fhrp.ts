@@ -22,6 +22,14 @@ export const fhrp: CourseSeed[] = [
       "Comprendre les rôles actif / veille (HSRP)",
       "Savoir ce qu'apporte GLBP (répartition de charge)",
     ],
+    resources: [
+      {
+        label: "Architecture 1 — topologie de départ (.pka)",
+        url: "/pka/res-fhrp-architecture-1.pka",
+        kind: "pkt-start",
+        note: "À ouvrir dans Cisco Packet Tracer : R1 et R2 en passerelles redondantes vers SW1/SW2 et les PC, non configurés. Mets en place HSRP (groupe 1, IP virtuelle, priorité + preempt) selon l'Architecture 1.",
+      },
+    ],
     lesson: `# 🛟 FHRP — le Backup Driver
 
 Tous les PC d'un LAN pointent vers **une** passerelle par défaut. Si ce routeur **tombe**, plus personne ne sort du réseau — même s'il existe un **second** routeur ! Les **FHRP** (*First Hop Redundancy Protocols*) résolvent ça : ils présentent aux PC **une passerelle virtuelle** que deux routeurs se partagent. 🏎️
