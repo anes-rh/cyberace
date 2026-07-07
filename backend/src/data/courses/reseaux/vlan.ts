@@ -279,30 +279,31 @@ Deux PC sont sur le **même switch** mais l'un est dans le **VLAN 10** et l'autr
       },
       {
         id: "res-tp-vlan",
-        title: "TP — Router-on-a-stick complet",
+        title: "Architecture 1 — Router-on-a-stick",
         order: 6,
         difficulty: "hard",
         type: "code",
         language: "pseudo",
-        prompt: `## 🧪 TP 6 — Architecture : 2 VLAN + routage inter-VLAN (niveau : avancé)
+        prompt: `## 🏗️ Architecture 1 (niveau : avancé)
 
-\`\`\`
-   VLAN 10 « VENTES »          VLAN 20 « COMPTA »
-   192.168.10.0/24             192.168.20.0/24
-   PC-A (Fa0/1)                PC-B (Fa0/11)
-        │                           │
-        └────────[ SW1 ]────────────┘
-                    │ G0/1 (trunk 802.1Q)
-                    │
-                  G0/0
-                 [ R1 ]
-\`\`\`
+**Topologie à monter dans Packet Tracer :**
 
-**Mission :**
-1. Sur **SW1** : crée les VLAN 10 (\`VENTES\`) et 20 (\`COMPTA\`), mets \`Fa0/1\` en accès VLAN 10, \`Fa0/11\` en accès VLAN 20, et \`G0/1\` en **trunk** ;
-2. Sur **R1** : crée les **sous-interfaces** \`G0/0.10\` et \`G0/0.20\` (encapsulation dot1Q + passerelle .1 de chaque VLAN), puis active \`G0/0\`.
+| Équipement | Port | Rôle | VLAN / Réseau |
+|---|---|---|---|
+| SW1 | Fa0/1 | PC-A (accès) | VLAN 10 « VENTES » — \`192.168.10.0/24\` |
+| SW1 | Fa0/11 | PC-B (accès) | VLAN 20 « COMPTA » — \`192.168.20.0/24\` |
+| SW1 | G0/1 | vers R1 | **trunk 802.1Q** (les 2 VLAN) |
+| R1 | G0/0 | vers SW1 | sous-interfaces .10 et .20 |
 
-Préfixe les blocs par \`! === SW1 ===\` et \`! === R1 ===\`.`,
+**Questions :**
+
+1. Sur **SW1** : créez les VLAN 10 (\`VENTES\`) et 20 (\`COMPTA\`) ;
+2. Mettez \`Fa0/1\` en **accès** VLAN 10 et \`Fa0/11\` en **accès** VLAN 20 ;
+3. Passez \`G0/1\` en **trunk** ;
+4. Sur **R1** : créez les **sous-interfaces** \`G0/0.10\` et \`G0/0.20\` (encapsulation dot1Q + passerelle \`.1\` de chaque VLAN), puis activez \`G0/0\` ;
+5. Vérifiez : ping PC-A → PC-B (il doit traverser R1).
+
+Blocs \`! === SW1 ===\` et \`! === R1 ===\`.`,
         points: 500,
         timeLimitSec: 1500,
         starter: `! === SW1 ===
@@ -353,6 +354,80 @@ interface g0/0
 
 Chaque trame montant le trunk porte son **tag 802.1Q** ; R1 la reçoit sur la bonne **sous-interface**, route, et renvoie taguée pour l'autre VLAN. Deux pièges classiques : (1) \`encapsulation dot1Q\` doit précéder l'IP ; (2) sans \`no shutdown\` sur la **physique** G0/0, toutes les sous-interfaces restent down. Test final : ping PC-A → PC-B (il traverse R1 !).`,
         tags: ["tp", "vlan", "router-on-a-stick", "config", "architecture"],
+      },
+      {
+        id: "res-tp-vlan-2",
+        title: "Architecture 2 — Switch L3 et SVI",
+        order: 7,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏗️ Architecture 2 (niveau : avancé+)
+
+Fini le router-on-a-stick : un **switch multicouche (L3)** route directement entre VLAN grâce aux **SVI** — la méthode moderne des entreprises.
+
+**Topologie à monter dans Packet Tracer** *(prendre un switch 3560/3650)* :
+
+| Équipement | Port | Rôle | VLAN / Réseau |
+|---|---|---|---|
+| SW-L3 | Fa0/1-8 | postes BUREAUX | VLAN 10 — \`192.168.10.0/24\` |
+| SW-L3 | Fa0/9-16 | postes WIFI | VLAN 20 — \`192.168.20.0/24\` |
+| SW-L3 | — | passerelles virtuelles | SVI \`interface vlan 10\` / \`vlan 20\` |
+
+**Questions :**
+
+1. Créez les VLAN 10 et 20 ;
+2. Mettez \`Fa0/1\` en accès VLAN 10 et \`Fa0/9\` en accès VLAN 20 ;
+3. Créez les **SVI** : \`interface vlan 10\` → \`192.168.10.1/24\`, \`interface vlan 20\` → \`192.168.20.1/24\` (+ \`no shutdown\`) ;
+4. Activez le **routage** sur le switch (\`ip routing\`) — sans ça, les SVI ne routent pas entre elles ;
+5. Vérifiez : ping d'un PC BUREAUX vers un PC WIFI, **sans aucun routeur** dans la topologie.`,
+        points: 500,
+        timeLimitSec: 1500,
+        starter: `! === SW-L3 ===
+vlan 10
+`,
+        hints: [
+          { text: "Les SVI sont des interfaces VIRTUELLES : interface vlan 10 → ip address → no shutdown. Et n'oublie pas ip routing en global !", cost: 50 },
+          { text: "📖 Correction complète :\n```\nvlan 10\nvlan 20\ninterface fa0/1\nswitchport mode access\nswitchport access vlan 10\ninterface fa0/9\nswitchport mode access\nswitchport access vlan 20\ninterface vlan 10\nip address 192.168.10.1 255.255.255.0\nno shutdown\ninterface vlan 20\nip address 192.168.20.1 255.255.255.0\nno shutdown\nip routing\n```", cost: 110 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "SVI du VLAN 10 créée", pattern: "interface\\s+vlan\\s*10", flags: "i" },
+            { label: "IP de la SVI 10 (passerelle BUREAUX)", pattern: "ip\\s+address\\s+192\\.168\\.10\\.1\\s+255\\.255\\.255\\.0", flags: "i" },
+            { label: "SVI du VLAN 20 créée", pattern: "interface\\s+vlan\\s*20", flags: "i" },
+            { label: "IP de la SVI 20 (passerelle WIFI)", pattern: "ip\\s+address\\s+192\\.168\\.20\\.1\\s+255\\.255\\.255\\.0", flags: "i" },
+            { label: "Routage activé sur le switch", pattern: "^\\s*ip\\s+routing", flags: "im" },
+            { label: "Port en accès VLAN 10", pattern: "switchport\\s+access\\s+vlan\\s+10", flags: "i" },
+            { label: "Active les SVI (no shutdown)", pattern: "no\\s+shut", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction détaillée
+
+\`\`\`
+vlan 10
+vlan 20
+interface fa0/1
+ switchport mode access
+ switchport access vlan 10
+interface fa0/9
+ switchport mode access
+ switchport access vlan 20
+interface vlan 10                        ! SVI = interface VIRTUELLE du VLAN
+ ip address 192.168.10.1 255.255.255.0   ! passerelle des PC BUREAUX
+ no shutdown
+interface vlan 20
+ ip address 192.168.20.1 255.255.255.0
+ no shutdown
+ip routing                               ! le switch devient routeur !
+\`\`\`
+
+**SVI vs router-on-a-stick :** dans l'Architecture 1, tout le trafic inter-VLAN faisait l'**aller-retour** sur l'unique trunk vers R1 (goulot d'étranglement). Ici, le switch L3 route **en interne, à la vitesse du fond de panier** — ni trunk externe, ni routeur. C'est le design standard en entreprise : router-on-a-stick pour les petits sites, **SVI sur switch L3** partout ailleurs.
+
+**Les 2 oublis classiques :** \`no shutdown\` sur chaque SVI (créées down), et surtout \`ip routing\` — sans lui le switch a des SVI mais se comporte en simple L2 : les PC pinguent leur passerelle mais pas l'autre VLAN.
+
+**Vérification PT :** \`show ip route\` sur le switch (2 réseaux **C**onnectés), \`show interface vlan 10\` (up/up), ping inter-VLAN. 🎯`,
+        tags: ["tp", "vlan", "svi", "switch-l3", "architecture"],
       },
     ],
   },

@@ -254,28 +254,30 @@ L'interface **Tunnel0** a une IP **interne** (172.16.0.1) ; \`source\`/\`destina
       },
       {
         id: "res-tp-gre",
-        title: "TP — Tunnel GRE site à site complet",
+        title: "Architecture 1 — Tunnel GRE site à site",
         order: 6,
         difficulty: "hard",
         type: "code",
         language: "pseudo",
-        prompt: `## 🧪 TP 10 — Architecture : deux sites reliés par Internet (niveau : avancé+)
+        prompt: `## 🏗️ Architecture 1 (niveau : avancé+)
 
-\`\`\`
-  SITE A                    ☁️ INTERNET ☁️                    SITE B
-  LAN 192.168.1.0/24                                LAN 192.168.2.0/24
-     │                                                        │
-   [ R1 ]──── 203.0.113.1 ══════ tunnel ══════ 198.51.100.1 ────[ R2 ]
-              (IP publique)   Tunnel0 :        (IP publique)
-                              172.16.0.0/30
-                              R1 = .1   R2 = .2
-\`\`\`
+Deux sites d'entreprise reliés **à travers Internet** par un tunnel GRE.
 
-**Mission :** monte le tunnel **des deux côtés** ET fais-y passer le trafic :
-1. **R1** : \`Tunnel0\` en \`172.16.0.1/30\`, source/destination publiques, puis **route statique** vers le LAN B **via le tunnel** ;
-2. **R2** : symétrique (\`172.16.0.2/30\` + route vers le LAN A).
+**Topologie à monter dans Packet Tracer :**
 
-Préfixe les blocs par \`! === R1 ===\` et \`! === R2 ===\`.`,
+| Élément | Site A (R1) | Site B (R2) |
+|---|---|---|
+| LAN privé | \`192.168.1.0/24\` | \`192.168.2.0/24\` |
+| IP publique (vers Internet) | \`203.0.113.1\` | \`198.51.100.1\` |
+| IP de tunnel (Tunnel0, \`172.16.0.0/30\`) | \`.1\` | \`.2\` |
+
+**Questions :**
+
+1. Sur **R1** : créez \`Tunnel0\` (\`172.16.0.1/30\`), avec \`tunnel source\`/\`tunnel destination\` = les IP **publiques**, puis la **route statique** vers le LAN B **via le tunnel** ;
+2. Sur **R2** : configuration symétrique ;
+3. Vérifiez : \`show interfaces tunnel0\` (up/up), \`ping 172.16.0.2\`, puis ping **LAN à LAN**.
+
+Blocs \`! === R1 ===\` et \`! === R2 ===\`.`,
         points: 500,
         timeLimitSec: 1500,
         starter: `! === R1 ===
@@ -315,6 +317,72 @@ ip route 192.168.1.0 255.255.255.0 172.16.0.1
 
 Les pièges croisés : la \`source\` de R1 est la \`destination\` de R2 (et inversement). Et le tunnel **monté ne suffit pas** — sans les routes statiques qui pointent **dans** le tunnel, le trafic inter-LAN partirait vers Internet et serait perdu. Vérifie : \`show interfaces tunnel0\` (up/up), \`ping 172.16.0.2\`, puis ping **LAN à LAN**. Pour chiffrer : ajouter IPsec par-dessus (GRE over IPsec).`,
         tags: ["tp", "gre", "tunnel", "config", "architecture"],
+      },
+      {
+        id: "res-tp-gre-2",
+        title: "Architecture 2 — OSPF à travers le tunnel GRE",
+        order: 7,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏗️ Architecture 2 (niveau : expert)
+
+Même topologie que l'Architecture 1, mais fini les routes statiques : on fait tourner **OSPF à travers le tunnel** — exactement le cas d'usage qui justifie GRE (IPsec seul ne porte pas le multicast d'OSPF !).
+
+**Topologie :**
+
+| Élément | Site A (R1) | Site B (R2) |
+|---|---|---|
+| LAN privé | \`192.168.1.0/24\` | \`192.168.2.0/24\` |
+| Tunnel0 (déjà monté) | \`172.16.0.1/30\` | \`172.16.0.2/30\` |
+
+**Questions :**
+
+1. Sur **R1** : configurez OSPF 1 (router-id \`1.1.1.1\`) : annoncez le **LAN** ET le **réseau du tunnel** (\`172.16.0.0 0.0.0.3\`) en area 0 ;
+2. Sur **R2** : symétrique (router-id \`2.2.2.2\`) ;
+3. Question : que se passerait-il si on remplaçait GRE par de l'IPsec pur ? *(réponse dans la correction)*
+
+Blocs \`! === R1 ===\` et \`! === R2 ===\`.`,
+        points: 550,
+        timeLimitSec: 1500,
+        starter: `! === R1 ===
+router ospf 1
+`,
+        hints: [
+          { text: "Le tunnel est un lien /30 comme un autre pour OSPF : network 172.16.0.0 0.0.0.3 area 0. Les voisins OSPF se découvriront À TRAVERS le tunnel.", cost: 55 },
+          { text: "📖 Correction complète :\n```\n! === R1 ===\nrouter ospf 1\nrouter-id 1.1.1.1\nnetwork 192.168.1.0 0.0.0.255 area 0\nnetwork 172.16.0.0 0.0.0.3 area 0\n! === R2 ===\nrouter ospf 1\nrouter-id 2.2.2.2\nnetwork 192.168.2.0 0.0.0.255 area 0\nnetwork 172.16.0.0 0.0.0.3 area 0\n```", cost: 120 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "Processus OSPF démarré", pattern: "router\\s+ospf\\s+1", flags: "i" },
+            { label: "Réseau du tunnel annoncé (wildcard 0.0.0.3)", pattern: "network\\s+172\\.16\\.0\\.0\\s+0\\.0\\.0\\.3\\s+area\\s+0", flags: "i" },
+            { label: "LAN A annoncé", pattern: "network\\s+192\\.168\\.1\\.0\\s+0\\.0\\.0\\.255\\s+area\\s+0", flags: "i" },
+            { label: "LAN B annoncé", pattern: "network\\s+192\\.168\\.2\\.0\\s+0\\.0\\.0\\.255\\s+area\\s+0", flags: "i" },
+            { label: "Router-id configurés", pattern: "router-id\\s+(1\\.1\\.1\\.1|2\\.2\\.2\\.2)", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction détaillée
+
+\`\`\`
+! === R1 ===
+router ospf 1
+ router-id 1.1.1.1
+ network 192.168.1.0 0.0.0.255 area 0
+ network 172.16.0.0 0.0.0.3 area 0     ! le TUNNEL est un lien OSPF comme un autre
+! === R2 ===
+router ospf 1
+ router-id 2.2.2.2
+ network 192.168.2.0 0.0.0.255 area 0
+ network 172.16.0.0 0.0.0.3 area 0
+\`\`\`
+
+**Ce qui se passe :** R1 et R2 échangent leurs **Hello OSPF** (multicast 224.0.0.5) **encapsulés dans GRE**, deviennent voisins FULL *à travers Internet*, et s'échangent leurs LSA. Chaque site apprend le LAN de l'autre **automatiquement** — ajoute un 3ᵉ LAN demain, zéro route à taper.
+
+**Réponse à la question 3 :** IPsec pur ne transporte **pas le multicast** → les Hello d'OSPF ne passeraient jamais, pas d'adjacence, pas de routes. C'est LA raison du montage **GRE over IPsec** en entreprise : GRE porte le multicast (donc l'IGP), IPsec chiffre l'ensemble.
+
+**Vérification PT :** \`show ip ospf neighbor\` sur R1 → voisin **2.2.2.2 FULL** joignable via… \`Tunnel0\` ! Puis \`show ip route\` → \`O 192.168.2.0/24 via 172.16.0.2, Tunnel0\`. 🎯`,
+        tags: ["tp", "gre", "ospf", "tunnel", "architecture"],
       },
     ],
   },

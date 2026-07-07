@@ -267,28 +267,32 @@ network 192.168.1.0 0.0.0.255 area 0
       },
       {
         id: "res-tp-ospf",
-        title: "TP — OSPF zone 0 sur 3 routeurs",
+        title: "Architecture 1 — Triangle OSPF zone 0",
         order: 6,
         difficulty: "hard",
         type: "code",
         language: "pseudo",
-        prompt: `## 🧪 TP 5 — Architecture : triangle OSPF (niveau : intermédiaire+)
+        prompt: `## 🏗️ Architecture 1 (niveau : intermédiaire+)
 
-\`\`\`
-                    [ R1 ]─ G0/0 ─ LAN 192.168.1.0/24
-                   /      \\
-      10.0.12.0/30         10.0.13.0/30
-                 /            \\
-   LAN ─[ R2 ]── 10.0.23.0/30 ──[ R3 ]─ LAN
-   192.168.2.0/24            192.168.3.0/24
-\`\`\`
+**Topologie à monter dans Packet Tracer** — triangle : chaque routeur relié aux deux autres :
 
-**Mission :** configure **OSPF processus 1, zone 0** sur les 3 routeurs :
-1. \`router-id\` : \`1.1.1.1\` (R1), \`2.2.2.2\` (R2), \`3.3.3.3\` (R3) ;
-2. annonce chaque réseau avec le **bon wildcard** (/24 → \`0.0.0.255\`, /30 → \`0.0.0.3\`) dans \`area 0\` ;
-3. passe l'interface **LAN** de chaque routeur en \`passive-interface\` (pas de Hello vers les PC !).
+| Élément | Réseau |
+|---|---|
+| LAN de R1 (G0/0) | \`192.168.1.0/24\` |
+| LAN de R2 (G0/0) | \`192.168.2.0/24\` |
+| LAN de R3 (G0/0) | \`192.168.3.0/24\` |
+| Lien R1 ↔ R2 | \`10.0.12.0/30\` |
+| Lien R1 ↔ R3 | \`10.0.13.0/30\` |
+| Lien R2 ↔ R3 | \`10.0.23.0/30\` |
 
-Préfixe chaque bloc par \`! === R1 ===\`, etc.`,
+**Questions :**
+
+1. Configurez **OSPF processus 1** sur les 3 routeurs avec les \`router-id\` \`1.1.1.1\`, \`2.2.2.2\`, \`3.3.3.3\` ;
+2. Annoncez chaque réseau avec le **bon wildcard** (/24 → \`0.0.0.255\`, /30 → \`0.0.0.3\`) dans \`area 0\` ;
+3. Passez l'interface **LAN** de chaque routeur en \`passive-interface\` (pas de Hello vers les PC) ;
+4. Vérifiez : \`show ip ospf neighbor\` → 2 voisins **FULL** par routeur.
+
+Blocs \`! === R1 ===\`, \`! === R2 ===\`, \`! === R3 ===\`.`,
         points: 450,
         timeLimitSec: 1500,
         starter: `! === R1 ===
@@ -324,6 +328,80 @@ router ospf 1
 
 Le **wildcard** est l'inverse du masque (/30 → 0.0.0.3). \`passive-interface\` supprime les Hello inutiles côté LAN (sécurité + économie). Contrairement à RIP, OSPF choisira le chemin au meilleur **coût** (bande passante), pas au moins de sauts. Vérifie : \`show ip ospf neighbor\` (état **FULL**), \`show ip route ospf\` (codes **O [110/…]**).`,
         tags: ["tp", "ospf", "config", "cisco", "architecture"],
+      },
+      {
+        id: "res-tp-ospf-2",
+        title: "Architecture 2 — OSPF multi-zones (ABR)",
+        order: 7,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏗️ Architecture 2 (niveau : avancé)
+
+Le réseau a grandi : on **segmente OSPF en deux zones**. R2 devient **ABR** (*Area Border Router*) — un pied dans chaque zone.
+
+**Topologie à monter dans Packet Tracer :**
+
+| Élément | Réseau | Zone OSPF |
+|---|---|---|
+| LAN de R1 (G0/0) | \`192.168.1.0/24\` | **area 0** |
+| Lien R1 ↔ R2 | \`10.0.12.0/30\` | **area 0** |
+| Lien R2 ↔ R3 | \`10.0.23.0/30\` | **area 1** |
+| LAN de R3 (G0/0) | \`192.168.3.0/24\` | **area 1** |
+
+**Questions :**
+
+1. Configurez OSPF 1 sur R1 (router-id \`1.1.1.1\`) : tout en **area 0** ;
+2. Configurez OSPF 1 sur **R2** (router-id \`2.2.2.2\`) : le lien vers R1 en **area 0**, le lien vers R3 en **area 1** — c'est ça, être ABR ;
+3. Configurez OSPF 1 sur R3 (router-id \`3.3.3.3\`) : tout en **area 1** ;
+4. Question de réflexion : pourquoi la zone 1 doit-elle obligatoirement toucher la zone 0 ? *(réponse dans la correction)*
+
+Blocs \`! === R1 ===\`, \`! === R2 ===\`, \`! === R3 ===\`.`,
+        points: 500,
+        timeLimitSec: 1500,
+        starter: `! === R1 ===
+router ospf 1
+`,
+        hints: [
+          { text: "R2 est le seul avec DEUX area différentes dans ses network : network 10.0.12.0 0.0.0.3 area 0 + network 10.0.23.0 0.0.0.3 area 1.", cost: 50 },
+          { text: "📖 Correction complète :\n```\n! === R1 ===\nrouter ospf 1\nrouter-id 1.1.1.1\nnetwork 192.168.1.0 0.0.0.255 area 0\nnetwork 10.0.12.0 0.0.0.3 area 0\n! === R2 ===\nrouter ospf 1\nrouter-id 2.2.2.2\nnetwork 10.0.12.0 0.0.0.3 area 0\nnetwork 10.0.23.0 0.0.0.3 area 1\n! === R3 ===\nrouter ospf 1\nrouter-id 3.3.3.3\nnetwork 10.0.23.0 0.0.0.3 area 1\nnetwork 192.168.3.0 0.0.0.255 area 1\n```", cost: 110 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "Router-id de l'ABR (2.2.2.2)", pattern: "router-id\\s+2\\.2\\.2\\.2", flags: "i" },
+            { label: "R2 : lien vers R1 en area 0", pattern: "network\\s+10\\.0\\.12\\.0\\s+0\\.0\\.0\\.3\\s+area\\s+0", flags: "i" },
+            { label: "R2 : lien vers R3 en area 1", pattern: "network\\s+10\\.0\\.23\\.0\\s+0\\.0\\.0\\.3\\s+area\\s+1", flags: "i" },
+            { label: "LAN de R1 en area 0", pattern: "network\\s+192\\.168\\.1\\.0\\s+0\\.0\\.0\\.255\\s+area\\s+0", flags: "i" },
+            { label: "LAN de R3 en area 1", pattern: "network\\s+192\\.168\\.3\\.0\\s+0\\.0\\.0\\.255\\s+area\\s+1", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction détaillée
+
+\`\`\`
+! === R1 ===  (interne à l'area 0)
+router ospf 1
+ router-id 1.1.1.1
+ network 192.168.1.0 0.0.0.255 area 0
+ network 10.0.12.0 0.0.0.3 area 0
+! === R2 ===  (ABR : un network par zone !)
+router ospf 1
+ router-id 2.2.2.2
+ network 10.0.12.0 0.0.0.3 area 0
+ network 10.0.23.0 0.0.0.3 area 1
+! === R3 ===  (interne à l'area 1)
+router ospf 1
+ router-id 3.3.3.3
+ network 10.0.23.0 0.0.0.3 area 1
+ network 192.168.3.0 0.0.0.255 area 1
+\`\`\`
+
+**Réponse à la question 4 :** dans OSPF, tout le trafic **inter-zones transite par l'area 0** (le *backbone*) — c'est une règle d'architecture du protocole qui évite les boucles entre zones. Une zone non-backbone **doit** donc être physiquement (ou virtuellement) attachée à l'area 0 via un **ABR**.
+
+**Pourquoi segmenter ?** Chaque zone garde sa **propre LSDB** : un changement de topologie dans l'area 1 ne force **pas** R1 à recalculer Dijkstra. Moins de CPU, moins de flooding, des tables plus petites — indispensable au-delà de ~50 routeurs.
+
+**Vérification PT :** sur R1, \`show ip route\` → le LAN de R3 apparaît en **O IA** (*inter-area*), pas en simple O. Sur R2, \`show ip ospf\` montre « *Area BACKBONE(0)* » **et** « *Area 1* ». 🎯`,
+        tags: ["tp", "ospf", "multi-area", "abr", "architecture"],
       },
     ],
   },

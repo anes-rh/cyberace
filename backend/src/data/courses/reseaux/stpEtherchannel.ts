@@ -243,28 +243,30 @@ Les deux ports forment le **Port-Channel 1**. En **LACP**, les deux extrémités
       },
       {
         id: "res-tp-etherchannel",
-        title: "TP — EtherChannel + racine STP",
+        title: "Architecture 1 — EtherChannel + racine STP",
         order: 6,
         difficulty: "hard",
         type: "code",
         language: "pseudo",
-        prompt: `## 🧪 TP 7 — Architecture : cœur de réseau redondant (niveau : avancé)
+        prompt: `## 🏗️ Architecture 1 (niveau : avancé)
 
-\`\`\`
-        ┌───────── Fa0/1 ─────────┐
-   [ SW1 ]                      [ SW2 ]
-        └───────── Fa0/2 ─────────┘
-     (2 liens physiques → 1 lien logique LACP)
+**Topologie à monter dans Packet Tracer :**
 
-   SW1 doit devenir la RACINE STP du VLAN 1.
-\`\`\`
+| Lien | Description |
+|---|---|
+| SW1 Fa0/1 ↔ SW2 Fa0/1 | lien physique n°1 |
+| SW1 Fa0/2 ↔ SW2 Fa0/2 | lien physique n°2 |
 
-**Mission :**
-1. Sur **SW1** et **SW2** : agrège \`Fa0/1-2\` en **Port-Channel 1** avec **LACP actif** ;
-2. passe le Port-Channel en **trunk** ;
-3. force **SW1** comme **racine STP** du VLAN 1 (priorité \`4096\`).
+Objectif : agréger ces 2 liens en **un seul lien logique** (sinon STP en bloque un !), et choisir sa racine STP au lieu de la subir.
 
-Préfixe les blocs par \`! === SW1 ===\` et \`! === SW2 ===\`.`,
+**Questions :**
+
+1. Sur **SW1** et **SW2** : agrégez \`Fa0/1-2\` en **Port-Channel 1** avec **LACP actif** ;
+2. Passez le Port-Channel en **trunk** ;
+3. Forcez **SW1** comme **racine STP** du VLAN 1 (priorité \`4096\`) ;
+4. Vérifiez : \`show etherchannel summary\` (flag **SU**) et \`show spanning-tree\` (« This bridge is the root » sur SW1).
+
+Blocs \`! === SW1 ===\` et \`! === SW2 ===\`.`,
         points: 450,
         timeLimitSec: 1200,
         starter: `! === SW1 ===
@@ -300,6 +302,75 @@ interface port-channel 1
 
 Sans EtherChannel, STP **bloquerait** l'un des deux liens (boucle !) → 50 % de la capacité perdue. Agrégés en Port-Channel, STP les voit comme **UN seul lien** : les deux câbles travaillent (~200 Mbit/s) **et** la redondance reste. La priorité **4096 < 32768** (défaut) garantit que SW1 est racine — on **choisit** sa racine, on ne la subit pas. Vérifie : \`show etherchannel summary\` (flag **SU**) et \`show spanning-tree\` (« This bridge is the root »).`,
         tags: ["tp", "stp", "etherchannel", "config", "architecture"],
+      },
+      {
+        id: "res-tp-stp-2",
+        title: "Architecture 2 — Rapid STP + PortFast sur triangle",
+        order: 7,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏗️ Architecture 2 (niveau : avancé+)
+
+Un **triangle de 3 switches** (boucle volontaire pour la redondance) + un **serveur** : on modernise avec **Rapid PVST+** et on sécurise les ports d'accès.
+
+**Topologie à monter dans Packet Tracer :**
+
+| Lien / Port | Description |
+|---|---|
+| SW1 ↔ SW2, SW2 ↔ SW3, SW1 ↔ SW3 | triangle (trunks) |
+| SW2 Fa0/1 | **Serveur0** (port d'accès) |
+
+**Questions :**
+
+1. Sur les **3 switches** : activez le mode **Rapid PVST+** (\`spanning-tree mode rapid-pvst\`) ;
+2. Sur **SW1** : forcez-le racine du VLAN 1 avec \`spanning-tree vlan 1 root primary\` ;
+3. Sur **SW2** : faites-en la racine **de secours** (\`root secondary\`) ;
+4. Sur **SW2 Fa0/1** (le serveur) : activez **PortFast** pour que le port s'active immédiatement au branchement, sans attendre STP ;
+5. Question : pourquoi ne JAMAIS mettre PortFast sur un lien vers un autre switch ? *(réponse dans la correction)*
+
+Blocs \`! === SW1 ===\`, \`! === SW2 ===\`, \`! === SW3 ===\`.`,
+        points: 500,
+        timeLimitSec: 1500,
+        starter: `! === SW1 ===
+spanning-tree mode rapid-pvst
+`,
+        hints: [
+          { text: "rapid-pvst sur les 3. SW1 : root primary ; SW2 : root secondary. PortFast : interface fa0/1 → spanning-tree portfast.", cost: 50 },
+          { text: "📖 Correction complète :\n```\n! === SW1 ===\nspanning-tree mode rapid-pvst\nspanning-tree vlan 1 root primary\n! === SW2 ===\nspanning-tree mode rapid-pvst\nspanning-tree vlan 1 root secondary\ninterface fa0/1\nswitchport mode access\nspanning-tree portfast\n! === SW3 ===\nspanning-tree mode rapid-pvst\n```", cost: 110 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "Mode Rapid PVST+ activé", pattern: "spanning-tree\\s+mode\\s+rapid-pvst", flags: "i" },
+            { label: "SW1 racine primaire du VLAN 1", pattern: "spanning-tree\\s+vlan\\s+1\\s+root\\s+primary", flags: "i" },
+            { label: "SW2 racine secondaire", pattern: "spanning-tree\\s+vlan\\s+1\\s+root\\s+secondary", flags: "i" },
+            { label: "PortFast sur le port du serveur", pattern: "spanning-tree\\s+portfast", flags: "i" },
+            { label: "Le port serveur est en mode accès", pattern: "switchport\\s+mode\\s+access", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction détaillée
+
+\`\`\`
+! === SW1 ===
+spanning-tree mode rapid-pvst          ! convergence < 1 s (vs 30-50 s en STP classique)
+spanning-tree vlan 1 root primary      ! macro : prend une priorité assurant l'élection
+! === SW2 ===
+spanning-tree mode rapid-pvst
+spanning-tree vlan 1 root secondary    ! priorité 28672 : racine SI SW1 meurt
+interface fa0/1
+ switchport mode access
+ spanning-tree portfast                ! le serveur est joignable immédiatement
+! === SW3 ===
+spanning-tree mode rapid-pvst
+\`\`\`
+
+**Réponse à la question 5 :** PortFast fait passer le port **directement en Forwarding**, en sautant les états d'écoute de STP. Sur un port vers un PC/serveur, aucun risque. Mais sur un lien **switch-switch**, cela peut créer une **boucle de commutation active** pendant plusieurs secondes — broadcast storm, réseau à genoux. PortFast = **uniquement** ports d'accès (on ajoute d'ailleurs souvent \`bpduguard\` : le port se coupe s'il reçoit un BPDU, preuve qu'un switch a été branché par erreur).
+
+**\`root primary/secondary\` vs priorité manuelle :** \`primary\` règle la priorité pour battre la racine actuelle (24576 ou moins) ; \`secondary\` fixe 28672 — un plan de secours **déterministe** : si SW1 tombe, c'est SW2 qui reprend, pas un switch au hasard.
+
+**Vérification PT :** \`show spanning-tree\` sur SW1 (« This bridge is the root »), débranche SW1 → refais la commande sur SW2, et regarde la reconvergence quasi instantanée grâce à Rapid PVST+. 🎯`,
+        tags: ["tp", "rstp", "portfast", "root-primary", "architecture"],
       },
     ],
   },

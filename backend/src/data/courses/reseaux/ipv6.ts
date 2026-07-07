@@ -312,28 +312,29 @@ Sans **\`ipv6 unicast-routing\`**, le routeur porte l'adresse mais **ne route pa
       },
       {
         id: "res-tp-ipv6",
-        title: "TP — Réseau IPv6 routé de bout en bout",
+        title: "Architecture 1 — Réseau IPv6 routé",
         order: 6,
         difficulty: "hard",
         type: "code",
         language: "pseudo",
-        prompt: `## 🧪 TP 12 — Architecture : deux LAN IPv6 interconnectés (niveau : avancé+)
+        prompt: `## 🏗️ Architecture 1 (niveau : avancé+)
 
-\`\`\`
-  LAN A                                                   LAN B
-  2001:db8:1::/64                                2001:db8:2::/64
-     │                                                     │
-   G0/0 ::1                                            ::1 G0/0
-   [ R1 ]────── lien 2001:db8:12::/64 ──────[ R2 ]
-         G0/1 ::1                    ::2 G0/1
-\`\`\`
+**Topologie à monter dans Packet Tracer :**
 
-**Mission :** monte le réseau IPv6 **complet** :
-1. **active le routage IPv6** sur les deux routeurs (l'oubli classique !) ;
-2. adresse les 4 interfaces (\`::1\` sur les LAN et le lien côté R1, \`::2\` côté R2) ;
-3. ajoute la **route statique IPv6** vers le LAN distant sur chaque routeur.
+| Élément | Réseau | Adresses |
+|---|---|---|
+| LAN A → R1 (G0/0) | \`2001:db8:1::/64\` | R1 = \`::1\` |
+| R1 (G0/1) ↔ R2 (G0/1) | \`2001:db8:12::/64\` | R1 = \`::1\`, R2 = \`::2\` |
+| LAN B → R2 (G0/0) | \`2001:db8:2::/64\` | R2 = \`::1\` |
 
-Préfixe les blocs par \`! === R1 ===\` et \`! === R2 ===\`.`,
+**Questions :**
+
+1. **Activez le routage IPv6** sur les deux routeurs (\`ipv6 unicast-routing\` — l'oubli classique !) ;
+2. Adressez les 4 interfaces ;
+3. Ajoutez la **route statique IPv6** vers le LAN distant sur chaque routeur ;
+4. Vérifiez : \`show ipv6 route\` puis ping LAN à LAN.
+
+Blocs \`! === R1 ===\` et \`! === R2 ===\`.`,
         points: 550,
         timeLimitSec: 1500,
         starter: `! === R1 ===
@@ -378,6 +379,70 @@ ipv6 route 2001:db8:1::/64 2001:db8:12::1
 
 La logique est identique à IPv4 (adresser → router → les 2 sens), mais **trois différences** : le \`ipv6 unicast-routing\` global **obligatoire**, la notation **préfixe/longueur** (\`/64\` collé à l'adresse, pas de masque décimal), et les PC des LAN qui s'autoconfigureront en **SLAAC** grâce aux RA des routeurs. Vérifie : \`show ipv6 interface brief\`, \`show ipv6 route\`, puis \`ping 2001:db8:2::1\` depuis R1.`,
         tags: ["tp", "ipv6", "routage", "config", "architecture"],
+      },
+      {
+        id: "res-tp-ipv6-2",
+        title: "Architecture 2 — SLAAC, EUI-64 et sortie Internet",
+        order: 7,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏗️ Architecture 2 (niveau : expert)
+
+Un site IPv6 réaliste : les PC s'auto-configurent en **SLAAC**, le routeur utilise **EUI-64** sur son lien montant, et tout le monde sort vers Internet via une **route par défaut IPv6**.
+
+**Topologie à monter dans Packet Tracer :**
+
+| Élément | Réseau | Détail |
+|---|---|---|
+| LAN → R1 (G0/0) | \`2001:db8:acad:10::/64\` | R1 = \`::1\` — les PC en **SLAAC** (auto) |
+| R1 (G0/1) ↔ FAI | \`2001:db8:feed:12::/64\` | R1 en **EUI-64** ; FAI = \`2001:db8:feed:12::2\` |
+
+**Questions :**
+
+1. Activez le routage IPv6 ;
+2. \`G0/0\` : adresse \`2001:db8:acad:10::1/64\` — les PC du LAN, en « IPv6 Autoconfig » dans PT, obtiendront leur adresse **tout seuls** via les RA du routeur ;
+3. \`G0/1\` : adresse construite par le routeur avec **\`eui-64\`** sur le préfixe \`2001:db8:feed:12::/64\` ;
+4. Route **par défaut IPv6** (\`::/0\`) vers le FAI ;
+5. Question : d'où les PC tiennent-ils leur passerelle, alors qu'on n'a rien configuré ? *(réponse dans la correction)*`,
+        points: 550,
+        timeLimitSec: 1500,
+        starter: `! === R1 ===
+ipv6 unicast-routing
+`,
+        hints: [
+          { text: "eui-64 : ipv6 address 2001:db8:feed:12::/64 eui-64. Default : ipv6 route ::/0 2001:db8:feed:12::2.", cost: 55 },
+          { text: "📖 Correction complète :\n```\nipv6 unicast-routing\ninterface g0/0\nipv6 address 2001:db8:acad:10::1/64\nno shutdown\ninterface g0/1\nipv6 address 2001:db8:feed:12::/64 eui-64\nno shutdown\nipv6 route ::/0 2001:db8:feed:12::2\n```", cost: 120 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "Routage IPv6 activé", pattern: "ipv6\\s+unicast-routing", flags: "i" },
+            { label: "Passerelle du LAN SLAAC", pattern: "ipv6\\s+address\\s+2001:db8:acad:10::1/64", flags: "i" },
+            { label: "Adresse EUI-64 sur le lien FAI", pattern: "ipv6\\s+address\\s+2001:db8:feed:12::/64\\s+eui-64", flags: "i" },
+            { label: "Route par défaut IPv6 (::/0)", pattern: "ipv6\\s+route\\s+::/0\\s+2001:db8:feed:12::2", flags: "i" },
+            { label: "Interfaces activées", pattern: "no\\s+shut", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction détaillée
+
+\`\`\`
+ipv6 unicast-routing                          ! active routage + émission des RA
+interface g0/0
+ ipv6 address 2001:db8:acad:10::1/64          ! préfixe annoncé en RA → SLAAC des PC
+ no shutdown
+interface g0/1
+ ipv6 address 2001:db8:feed:12::/64 eui-64    ! l'ID d'interface dérive de la MAC
+ no shutdown
+ipv6 route ::/0 2001:db8:feed:12::2           ! ::/0 = « 0.0.0.0/0 » version IPv6
+\`\`\`
+
+**Réponse à la question 5 :** les PC apprennent **tout** du message **RA** (*Router Advertisement*) que R1 émet sur le LAN : le **préfixe /64** (pour fabriquer leur adresse en SLAAC) **et la passerelle** — qui n'est pas l'adresse globale de R1, mais sa **link-local** (\`FE80::…\`) ! C'est la grande différence avec IPv4 : en IPv6, la passerelle par défaut d'un hôte est presque toujours une adresse **FE80::**, apprise automatiquement, jamais tapée à la main.
+
+**EUI-64 en pratique :** le routeur prend sa MAC, insère \`FFFE\` au milieu, inverse le 7ᵉ bit — et voilà son ID d'interface. \`show ipv6 interface g0/1\` te montre l'adresse résultante.
+
+**Vérification PT :** mets un PC en « Automatic » IPv6 → il obtient \`2001:db8:acad:10:…\` sans DHCP ; \`show ipv6 route\` → \`S ::/0\` ; ping du PC vers \`2001:db8:feed:12::2\`. 🎯`,
+        tags: ["tp", "ipv6", "slaac", "eui-64", "architecture"],
       },
     ],
   },

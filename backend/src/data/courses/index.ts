@@ -37,6 +37,7 @@ import { greVpn } from "./reseaux/greVpn";
 import { wan } from "./reseaux/wan";
 import { ipv6 } from "./reseaux/ipv6";
 import { dhcp } from "./reseaux/dhcp";
+import { architectures } from "./reseaux/architectures";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -68,6 +69,7 @@ export const reseauxCourses: CourseSeed[] = [
   ...wan,
   ...ipv6,
   ...dhcp,
+  ...architectures,
 ];
 
 /** Every course, in display order. */

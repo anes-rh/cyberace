@@ -252,29 +252,30 @@ Quel est l'**avantage principal** du VLSM sur le FLSM ?`,
       },
       {
         id: "res-tp-vlsm",
-        title: "TP — Plan VLSM sur 3 LAN",
+        title: "Architecture 1 — Trois LAN inégaux",
         order: 6,
         difficulty: "medium",
         type: "code",
         language: "pseudo",
-        prompt: `## 🧪 TP 2 — Architecture : 1 routeur, 3 LAN inégaux (niveau : simple+)
+        prompt: `## 🏗️ Architecture 1 (niveau : simple+)
 
-\`\`\`
-   LAN A — 100 hôtes      LAN B — 40 hôtes       LAN C — 10 hôtes
-        │                      │                      │
-     [ SW-A ]               [ SW-B ]               [ SW-C ]
-        │                      │                      │
-       G0/0                   G0/1                   G0/2
-        └───────────────── [ R1 ] ────────────────────┘
-\`\`\`
+On découpe \`172.16.0.0/24\` en **VLSM** — du plus grand besoin au plus petit.
 
-**Mission :** découpe \`172.16.0.0/24\` en VLSM (du plus grand au plus petit !), puis configure les 3 interfaces de R1 avec la **première adresse utilisable** de chaque sous-réseau et active-les.
+**Topologie à monter dans Packet Tracer :**
 
-| LAN | Besoin | Sous-réseau attendu |
-|---|---|---|
-| A | 100 hôtes | \`172.16.0.0/25\` |
-| B | 40 hôtes | \`172.16.0.128/26\` |
-| C | 10 hôtes | \`172.16.0.192/28\` |`,
+| Équipement | Interface | LAN | Besoin | Sous-réseau attendu |
+|---|---|---|---|---|
+| R1 | G0/0 | A | 100 hôtes | \`172.16.0.0/25\` |
+| R1 | G0/1 | B | 40 hôtes | \`172.16.0.128/26\` |
+| R1 | G0/2 | C | 10 hôtes | \`172.16.0.192/28\` |
+
+**Questions :**
+
+1. Configurez chaque interface de R1 avec la **première adresse utilisable** de son sous-réseau ;
+2. Activez les interfaces ;
+3. Vérifiez avec \`show ip interface brief\` puis un \`ping\` inter-LAN.
+
+La **correction détaillée** s'affiche après validation.`,
         points: 350,
         timeLimitSec: 1080,
         starter: `! === R1 ===
@@ -306,6 +307,88 @@ interface g0/2
 \`\`\`
 
 Règle d'or du VLSM : allouer **du plus grand au plus petit** — le /25 d'abord (0–127), puis le /26 (128–191), puis le /28 (192–207). Il reste même 172.16.0.208 → 172.16.0.255 pour l'avenir. En FLSM, ces 3 LAN auraient exigé trois /25… qui ne tiennent pas dans un /24 !`,
+        tags: ["tp", "vlsm", "config", "cisco", "architecture"],
+      },
+      {
+        id: "res-tp-vlsm-2",
+        title: "Architecture 2 — Deux routeurs + lien /30",
+        order: 7,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏗️ Architecture 2 (niveau : intermédiaire)
+
+Cette fois le plan VLSM inclut un **lien inter-routeurs** — le cas d'école du /30. Tout doit tenir dans \`10.0.0.0/25\`.
+
+**Topologie à monter dans Packet Tracer :**
+
+| Équipement | Interface | Rôle | Besoin | Sous-réseau attendu |
+|---|---|---|---|---|
+| R1 | G0/0 | LAN A | 60 hôtes | \`10.0.0.0/26\` |
+| R1 | G0/1 | LAN B | 20 hôtes | \`10.0.0.64/27\` |
+| R2 | G0/0 | LAN C | 10 hôtes | \`10.0.0.96/28\` |
+| R1 ↔ R2 | G0/2 ↔ G0/1 | lien série | 2 adresses | \`10.0.0.112/30\` |
+
+**Questions :**
+
+1. Configurez R1 : G0/0 et G0/1 (première utilisable de chaque LAN) + G0/2 = \`10.0.0.113\` ;
+2. Configurez R2 : G0/0 (première utilisable du LAN C) + G0/1 = \`10.0.0.114\` ;
+3. Activez toutes les interfaces.
+
+Blocs \`! === R1 ===\` et \`! === R2 ===\`.`,
+        points: 450,
+        timeLimitSec: 1500,
+        starter: `! === R1 ===
+interface g0/0
+`,
+        hints: [
+          { text: "Masques : /26 = .192, /27 = .224, /28 = .240, /30 = .252. Premières utilisables : .1, .65, .97 ; lien : .113 et .114.", cost: 45 },
+          { text: "📖 Correction complète :\n```\n! === R1 ===\ninterface g0/0\nip address 10.0.0.1 255.255.255.192\nno shutdown\ninterface g0/1\nip address 10.0.0.65 255.255.255.224\nno shutdown\ninterface g0/2\nip address 10.0.0.113 255.255.255.252\nno shutdown\n! === R2 ===\ninterface g0/0\nip address 10.0.0.97 255.255.255.240\nno shutdown\ninterface g0/1\nip address 10.0.0.114 255.255.255.252\nno shutdown\n```", cost: 100 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "LAN A : 10.0.0.1 /26", pattern: "ip\\s+address\\s+10\\.0\\.0\\.1\\s+255\\.255\\.255\\.192", flags: "i" },
+            { label: "LAN B : 10.0.0.65 /27", pattern: "ip\\s+address\\s+10\\.0\\.0\\.65\\s+255\\.255\\.255\\.224", flags: "i" },
+            { label: "LAN C : 10.0.0.97 /28", pattern: "ip\\s+address\\s+10\\.0\\.0\\.97\\s+255\\.255\\.255\\.240", flags: "i" },
+            { label: "Lien côté R1 : 10.0.0.113 /30", pattern: "ip\\s+address\\s+10\\.0\\.0\\.113\\s+255\\.255\\.255\\.252", flags: "i" },
+            { label: "Lien côté R2 : 10.0.0.114 /30", pattern: "ip\\s+address\\s+10\\.0\\.0\\.114\\s+255\\.255\\.255\\.252", flags: "i" },
+            { label: "Active les interfaces", pattern: "no\\s+shut", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction détaillée
+
+**Le plan VLSM** (toujours du plus grand au plus petit) :
+
+| Besoin | Taille | Bloc alloué | Utilisables |
+|---|---|---|---|
+| LAN A — 60 | /26 (62) | 10.0.0.0 – 63 | .1 → .62 |
+| LAN B — 20 | /27 (30) | 10.0.0.64 – 95 | .65 → .94 |
+| LAN C — 10 | /28 (14) | 10.0.0.96 – 111 | .97 → .110 |
+| Lien R1-R2 | **/30 (2)** | 10.0.0.112 – 115 | .113 et .114 |
+
+**La configuration :**
+\`\`\`
+! === R1 ===
+interface g0/0
+ ip address 10.0.0.1 255.255.255.192
+ no shutdown
+interface g0/1
+ ip address 10.0.0.65 255.255.255.224
+ no shutdown
+interface g0/2
+ ip address 10.0.0.113 255.255.255.252   ! lien inter-routeurs
+ no shutdown
+! === R2 ===
+interface g0/0
+ ip address 10.0.0.97 255.255.255.240
+ no shutdown
+interface g0/1
+ ip address 10.0.0.114 255.255.255.252
+ no shutdown
+\`\`\`
+
+Le **/30** est la taille parfaite d'un lien point-à-point : 2 adresses utilisables, zéro gaspillage — en FLSM il aurait fallu lui donner un /26 entier (62 adresses pour 2 !). Note : sans routes (statiques ou IGP), le LAN C reste injoignable depuis A/B — c'est l'objet du chapitre suivant. 😉`,
         tags: ["tp", "vlsm", "config", "cisco", "architecture"],
       },
     ],

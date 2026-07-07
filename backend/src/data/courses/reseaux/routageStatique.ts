@@ -273,30 +273,30 @@ Tu as configuré une route statique de R1 vers le LAN B. Le \`ping\` depuis le L
       },
       {
         id: "res-tp-statique",
-        title: "TP — Routes statiques sur 3 routeurs",
+        title: "Architecture 1 — Trois routeurs en chaîne",
         order: 6,
         difficulty: "medium",
         type: "code",
         language: "pseudo",
-        prompt: `## 🧪 TP 3 — Architecture : 3 routeurs en chaîne (niveau : intermédiaire)
+        prompt: `## 🏗️ Architecture 1 (niveau : intermédiaire)
 
-\`\`\`
- LAN 1                                                        LAN 3
- 192.168.1.0/24                                        192.168.3.0/24
-   │                                                            │
- [ R1 ]── 10.0.12.0/30 ──[ R2 ]── 10.0.23.0/30 ──[ R3 ]
-  G0/0      .1      .2    routeur    .1      .2    G0/1
-            G0/1     G0/0  central  G0/1     G0/0
-\`\`\`
+**Topologie à monter dans Packet Tracer** (interfaces déjà adressées et actives — mais aucun LAN ne joint l'autre !) :
 
-Les interfaces sont **déjà adressées et actives**. Mais aucun LAN ne joint l'autre !
+| Lien | Réseau | Adresses |
+|---|---|---|
+| LAN 1 → R1 (G0/0) | \`192.168.1.0/24\` | passerelle .1 |
+| R1 (G0/1) ↔ R2 (G0/0) | \`10.0.12.0/30\` | R1 = .1, R2 = .2 |
+| R2 (G0/1) ↔ R3 (G0/0) | \`10.0.23.0/30\` | R2 = .1, R3 = .2 |
+| R3 (G0/1) → LAN 3 | \`192.168.3.0/24\` | passerelle .1 |
 
-**Mission :** écris les routes statiques pour que LAN 1 ↔ LAN 3 communiquent dans **les deux sens** :
-1. Sur **R1** : une **route par défaut** vers R2 ;
-2. Sur **R2** : une route vers **chaque LAN** (il ne les connaît pas !) ;
-3. Sur **R3** : une **route par défaut** vers R2.
+**Questions :**
 
-Préfixe chaque bloc par \`! === R1 ===\`, \`! === R2 ===\`, \`! === R3 ===\`.`,
+1. Sur **R1** : configurez une **route par défaut** vers R2 ;
+2. Sur **R2** : configurez une route vers **chaque LAN** (il ne les connaît pas !) ;
+3. Sur **R3** : configurez une **route par défaut** vers R2 ;
+4. Vérifiez : \`ping\` de bout en bout LAN 1 → LAN 3.
+
+Blocs \`! === R1 ===\`, \`! === R2 ===\`, \`! === R3 ===\`.`,
         points: 400,
         timeLimitSec: 1200,
         starter: `! === R1 ===
@@ -329,6 +329,77 @@ ip route 0.0.0.0 0.0.0.0 10.0.23.1          ! tout → R2
 \`\`\`
 
 R1 et R3 sont des **stub routers** (une seule sortie) → la **route par défaut** suffit. R2, au centre, doit connaître **les deux LAN** — c'est lui qui a besoin des routes précises. Sans la route retour sur R2, le ping partirait… mais la réponse serait jetée. Vérifie avec \`show ip route\` (codes S et S*) puis \`ping\` de bout en bout.`,
+        tags: ["tp", "routage", "statique", "config", "architecture"],
+      },
+      {
+        id: "res-tp-statique-2",
+        title: "Architecture 2 — Étoile d'agences + Internet",
+        order: 7,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏗️ Architecture 2 (niveau : avancé)
+
+Le siège (HQ) relie **deux agences** et fournit l'**accès Internet** à tout le monde.
+
+**Topologie à monter dans Packet Tracer :**
+
+| Lien | Réseau | Adresses |
+|---|---|---|
+| Agence A : LAN → R-A | \`192.168.1.0/24\` | passerelle .1 |
+| R-A ↔ R-HQ | \`10.0.1.0/30\` | R-A = .1, HQ = .2 |
+| Agence B : LAN → R-B | \`192.168.2.0/24\` | passerelle .1 |
+| R-B ↔ R-HQ | \`10.0.2.0/30\` | R-B = .1, HQ = .2 |
+| R-HQ ↔ FAI | \`203.0.113.0/30\` | HQ = .1, FAI = .2 |
+
+**Questions :**
+
+1. Sur **R-A** et **R-B** : une seule sortie → configurez la **route par défaut** vers HQ ;
+2. Sur **R-HQ** : configurez les routes vers les **deux LAN d'agence** ;
+3. Sur **R-HQ** : configurez la **route par défaut** vers le FAI (203.0.113.2) pour l'accès Internet ;
+4. Question de réflexion : pourquoi HQ a-t-il besoin des routes précises **en plus** de sa route par défaut ? *(réponse dans la correction)*
+
+Blocs \`! === R-A ===\`, \`! === R-B ===\`, \`! === R-HQ ===\`.`,
+        points: 450,
+        timeLimitSec: 1500,
+        starter: `! === R-A ===
+
+! === R-B ===
+
+! === R-HQ ===
+`,
+        hints: [
+          { text: "R-A : ip route 0.0.0.0 0.0.0.0 10.0.1.2 ; R-B : idem via 10.0.2.2. HQ : 2 routes /24 vers les agences + default vers 203.0.113.2.", cost: 45 },
+          { text: "📖 Correction complète :\n```\n! === R-A ===\nip route 0.0.0.0 0.0.0.0 10.0.1.2\n! === R-B ===\nip route 0.0.0.0 0.0.0.0 10.0.2.2\n! === R-HQ ===\nip route 192.168.1.0 255.255.255.0 10.0.1.1\nip route 192.168.2.0 255.255.255.0 10.0.2.1\nip route 0.0.0.0 0.0.0.0 203.0.113.2\n```", cost: 100 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "R-A : route par défaut vers HQ", pattern: "ip\\s+route\\s+0\\.0\\.0\\.0\\s+0\\.0\\.0\\.0\\s+10\\.0\\.1\\.2", flags: "i" },
+            { label: "R-B : route par défaut vers HQ", pattern: "ip\\s+route\\s+0\\.0\\.0\\.0\\s+0\\.0\\.0\\.0\\s+10\\.0\\.2\\.2", flags: "i" },
+            { label: "HQ : route vers le LAN de l'agence A", pattern: "ip\\s+route\\s+192\\.168\\.1\\.0\\s+255\\.255\\.255\\.0\\s+10\\.0\\.1\\.1", flags: "i" },
+            { label: "HQ : route vers le LAN de l'agence B", pattern: "ip\\s+route\\s+192\\.168\\.2\\.0\\s+255\\.255\\.255\\.0\\s+10\\.0\\.2\\.1", flags: "i" },
+            { label: "HQ : route par défaut vers le FAI", pattern: "ip\\s+route\\s+0\\.0\\.0\\.0\\s+0\\.0\\.0\\.0\\s+203\\.0\\.113\\.2", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction détaillée
+
+\`\`\`
+! === R-A ===  (stub : une seule sortie)
+ip route 0.0.0.0 0.0.0.0 10.0.1.2
+! === R-B ===
+ip route 0.0.0.0 0.0.0.0 10.0.2.2
+! === R-HQ ===
+ip route 192.168.1.0 255.255.255.0 10.0.1.1   ! agence A
+ip route 192.168.2.0 255.255.255.0 10.0.2.1   ! agence B
+ip route 0.0.0.0 0.0.0.0 203.0.113.2          ! tout le reste → Internet
+\`\`\`
+
+**Réponse à la question 4 :** la table de routage choisit toujours la route la **plus précise** (*longest prefix match*). Sur HQ, un paquet vers 192.168.2.14 matche le /24 (→ agence B) **avant** le 0.0.0.0/0 (→ FAI). Sans les routes /24, HQ enverrait le trafic inter-agences… **vers Internet**, où les adresses privées RFC 1918 sont jetées. La route par défaut ne sert que pour *ce qu'on ne connaît pas*.
+
+**Chaîne complète d'un ping A → Internet :** PC → R-A (default) → HQ (default) → FAI. Et le retour ? Le FAI doit avoir une route vers 192.168.x.x… c'est exactement pour ça qu'en réalité on ajoute du **NAT** sur HQ — aperçu du monde réel. 😉
+
+**Vérification PT :** \`show ip route\` sur HQ (2 routes S + 1 S*), ping PC-A → PC-B, puis PC-A → 203.0.113.2.`,
         tags: ["tp", "routage", "statique", "config", "architecture"],
       },
     ],

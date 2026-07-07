@@ -285,27 +285,30 @@ Il faut aussi, en amont, un \`username <nom-du-pair> password <secret>\` **ident
       },
       {
         id: "res-tp-wan",
-        title: "TP — Liaison série PPP + CHAP de bout en bout",
+        title: "Architecture 1 — Liaison série PPP + CHAP",
         order: 6,
         difficulty: "hard",
         type: "code",
         language: "pseudo",
-        prompt: `## 🧪 TP 11 — Architecture : liaison WAN authentifiée (niveau : avancé+)
+        prompt: `## 🏗️ Architecture 1 (niveau : avancé+)
 
-\`\`\`
-   [ R1 ]════════ liaison série 10.0.0.0/30 ════════[ R2 ]
-   S0/0/0 (DCE)  .1                        .2  S0/0/0 (DTE)
-   hostname R1                                  hostname R2
-        Authentification CHAP, secret partagé : cisco123
-\`\`\`
+**Topologie à monter dans Packet Tracer** (câble série DCE→DTE) :
 
-**Mission :** configure la liaison **complète des deux côtés** :
-1. Sur chaque routeur : le compte du **pair** (\`username <pair> password cisco123\`) ;
-2. \`S0/0/0\` : adresse IP /30, \`encapsulation ppp\`, \`ppp authentication chap\` ;
-3. **R1 est le DCE** → il fournit l'horloge : \`clock rate 128000\` ;
-4. active les interfaces.
+| Élément | R1 | R2 |
+|---|---|---|
+| Interface série | S0/0/0 — **DCE** (fournit l'horloge) | S0/0/0 — DTE |
+| IP sur \`10.0.0.0/30\` | \`.1\` | \`.2\` |
+| hostname | \`R1\` | \`R2\` |
+| Authentification | **CHAP** — secret partagé \`cisco123\` | idem |
 
-Préfixe les blocs par \`! === R1 ===\` et \`! === R2 ===\`.`,
+**Questions :**
+
+1. Sur chaque routeur : déclarez le compte du **pair** (\`username <pair> password cisco123\`) ;
+2. Sur \`S0/0/0\` : adresse IP /30, \`encapsulation ppp\`, \`ppp authentication chap\` ;
+3. **R1 est le DCE** → ajoutez \`clock rate 128000\` ;
+4. Activez les interfaces et vérifiez : \`show interfaces s0/0/0\` → *Encapsulation PPP, LCP Open*.
+
+Blocs \`! === R1 ===\` et \`! === R2 ===\`.`,
         points: 500,
         timeLimitSec: 1500,
         starter: `! === R1 ===
@@ -347,6 +350,96 @@ interface s0/0/0
 
 Le principe croisé de CHAP : **R1 stocke le compte de R2** et inversement — le \`username\` correspond au **hostname du pair**, et le mot de passe doit être **identique** des deux côtés (il sert au hachage du défi, jamais transmis). Sans \`clock rate\` côté **DCE**, le lien reste down quoi qu'il arrive. Vérifie : \`show interfaces s0/0/0\` → *Encapsulation PPP, LCP Open* puis ping 10.0.0.2.`,
         tags: ["tp", "wan", "ppp", "chap", "architecture"],
+      },
+      {
+        id: "res-tp-wan-2",
+        title: "Architecture 2 — Double liaison WAN + routage",
+        order: 7,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏗️ Architecture 2 (niveau : expert)
+
+Un WAN d'entreprise complet : **deux liaisons série**, de l'authentification, ET le routage par-dessus — le tout en une topologie.
+
+**Topologie à monter dans Packet Tracer :**
+
+| Élément | Valeur |
+|---|---|
+| LAN de R1 (G0/0) | \`192.168.1.0/24\` (passerelle .1) |
+| Liaison R1 (S0/0/0, **DCE**) ↔ R2 (S0/0/0) | \`10.0.12.0/30\` — PPP + **CHAP**, secret \`cisco123\` |
+| Liaison R2 (S0/0/1, **DCE**) ↔ R3 (S0/0/0) | \`10.0.23.0/30\` — PPP (sans auth) |
+| LAN de R3 (G0/0) | \`192.168.3.0/24\` (passerelle .1) |
+
+**Questions :**
+
+1. Configurez la liaison **R1↔R2** : usernames croisés, PPP, CHAP, \`clock rate 64000\` côté R1 ;
+2. Configurez la liaison **R2↔R3** : PPP simple, \`clock rate 64000\` côté R2 ;
+3. Routage statique : R1 → default vers R2 ; R3 → default vers R2 ; R2 → les deux LAN ;
+4. Test final : ping LAN 1 → LAN 3 à travers les deux liaisons PPP.
+
+Blocs \`! === R1 ===\`, \`! === R2 ===\`, \`! === R3 ===\`.`,
+        points: 600,
+        timeLimitSec: 1800,
+        starter: `! === R1 ===
+username R2 password cisco123
+`,
+        hints: [
+          { text: "R1↔R2 : comme l'Archi 1. R2↔R3 : juste encapsulation ppp (pas de ppp authentication). Puis les mêmes routes que le module Routage statique.", cost: 60 },
+          { text: "📖 Correction complète :\n```\n! === R1 ===\nusername R2 password cisco123\ninterface s0/0/0\nip address 10.0.12.1 255.255.255.252\nencapsulation ppp\nppp authentication chap\nclock rate 64000\nno shutdown\nip route 0.0.0.0 0.0.0.0 10.0.12.2\n! === R2 ===\nusername R1 password cisco123\ninterface s0/0/0\nip address 10.0.12.2 255.255.255.252\nencapsulation ppp\nppp authentication chap\nno shutdown\ninterface s0/0/1\nip address 10.0.23.1 255.255.255.252\nencapsulation ppp\nclock rate 64000\nno shutdown\nip route 192.168.1.0 255.255.255.0 10.0.12.1\nip route 192.168.3.0 255.255.255.0 10.0.23.2\n! === R3 ===\ninterface s0/0/0\nip address 10.0.23.2 255.255.255.252\nencapsulation ppp\nno shutdown\nip route 0.0.0.0 0.0.0.0 10.0.23.1\n```", cost: 130 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.6,
+          keypoints: [
+            { label: "Usernames CHAP croisés", pattern: "username\\s+R[12]\\s+password\\s+cisco123", flags: "i" },
+            { label: "Liaison R1-R2 : IP .1/30", pattern: "ip\\s+address\\s+10\\.0\\.12\\.1\\s+255\\.255\\.255\\.252", flags: "i" },
+            { label: "CHAP sur la liaison R1-R2", pattern: "ppp\\s+authentication\\s+chap", flags: "i" },
+            { label: "Encapsulation PPP", pattern: "encapsulation\\s+ppp", flags: "i" },
+            { label: "Horloge côté DCE", pattern: "clock\\s+rate\\s+64000", flags: "i" },
+            { label: "Liaison R2-R3 : IP 10.0.23.x", pattern: "ip\\s+address\\s+10\\.0\\.23\\.[12]\\s+255\\.255\\.255\\.252", flags: "i" },
+            { label: "R2 : route vers le LAN 1", pattern: "ip\\s+route\\s+192\\.168\\.1\\.0\\s+255\\.255\\.255\\.0\\s+10\\.0\\.12\\.1", flags: "i" },
+            { label: "R2 : route vers le LAN 3", pattern: "ip\\s+route\\s+192\\.168\\.3\\.0\\s+255\\.255\\.255\\.0\\s+10\\.0\\.23\\.2", flags: "i" },
+            { label: "Routes par défaut sur R1/R3", pattern: "ip\\s+route\\s+0\\.0\\.0\\.0\\s+0\\.0\\.0\\.0", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction détaillée
+
+\`\`\`
+! === R1 ===
+username R2 password cisco123
+interface s0/0/0
+ ip address 10.0.12.1 255.255.255.252
+ encapsulation ppp
+ ppp authentication chap
+ clock rate 64000                 ! R1 = DCE de cette liaison
+ no shutdown
+ip route 0.0.0.0 0.0.0.0 10.0.12.2
+! === R2 ===  (au centre : 2 liaisons série + le routage)
+username R1 password cisco123
+interface s0/0/0
+ ip address 10.0.12.2 255.255.255.252
+ encapsulation ppp
+ ppp authentication chap
+ no shutdown
+interface s0/0/1
+ ip address 10.0.23.1 255.255.255.252
+ encapsulation ppp                ! PPP simple, pas d'auth ici
+ clock rate 64000                 ! R2 = DCE de cette liaison
+ no shutdown
+ip route 192.168.1.0 255.255.255.0 10.0.12.1
+ip route 192.168.3.0 255.255.255.0 10.0.23.2
+! === R3 ===
+interface s0/0/0
+ ip address 10.0.23.2 255.255.255.252
+ encapsulation ppp
+ no shutdown
+ip route 0.0.0.0 0.0.0.0 10.0.23.1
+\`\`\`
+
+**Les 3 couches du TP :** (1) la **couche 2 WAN** — chaque liaison a SA config PPP, et le \`clock rate\` va toujours du côté **DCE** de *cette* liaison (R1 pour la première, R2 pour la seconde) ; (2) l'**authentification** — seulement là où on l'exige (R1↔R2) ; (3) la **couche 3** — sans les routes, les liaisons PPP montent mais les LAN restent isolés.
+
+**Debug méthodique si le ping échoue :** \`show interfaces s0/0/0\` (LCP Open ? sinon problème PPP/CHAP/horloge) → \`show ip route\` (les routes y sont ?) → ping de proche en proche (R1→10.0.12.2, puis →10.0.23.2, puis →LAN 3). 🎯`,
+        tags: ["tp", "wan", "ppp", "chap", "routage", "architecture"],
       },
     ],
   },

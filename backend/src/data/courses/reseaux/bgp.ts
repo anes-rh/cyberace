@@ -255,26 +255,28 @@ neighbor 10.0.0.2 remote-as 65002   ! AS différent → session eBGP
       },
       {
         id: "res-tp-bgp",
-        title: "TP — Peering eBGP entre deux AS",
+        title: "Architecture 1 — Peering eBGP entre deux AS",
         order: 6,
         difficulty: "hard",
         type: "code",
         language: "pseudo",
-        prompt: `## 🧪 TP 9 — Architecture : deux systèmes autonomes (niveau : avancé)
+        prompt: `## 🏗️ Architecture 1 (niveau : avancé)
 
-\`\`\`
-        AS 65001                          AS 65002
-   LAN 10.1.1.0/24                   LAN 10.2.2.0/24
-        │                                 │
-      [ R1 ]── 203.0.113.0/30 lien inter-AS ──[ R2 ]
-          .1                             .2
-\`\`\`
+**Topologie à monter dans Packet Tracer :**
 
-**Mission :** établis la session **eBGP** et fais s'échanger les deux LAN :
-1. **R1** (AS 65001) : déclare R2 comme voisin et **annonce** \`10.1.1.0/24\` (avec \`mask\`) ;
-2. **R2** (AS 65002) : symétrique.
+| Élément | Valeur |
+|---|---|
+| R1 — AS **65001** | LAN \`10.1.1.0/24\` |
+| R2 — AS **65002** | LAN \`10.2.2.0/24\` |
+| Lien inter-AS R1 ↔ R2 | \`203.0.113.0/30\` — R1 = .1, R2 = .2 |
 
-Préfixe les blocs par \`! === R1 ===\` et \`! === R2 ===\`.`,
+**Questions :**
+
+1. Sur **R1** (AS 65001) : démarrez BGP, déclarez R2 comme **voisin eBGP** et **annoncez** \`10.1.1.0/24\` (avec le mot-clé \`mask\`) ;
+2. Sur **R2** (AS 65002) : configuration symétrique ;
+3. Vérifiez : \`show ip bgp summary\` → session **Established**, puis \`show ip route\` → le LAN distant en **B**.
+
+Blocs \`! === R1 ===\` et \`! === R2 ===\`.`,
         points: 500,
         timeLimitSec: 1200,
         starter: `! === R1 ===
@@ -308,6 +310,79 @@ router bgp 65002
 
 Contrairement à OSPF/RIP, BGP ne **découvre pas** ses voisins : on les **déclare** à la main (session TCP **179**). Le \`network … mask …\` n'annonce la route que si elle existe déjà dans la table locale. Une fois la session **Established** (\`show ip bgp summary\`), chaque AS voit le LAN de l'autre avec son **AS-PATH**. C'est exactement — en miniature — ce que font les opérateurs sur Internet.`,
         tags: ["tp", "bgp", "ebgp", "config", "architecture"],
+      },
+      {
+        id: "res-tp-bgp-2",
+        title: "Architecture 2 — AS de transit (3 AS en chaîne)",
+        order: 7,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏗️ Architecture 2 (niveau : expert)
+
+Trois AS en chaîne : l'AS **65100** et l'AS **65300** ne se touchent pas — leur trafic **transite** par l'AS 65200, comme chez un opérateur.
+
+**Topologie à monter dans Packet Tracer :**
+
+| Élément | Valeur |
+|---|---|
+| R1 — AS **65100** | LAN \`10.1.1.0/24\` |
+| R2 — AS **65200** (transit) | — |
+| R3 — AS **65300** | LAN \`10.3.3.0/24\` |
+| Lien R1 ↔ R2 | \`203.0.113.0/30\` — R1 = .1, R2 = .2 |
+| Lien R2 ↔ R3 | \`203.0.113.4/30\` — R2 = .5, R3 = .6 |
+
+**Questions :**
+
+1. **R1** : BGP AS 65100, voisin R2, annonce de son LAN ;
+2. **R2** : BGP AS 65200 avec **deux voisins** (R1 et R3) — c'est lui le transit ;
+3. **R3** : BGP AS 65300, voisin R2, annonce de son LAN ;
+4. Question : quel AS-PATH R3 verra-t-il pour \`10.1.1.0/24\` ? *(réponse dans la correction)*
+
+Blocs \`! === R1 ===\`, \`! === R2 ===\`, \`! === R3 ===\`.`,
+        points: 550,
+        timeLimitSec: 1800,
+        starter: `! === R1 ===
+router bgp 65100
+`,
+        hints: [
+          { text: "R2 a DEUX lignes neighbor (203.0.113.1 remote-as 65100 et 203.0.113.6 remote-as 65300). eBGP re-annonce automatiquement les routes apprises d'un voisin vers l'autre.", cost: 55 },
+          { text: "📖 Correction complète :\n```\n! === R1 ===\nrouter bgp 65100\nneighbor 203.0.113.2 remote-as 65200\nnetwork 10.1.1.0 mask 255.255.255.0\n! === R2 ===\nrouter bgp 65200\nneighbor 203.0.113.1 remote-as 65100\nneighbor 203.0.113.6 remote-as 65300\n! === R3 ===\nrouter bgp 65300\nneighbor 203.0.113.5 remote-as 65200\nnetwork 10.3.3.0 mask 255.255.255.0\n```", cost: 120 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "R1 en AS 65100", pattern: "router\\s+bgp\\s+65100", flags: "i" },
+            { label: "R2 en AS 65200 (transit)", pattern: "router\\s+bgp\\s+65200", flags: "i" },
+            { label: "R2 : voisin vers R1", pattern: "neighbor\\s+203\\.0\\.113\\.1\\s+remote-as\\s+65100", flags: "i" },
+            { label: "R2 : voisin vers R3", pattern: "neighbor\\s+203\\.0\\.113\\.6\\s+remote-as\\s+65300", flags: "i" },
+            { label: "R1 annonce son LAN", pattern: "network\\s+10\\.1\\.1\\.0\\s+mask\\s+255\\.255\\.255\\.0", flags: "i" },
+            { label: "R3 annonce son LAN", pattern: "network\\s+10\\.3\\.3\\.0\\s+mask\\s+255\\.255\\.255\\.0", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction détaillée
+
+\`\`\`
+! === R1 ===
+router bgp 65100
+ neighbor 203.0.113.2 remote-as 65200
+ network 10.1.1.0 mask 255.255.255.0
+! === R2 ===  (transit : 2 voisins, rien à annoncer)
+router bgp 65200
+ neighbor 203.0.113.1 remote-as 65100
+ neighbor 203.0.113.6 remote-as 65300
+! === R3 ===
+router bgp 65300
+ neighbor 203.0.113.5 remote-as 65200
+ network 10.3.3.0 mask 255.255.255.0
+\`\`\`
+
+**Réponse à la question 4 :** sur R3, \`show ip bgp\` affichera \`10.1.1.0/24\` avec l'AS-PATH **\`65200 65100\`** — chaque AS traversé **préfixe** son numéro. C'est à la fois la **métrique** (chemin le plus court en nombre d'AS) et l'**anti-boucle** : si R1 voyait revenir une route contenant 65100 dans le PATH, il la rejetterait.
+
+**Ce que fait un AS de transit :** R2 apprend \`10.1.1.0/24\` de R1 et le **ré-annonce** à R3 (comportement par défaut d'eBGP entre voisins). Les opérateurs vendent exactement ce service — et le **filtrent** avec des route-maps pour ne pas devenir transit gratuit (souviens-toi des *route leaks* du cours !).
+
+**Vérification PT :** \`show ip bgp summary\` sur R2 (2 sessions Established), \`show ip bgp\` sur R3 (AS-PATH 65200 65100), ping LAN à LAN. 🎯`,
+        tags: ["tp", "bgp", "transit", "as-path", "architecture"],
       },
     ],
   },

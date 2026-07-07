@@ -312,28 +312,27 @@ Laquelle de ces adresses est une adresse **privée** (non routable sur Internet)
       },
       {
         id: "res-tp-flsm",
-        title: "TP — Deux LAN sur un routeur",
+        title: "Architecture 1 — Deux LAN sur un routeur",
         order: 7,
         difficulty: "medium",
         type: "code",
         language: "pseudo",
-        prompt: `## 🧪 TP 1 — Architecture : 1 routeur, 2 LAN (niveau : simple)
+        prompt: `## 🏗️ Architecture 1 (niveau : simple)
 
-\`\`\`
-   LAN A — 60 hôtes                LAN B — 60 hôtes
-   192.168.1.0/26                  192.168.1.64/26
-        │                               │
-     [ SW-A ]                        [ SW-B ]
-        │                               │
-        └── G0/0 ──── [ R1 ] ──── G0/1 ─┘
-\`\`\`
+**Topologie à monter dans Packet Tracer :**
 
-**Mission :** sur R1, configure :
-1. \`G0/0\` avec la **première adresse utilisable** du LAN A ;
-2. \`G0/1\` avec la **première adresse utilisable** du LAN B ;
-3. active les deux interfaces.
+| Équipement | Interface | Relié à | Réseau |
+|---|---|---|---|
+| R1 | G0/0 | SW-A (+ PC du LAN A) | \`192.168.1.0/26\` — 60 hôtes |
+| R1 | G0/1 | SW-B (+ PC du LAN B) | \`192.168.1.64/26\` — 60 hôtes |
 
-*(Rappelle-toi : un /26 = masque 255.255.255.192.)*`,
+**Questions :**
+
+1. Configurez l'adressage IPv4 de R1 : la **première adresse utilisable** de chaque sous-réseau sur l'interface correspondante *(rappel : /26 = 255.255.255.192)* ;
+2. Activez les deux interfaces ;
+3. Vérifiez qu'un PC du LAN A joint un PC du LAN B (\`ping\`).
+
+Écris toutes les commandes dans l'éditeur — la **correction détaillée** s'affiche après validation.`,
         points: 300,
         timeLimitSec: 900,
         starter: `! === R1 ===
@@ -362,6 +361,84 @@ interface g0/1
 \`\`\`
 
 Le /26 laisse 6 bits d'hôte → 62 utilisables par LAN (assez pour 60). LAN A va de .1 à .62 (broadcast .63), LAN B de .65 à .126 (broadcast .127). Les PC prendront R1 comme **passerelle** (.1 ou .65). Teste dans Packet Tracer : \`ping\` d'un PC du LAN A vers un PC du LAN B.`,
+        tags: ["tp", "flsm", "config", "cisco", "architecture"],
+      },
+      {
+        id: "res-tp-flsm-2",
+        title: "Architecture 2 — Quatre services, un /24",
+        order: 8,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏗️ Architecture 2 (niveau : intermédiaire)
+
+L'entreprise a 4 services de **25 postes** chacun. On découpe \`192.168.10.0/24\` en **FLSM** (4 sous-réseaux égaux).
+
+**Topologie à monter dans Packet Tracer :**
+
+| Équipement | Interface | Service | Sous-réseau attendu |
+|---|---|---|---|
+| R1 | G0/0 | Direction | \`192.168.10.0/27\` |
+| R1 | G0/1 | Ventes | \`192.168.10.32/27\` |
+| R1 | G0/2 | Technique | \`192.168.10.64/27\` |
+| R1 | G0/3 | Stock | \`192.168.10.96/27\` |
+
+**Questions :**
+
+1. Justifiez le /27 : combien d'hôtes offre-t-il ? *(2⁵−2 = 30 ≥ 25 ✓)* ;
+2. Configurez chaque interface de R1 avec la **première adresse utilisable** de son sous-réseau *(/27 = 255.255.255.224)* ;
+3. Activez les interfaces ;
+4. Donnez l'adresse de **broadcast** du sous-réseau Technique dans un commentaire \`! broadcast = …\`.`,
+        points: 400,
+        timeLimitSec: 1200,
+        starter: `! === R1 ===
+interface g0/0
+`,
+        hints: [
+          { text: "Premières utilisables : .1, .33, .65, .97 — toutes en 255.255.255.224. Broadcast du 64/27 = dernière adresse du bloc 64-95.", cost: 40 },
+          { text: "📖 Correction complète :\n```\ninterface g0/0\nip address 192.168.10.1 255.255.255.224\nno shutdown\ninterface g0/1\nip address 192.168.10.33 255.255.255.224\nno shutdown\ninterface g0/2\nip address 192.168.10.65 255.255.255.224\nno shutdown\ninterface g0/3\nip address 192.168.10.97 255.255.255.224\nno shutdown\n! broadcast = 192.168.10.95\n```", cost: 90 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "G0/0 : passerelle Direction (.1)", pattern: "ip\\s+address\\s+192\\.168\\.10\\.1\\s+255\\.255\\.255\\.224", flags: "i" },
+            { label: "G0/1 : passerelle Ventes (.33)", pattern: "ip\\s+address\\s+192\\.168\\.10\\.33\\s+255\\.255\\.255\\.224", flags: "i" },
+            { label: "G0/2 : passerelle Technique (.65)", pattern: "ip\\s+address\\s+192\\.168\\.10\\.65\\s+255\\.255\\.255\\.224", flags: "i" },
+            { label: "G0/3 : passerelle Stock (.97)", pattern: "ip\\s+address\\s+192\\.168\\.10\\.97\\s+255\\.255\\.255\\.224", flags: "i" },
+            { label: "Broadcast du sous-réseau Technique (192.168.10.95)", pattern: "192\\.168\\.10\\.95", flags: "i" },
+            { label: "Active les interfaces (no shutdown)", pattern: "no\\s+shut", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction détaillée
+
+**1) Choix du masque.** 25 postes → il faut 2ⁿ−2 ≥ 25 → n = 5 bits d'hôte → **/27** (255.255.255.224), 30 hôtes par sous-réseau. Un /24 contient exactement **8 blocs /27** — on en utilise 4.
+
+**2) Le découpage** (pas de 32 en 32) :
+
+| Sous-réseau | Plage utilisable | Broadcast |
+|---|---|---|
+| 192.168.10.0/27 | .1 → .30 | .31 |
+| 192.168.10.32/27 | .33 → .62 | .63 |
+| 192.168.10.64/27 | .65 → .94 | **.95** |
+| 192.168.10.96/27 | .97 → .126 | .127 |
+
+**3) Configuration :**
+\`\`\`
+interface g0/0
+ ip address 192.168.10.1 255.255.255.224
+ no shutdown
+interface g0/1
+ ip address 192.168.10.33 255.255.255.224
+ no shutdown
+interface g0/2
+ ip address 192.168.10.65 255.255.255.224
+ no shutdown
+interface g0/3
+ ip address 192.168.10.97 255.255.255.224
+ no shutdown
+\`\`\`
+
+**Vérification PT :** \`show ip interface brief\` (4 interfaces up/up), puis ping inter-services — chaque PC prend la \`.1/.33/.65/.97\` de son bloc comme passerelle.`,
         tags: ["tp", "flsm", "config", "cisco", "architecture"],
       },
     ],

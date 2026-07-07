@@ -294,32 +294,31 @@ L'**exclusion vient en premier** (mode global), **puis** le pool. Le \`default-r
       },
       {
         id: "res-tp-dhcp",
-        title: "TP FINAL — Réseau d'entreprise complet",
+        title: "Architecture 1 — VLAN + DHCP + relais",
         order: 6,
         difficulty: "hard",
         type: "code",
         language: "pseudo",
-        prompt: `## 🧪 TP 13 — LE GRAND FINAL : VLAN + DHCP + relais (niveau : expert)
+        prompt: `## 🏗️ Architecture 1 (niveau : expert)
 
-Le TP le plus complet du checkpoint — il combine **router-on-a-stick**, **serveur DHCP** et **relais DHCP** :
+Le TP le plus complet du module — il combine **router-on-a-stick**, **serveur DHCP** et **relais DHCP**.
 
-\`\`\`
-  VLAN 10 BUREAUX      VLAN 20 WIFI        VLAN 30 PROD
-  192.168.10.0/24      192.168.20.0/24     192.168.30.0/24
-  (DHCP sur R1)        (DHCP sur R1)       (DHCP sur serveur central !)
-       │                    │                    │
-       └────────────── [ SW1 ] ──────────────────┘
-                          │ trunk 802.1Q
-                        G0/0
-                       [ R1 ]─── … ───[ Serveur DHCP central ]
-                                          192.168.99.5
-\`\`\`
+**Topologie à monter dans Packet Tracer :**
 
-**Mission — tout sur R1 :**
-1. Trois **sous-interfaces** \`G0/0.10/.20/.30\` (dot1Q + passerelle \`.1\` de chaque VLAN), et active \`G0/0\` ;
-2. **Exclus** \`.1\` à \`.10\` des VLAN 10 et 20 ;
-3. Deux **pools** \`VLAN10\` et \`VLAN20\` : \`network\`, \`default-router\`, \`dns-server 8.8.8.8\` ;
-4. Le VLAN 30 est servi par le **serveur central** → configure le **relais** sur \`G0/0.30\`.`,
+| VLAN | Réseau | Qui distribue les adresses ? |
+|---|---|---|
+| 10 — BUREAUX | \`192.168.10.0/24\` | **R1** (pool local) |
+| 20 — WIFI | \`192.168.20.0/24\` | **R1** (pool local) |
+| 30 — PROD | \`192.168.30.0/24\` | **Serveur central** \`192.168.99.5\` (via relais !) |
+
+SW1 relie les 3 VLAN à R1 par un **trunk 802.1Q** sur G0/0.
+
+**Questions — tout sur R1 :**
+
+1. Créez les trois **sous-interfaces** \`G0/0.10/.20/.30\` (dot1Q + passerelle \`.1\` de chaque VLAN), et activez \`G0/0\` ;
+2. **Excluez** \`.1\` à \`.10\` des VLAN 10 et 20 ;
+3. Créez les deux **pools** \`VLAN10\` et \`VLAN20\` : \`network\`, \`default-router\`, \`dns-server 8.8.8.8\` ;
+4. Le VLAN 30 est servi par le **serveur central** → configurez le **relais** sur \`G0/0.30\`.`,
         points: 600,
         timeLimitSec: 1800,
         starter: `! === R1 ===
@@ -373,6 +372,79 @@ ip dhcp pool VLAN20
 
 Ce TP réunit tout : le **routage inter-VLAN** (sous-interfaces dot1Q), le **DHCP local** (R1 choisit le pool selon l'interface d'arrivée du Discover — c'est pour ça que chaque \`network\` doit correspondre au sous-réseau de la sous-interface), et le **relais** (le VLAN 30 n'a pas de pool local : son broadcast est relayé en unicast vers 192.168.99.5). C'est l'architecture réelle d'une PME. Vérifie : \`show ip dhcp binding\`, et sur un PC du VLAN 10 → \`ipconfig /renew\` doit ramener une IP entre .11 et .254, passerelle .1, DNS 8.8.8.8. 🏆`,
         tags: ["tp", "dhcp", "vlan", "relais", "config", "architecture"],
+      },
+      {
+        id: "res-tp-dhcp-2",
+        title: "Architecture 2 — Serveur DHCP centralisé multi-sites",
+        order: 7,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏗️ Architecture 2 (niveau : expert)
+
+Le scénario inverse de l'Architecture 1 : **UN routeur-serveur central** (R2) distribue les adresses d'un LAN **distant**, situé derrière un autre routeur. Le piège du \`default-router\` t'attend. 😈
+
+**Topologie à monter dans Packet Tracer :**
+
+| Élément | Réseau | Détail |
+|---|---|---|
+| LAN clients → R1 (G0/0) | \`192.168.50.0/24\` | passerelle R1 = \`.1\` — **aucun pool ici !** |
+| R1 (G0/1) ↔ R2 (G0/0) | \`10.0.0.0/30\` | R1 = \`.1\`, R2 = \`.2\` |
+| R2 | — | **serveur DHCP central** |
+
+**Questions :**
+
+1. Sur **R1** : configurez le **relais** sur l'interface du LAN clients, pointant vers R2 ;
+2. Sur **R2** : excluez \`192.168.50.1\` à \`192.168.50.9\`, puis créez le pool \`SITE50\` : \`network 192.168.50.0/24\`, \`default-router\`, \`dns-server 8.8.8.8\`, bail de 4 jours (\`lease 4\`) ;
+3. ⚠️ Le \`default-router\` doit être la passerelle **du LAN distant** (l'IP de R1 !), pas une adresse de R2 ;
+4. Sur **R2** : ajoutez la **route retour** vers \`192.168.50.0/24\` (sinon ses OFFER ne reviennent jamais).
+
+Blocs \`! === R1 ===\` et \`! === R2 ===\`.`,
+        points: 550,
+        timeLimitSec: 1800,
+        starter: `! === R1 ===
+interface g0/0
+`,
+        hints: [
+          { text: "R1 : ip helper-address 10.0.0.2 sur g0/0. R2 : le pool concerne un réseau qu'il ne porte PAS — default-router = 192.168.50.1 (l'IP de R1), + ip route 192.168.50.0 … 10.0.0.1.", cost: 55 },
+          { text: "📖 Correction complète :\n```\n! === R1 ===\ninterface g0/0\nip helper-address 10.0.0.2\n! === R2 ===\nip dhcp excluded-address 192.168.50.1 192.168.50.9\nip dhcp pool SITE50\nnetwork 192.168.50.0 255.255.255.0\ndefault-router 192.168.50.1\ndns-server 8.8.8.8\nlease 4\nip route 192.168.50.0 255.255.255.0 10.0.0.1\n```", cost: 120 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "Relais sur l'interface côté clients (R1)", pattern: "ip\\s+helper-address\\s+10\\.0\\.0\\.2", flags: "i" },
+            { label: "Exclusion des adresses réservées", pattern: "ip\\s+dhcp\\s+excluded-address\\s+192\\.168\\.50\\.1\\s+192\\.168\\.50\\.9", flags: "i" },
+            { label: "Pool SITE50 créé", pattern: "ip\\s+dhcp\\s+pool\\s+SITE50", flags: "i" },
+            { label: "Réseau distant distribué", pattern: "network\\s+192\\.168\\.50\\.0\\s+255\\.255\\.255\\.0", flags: "i" },
+            { label: "default-router = la passerelle DU LAN DISTANT (R1)", pattern: "default-router\\s+192\\.168\\.50\\.1", flags: "i" },
+            { label: "Bail de 4 jours", pattern: "lease\\s+4", flags: "i" },
+            { label: "Route retour vers le LAN clients", pattern: "ip\\s+route\\s+192\\.168\\.50\\.0\\s+255\\.255\\.255\\.0\\s+10\\.0\\.0\\.1", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction détaillée
+
+\`\`\`
+! === R1 ===  (côté clients : JUSTE le relais)
+interface g0/0
+ ip helper-address 10.0.0.2            ! broadcast Discover → unicast vers R2
+! === R2 ===  (le serveur central)
+ip dhcp excluded-address 192.168.50.1 192.168.50.9
+ip dhcp pool SITE50
+ network 192.168.50.0 255.255.255.0    ! un réseau que R2 ne porte PAS lui-même !
+ default-router 192.168.50.1           ! ⚠️ la passerelle du LAN DISTANT = R1
+ dns-server 8.8.8.8
+ lease 4
+ip route 192.168.50.0 255.255.255.0 10.0.0.1   ! route RETOUR indispensable
+\`\`\`
+
+**Comment R2 choisit-il le bon pool ?** Le relais R1 remplit le champ **giaddr** (*gateway address*) du paquet DHCP avec l'IP de l'interface réceptrice (192.168.50.1). R2 compare ce giaddr à ses pools → il pioche dans \`SITE50\`. C'est ce mécanisme qui permet à **un seul serveur** de servir 50 sites.
+
+**Les deux pièges du TP :**
+- \`default-router\` : les clients sont sur le site distant — leur passerelle est **R1** (192.168.50.1), pas R2. Mettre une IP de R2 = clients avec passerelle injoignable.
+- La **route retour** : sans \`ip route 192.168.50.0 …\`, R2 fabrique l'OFFER… mais ne sait pas où renvoyer le paquet. Symptôme classique : « le serveur reçoit les Discover mais les PC n'ont jamais d'adresse ».
+
+**Vérification PT :** \`show ip dhcp binding\` sur R2 (les baux du site distant y apparaissent), \`ipconfig /renew\` sur un PC → IP entre .10 et .254, passerelle .1. 🎯`,
+        tags: ["tp", "dhcp", "relais", "giaddr", "architecture"],
       },
     ],
   },

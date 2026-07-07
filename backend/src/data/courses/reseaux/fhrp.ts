@@ -237,29 +237,28 @@ Le \`1\` est le **numéro de groupe** HSRP (identique sur R1 et R2). Priorité *
       },
       {
         id: "res-tp-fhrp",
-        title: "TP — Passerelle redondante HSRP",
+        title: "Architecture 1 — Passerelle redondante HSRP",
         order: 6,
         difficulty: "hard",
         type: "code",
         language: "pseudo",
-        prompt: `## 🧪 TP 8 — Architecture : passerelle haute dispo (niveau : avancé)
+        prompt: `## 🏗️ Architecture 1 (niveau : avancé)
 
-\`\`\`
-                      Internet
-                     /        \\
-                [ R1 ]        [ R2 ]
-             G0/0 .2 │          │ .3 G0/0
-                     └──[ SW ]──┘
-                          │
-                   LAN 192.168.1.0/24
-              Passerelle des PC : 192.168.1.254 (VIRTUELLE)
-\`\`\`
+**Topologie à monter dans Packet Tracer :**
 
-**Mission :** configure **HSRP groupe 1** pour que les PC ne perdent jamais leur passerelle :
-1. **R1** : IP réelle \`.2\`, IP virtuelle \`.254\`, **priorité 110**, **preempt** (R1 = Active) ;
-2. **R2** : IP réelle \`.3\`, même IP virtuelle (R2 = Standby, priorité par défaut).
+| Équipement | Interface | IP réelle | Rôle |
+|---|---|---|---|
+| R1 | G0/0 → SW | \`192.168.1.2/24\` | passerelle **Active** (les 2 routeurs sortent vers Internet) |
+| R2 | G0/0 → SW | \`192.168.1.3/24\` | passerelle **Standby** |
+| PC du LAN | → SW | DHCP/statique | passerelle configurée : **192.168.1.254** (virtuelle !) |
 
-Préfixe les blocs par \`! === R1 ===\` et \`! === R2 ===\`.`,
+**Questions :**
+
+1. Sur **R1** : IP réelle \`.2\`, puis **HSRP groupe 1** : IP virtuelle \`.254\`, **priorité 110**, **preempt** ;
+2. Sur **R2** : IP réelle \`.3\`, même groupe, même IP virtuelle (priorité par défaut = 100) ;
+3. Test : lancez un ping continu depuis un PC, éteignez R1 → le ping doit reprendre tout seul (~10 s).
+
+Blocs \`! === R1 ===\` et \`! === R2 ===\`.`,
         points: 450,
         timeLimitSec: 1200,
         starter: `! === R1 ===
@@ -296,6 +295,76 @@ interface g0/0
 
 Les PC pointent vers **192.168.1.254** — une adresse qui n'appartient à **aucun** routeur physiquement. R1 (Active) répond ; s'il tombe, R2 (Standby) reprend l'IP **et** la MAC virtuelle en ~10 s : **aucun PC à reconfigurer**. Le \`preempt\` fait que R1 redevient Active à son retour. Teste dans Packet Tracer : ping continu depuis un PC, éteins R1… le ping reprend tout seul !`,
         tags: ["tp", "fhrp", "hsrp", "config", "architecture"],
+      },
+      {
+        id: "res-tp-fhrp-2",
+        title: "Architecture 2 — HSRP à deux groupes (partage de charge)",
+        order: 7,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏗️ Architecture 2 (niveau : avancé+)
+
+Avec un seul groupe HSRP, R2 reste les bras croisés tant que R1 vit. Ici on fait travailler **les deux** : deux VLAN, deux groupes HSRP **croisés**.
+
+**Topologie à monter dans Packet Tracer :**
+
+| VLAN | Réseau | IP virtuelle | Actif voulu | Standby |
+|---|---|---|---|---|
+| 10 | \`192.168.10.0/24\` | \`.254\` | **R1** (priorité 110) | R2 |
+| 20 | \`192.168.20.0/24\` | \`.254\` | **R2** (priorité 110) | R1 |
+
+R1 et R2 portent chacun une sous-interface (ou SVI) dans chaque VLAN : R1 = \`.2\`, R2 = \`.3\`.
+
+**Questions :**
+
+1. Sur **R1**, VLAN 10 : \`standby 10 ip 192.168.10.254\` + **priorité 110** + preempt ; VLAN 20 : \`standby 20 ip 192.168.20.254\` (priorité par défaut) ;
+2. Sur **R2** : le **miroir** — priorité 110 + preempt sur le groupe **20**, défaut sur le groupe 10 ;
+3. Question : qu'a-t-on gagné par rapport à un seul groupe ? *(réponse dans la correction)*
+
+Blocs \`! === R1 ===\` et \`! === R2 ===\`.`,
+        points: 500,
+        timeLimitSec: 1500,
+        starter: `! === R1 ===
+interface g0/0.10
+`,
+        hints: [
+          { text: "Le numéro de groupe change par VLAN (standby 10 …, standby 20 …). La priorité 110 va sur R1 pour le groupe 10, sur R2 pour le groupe 20.", cost: 50 },
+          { text: "📖 Correction complète :\n```\n! === R1 ===\ninterface g0/0.10\nstandby 10 ip 192.168.10.254\nstandby 10 priority 110\nstandby 10 preempt\ninterface g0/0.20\nstandby 20 ip 192.168.20.254\n! === R2 ===\ninterface g0/0.10\nstandby 10 ip 192.168.10.254\ninterface g0/0.20\nstandby 20 ip 192.168.20.254\nstandby 20 priority 110\nstandby 20 preempt\n```", cost: 110 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "Groupe 10 : IP virtuelle du VLAN 10", pattern: "standby\\s+10\\s+ip\\s+192\\.168\\.10\\.254", flags: "i" },
+            { label: "Priorité 110 sur le groupe 10 (R1)", pattern: "standby\\s+10\\s+priority\\s+110", flags: "i" },
+            { label: "Groupe 20 : IP virtuelle du VLAN 20", pattern: "standby\\s+20\\s+ip\\s+192\\.168\\.20\\.254", flags: "i" },
+            { label: "Priorité 110 sur le groupe 20 (R2)", pattern: "standby\\s+20\\s+priority\\s+110", flags: "i" },
+            { label: "Preempt configuré", pattern: "standby\\s+\\d+\\s+preempt", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction détaillée
+
+\`\`\`
+! === R1 ===
+interface g0/0.10
+ standby 10 ip 192.168.10.254
+ standby 10 priority 110       ! R1 Actif pour le VLAN 10
+ standby 10 preempt
+interface g0/0.20
+ standby 20 ip 192.168.20.254  ! priorité 100 : Standby pour le VLAN 20
+! === R2 ===
+interface g0/0.10
+ standby 10 ip 192.168.10.254  ! Standby pour le VLAN 10
+interface g0/0.20
+ standby 20 ip 192.168.20.254
+ standby 20 priority 110       ! R2 Actif pour le VLAN 20
+ standby 20 preempt
+\`\`\`
+
+**Réponse à la question 3 :** avec un seul groupe, R2 est un routeur **payé à ne rien faire** (Standby pur). En croisant deux groupes, le trafic du VLAN 10 sort par R1 **pendant que** celui du VLAN 20 sort par R2 → **partage de charge** ET redondance : si l'un meurt, l'autre reprend **les deux** groupes. (C'est exactement le service que GLBP rend automatiquement — HSRP le fait « à la main » par ce croisement.)
+
+**Vérification PT :** \`show standby brief\` sur chaque routeur : R1 doit être *Active* pour le groupe 10 / *Standby* pour le 20, et R2 l'inverse. Éteins R2 → R1 devient Active partout. 🎯`,
+        tags: ["tp", "hsrp", "load-sharing", "config", "architecture"],
       },
     ],
   },
