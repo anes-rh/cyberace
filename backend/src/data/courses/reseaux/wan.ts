@@ -22,6 +22,14 @@ export const wan: CourseSeed[] = [
       "Comparer les encapsulations série HDLC et PPP",
       "Expliquer PPP (LCP, NCP) et son authentification PAP vs CHAP",
     ],
+    resources: [
+      {
+        label: "Architecture 1 — topologie de départ (.pka)",
+        url: "/pka/res-wan-architecture-1.pka",
+        kind: "pkt-start",
+        note: "À ouvrir dans Cisco Packet Tracer : R1 et R2 reliés par une liaison série, non configurés. Applique la configuration de l'Architecture 1 (encapsulation PPP, CHAP, adressage /30, clock rate côté DCE).",
+      },
+    ],
     lesson: `# 🛰️ Technologies WAN & PPP — le Long Haul
 
 Un **LAN** couvre un bâtiment. Mais comment relier le **siège à Paris** et l'**agence à Alger** ? On ne tire pas son propre câble sur 1 500 km : on loue les services d'un **opérateur** (fournisseur d'accès). Bienvenue dans le monde du **WAN**. 🏎️

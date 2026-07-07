@@ -38,3 +38,4 @@ graphify-out/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+scripts/pka/__pycache__/
