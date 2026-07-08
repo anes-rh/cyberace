@@ -5,7 +5,7 @@ export type Difficulty = "easy" | "medium" | "hard" | "insane";
 export type ChallengeType = "text" | "mcq" | "multi" | "numeric" | "order" | "code";
 
 /** Language of a `code` challenge editor. */
-export type CodeLanguage = "pseudo" | "c" | "bash";
+export type CodeLanguage = "pseudo" | "c" | "bash" | "sql";
 
 /**
  * Canonical grading payload for `code` challenges, stored as a JSON string in

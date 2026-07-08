@@ -31,6 +31,17 @@ const BASH_KEYWORDS = [
   "sudo", "apt", "test",
 ];
 
+const SQL_KEYWORDS = [
+  "SELECT", "FROM", "WHERE", "INSERT", "INTO", "VALUES", "UPDATE", "SET", "DELETE",
+  "CREATE", "TABLE", "ALTER", "DROP", "ADD", "MODIFY", "RENAME", "TRUNCATE", "VIEW", "INDEX",
+  "PRIMARY", "KEY", "FOREIGN", "REFERENCES", "CHECK", "NOT", "NULL", "UNIQUE", "DEFAULT", "CONSTRAINT",
+  "AND", "OR", "IN", "BETWEEN", "LIKE", "IS", "AS", "DISTINCT", "ORDER", "BY", "ASC", "DESC",
+  "GROUP", "HAVING", "JOIN", "INNER", "LEFT", "RIGHT", "FULL", "OUTER", "ON", "UNION", "MINUS", "INTERSECT",
+  "COUNT", "SUM", "AVG", "MIN", "MAX", "GRANT", "REVOKE", "TO", "COMMIT", "ROLLBACK", "SAVEPOINT",
+  "NUMBER", "VARCHAR2", "VARCHAR", "CHAR", "DATE", "INTEGER", "DECIMAL", "TIMESTAMP",
+  "CASCADE", "EXISTS", "ALL", "ANY", "CASE", "WHEN", "THEN", "ELSE", "END",
+];
+
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -52,6 +63,9 @@ function highlight(code: string, language: CodeLanguage): string {
     html = html.replace(/(^|\s)(#[^\n]*)/g, '$1<span class="tok-com">$2</span>');
     // $VAR / ${VAR} / $1 highlighted as variables (reuse the arrow token colour)
     html = html.replace(/(\$\{?\w+\}?)/g, '<span class="tok-arrow">$1</span>');
+  } else if (language === "sql") {
+    html = html.replace(/(--[^\n]*)/g, '<span class="tok-com">$1</span>');
+    html = html.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="tok-com">$1</span>');
   } else {
     html = html.replace(/(\{[^{}\n]*\})/g, '<span class="tok-com">$1</span>');
     html = html.replace(/(\/\/[^\n]*)/g, '<span class="tok-com">$1</span>');
@@ -61,14 +75,18 @@ function highlight(code: string, language: CodeLanguage): string {
   html = html.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tok-num">$1</span>');
 
   // keywords (word-boundary, accent-aware manual list)
-  const kws = language === "c" ? C_KEYWORDS : language === "bash" ? BASH_KEYWORDS : PSEUDO_KEYWORDS;
+  const kws =
+    language === "c" ? C_KEYWORDS
+    : language === "bash" ? BASH_KEYWORDS
+    : language === "sql" ? SQL_KEYWORDS
+    : PSEUDO_KEYWORDS;
   const escaped = kws
     .slice()
     .sort((a, b) => b.length - a.length)
     .map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
     .join("|");
   html = html.replace(
-    new RegExp(`(?<![\\w&;])(${escaped})(?![\\w])`, "g"),
+    new RegExp(`(?<![\\w&;])(${escaped})(?![\\w])`, language === "sql" ? "gi" : "g"),
     '<span class="tok-kw">$1</span>'
   );
 
@@ -143,14 +161,19 @@ export function CodeEditor({
           readOnly={readOnly}
           rows={lines}
           aria-label={
-            language === "c" ? "Éditeur de code C" : language === "bash" ? "Éditeur de commandes / script bash" : "Éditeur de pseudo-code"
+            language === "c" ? "Éditeur de code C"
+            : language === "bash" ? "Éditeur de commandes / script bash"
+            : language === "sql" ? "Éditeur de requêtes SQL"
+            : "Éditeur de pseudo-code"
           }
           placeholder={
             language === "c"
               ? "// Écris ton programme C ici…"
               : language === "bash"
                 ? "#!/bin/bash\n# Écris ta commande ou ton script ici…"
-                : "Algorithme MonAlgo\nVar …\nDebut\n  …\nFin"
+                : language === "sql"
+                  ? "-- Écris ta requête SQL ici\nSELECT ..."
+                  : "Algorithme MonAlgo\nVar …\nDebut\n  …\nFin"
           }
         />
       </div>

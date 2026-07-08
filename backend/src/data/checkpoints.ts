@@ -33,11 +33,12 @@ export const allCheckpoints: CheckpointSeed[] = [
     slug: "base-de-donnees",
     title: "Base de données",
     order: 3,
-    status: "empty",
+    status: "active",
     icon: "Database",
     accent: "#93B896",
-    description: "Modélisation, SQL, transactions, indexation et intégrité.",
-    tagline: "Bientôt disponible",
+    description:
+      "Cap sur le SQL pratique : du modèle entité-association à la normalisation, puis on écrit et on exécute du vrai SQL (DDL, DML, SELECT/jointures/sous-requêtes/agrégations, vues, index) sur un schéma filé d'atelier mécanique. Plus l'administration Oracle (tablespaces, privilèges, dictionnaire de données) et, en approfondissement, transactions ACID, optimisation et bases distribuées.",
+    tagline: "SQL & SGBD — L2 → M1",
   },
   {
     slug: "reseaux",

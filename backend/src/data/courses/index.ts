@@ -48,6 +48,8 @@ import { synchronisation } from "./systeme/synchronisation";
 import { ipc } from "./systeme/ipc";
 import { memoire } from "./systeme/memoire";
 import { fichiers } from "./systeme/fichiers";
+import { intro as bddIntro } from "./bdd/intro";
+import { tp0Oracle } from "./bdd/tp0Oracle";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -96,11 +98,18 @@ export const systemeCourses: CourseSeed[] = [
   ...fichiers,
 ];
 
+/** Courses of the "Base de données" checkpoint (SQL pratique · Oracle). */
+export const bddCourses: CourseSeed[] = [
+  ...bddIntro,
+  ...tp0Oracle,
+];
+
 /** Every course, in display order. */
 export const allCourses: CourseSeed[] = [
   ...algoCourses,
   ...reseauxCourses,
   ...systemeCourses,
+  ...bddCourses,
   crypto,
   accessControl,
   activeDirectory,

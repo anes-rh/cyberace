@@ -1,6 +1,6 @@
 export type Difficulty = "easy" | "medium" | "hard" | "insane";
 export type ChallengeType = "text" | "mcq" | "multi" | "numeric" | "order" | "code";
-export type CodeLanguage = "pseudo" | "c" | "bash";
+export type CodeLanguage = "pseudo" | "c" | "bash" | "sql";
 export type CheckpointStatus = "empty" | "active";
 
 export interface CheckpointSummary {
