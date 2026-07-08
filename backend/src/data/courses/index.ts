@@ -44,6 +44,8 @@ import { terminal } from "./systeme/terminal";
 import { bash } from "./systeme/bash";
 import { processus } from "./systeme/processus";
 import { ordonnancement } from "./systeme/ordonnancement";
+import { synchronisation } from "./systeme/synchronisation";
+import { ipc } from "./systeme/ipc";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -86,6 +88,8 @@ export const systemeCourses: CourseSeed[] = [
   ...bash,
   ...processus,
   ...ordonnancement,
+  ...synchronisation,
+  ...ipc,
 ];
 
 /** Every course, in display order. */
