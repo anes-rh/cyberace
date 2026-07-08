@@ -50,6 +50,8 @@ import { memoire } from "./systeme/memoire";
 import { fichiers } from "./systeme/fichiers";
 import { intro as bddIntro } from "./bdd/intro";
 import { tp0Oracle } from "./bdd/tp0Oracle";
+import { modelisation } from "./bdd/modelisation";
+import { ddl } from "./bdd/ddl";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -102,6 +104,8 @@ export const systemeCourses: CourseSeed[] = [
 export const bddCourses: CourseSeed[] = [
   ...bddIntro,
   ...tp0Oracle,
+  ...modelisation,
+  ...ddl,
 ];
 
 /** Every course, in display order. */
