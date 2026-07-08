@@ -54,6 +54,8 @@ import { modelisation } from "./bdd/modelisation";
 import { ddl } from "./bdd/ddl";
 import { dml } from "./bdd/dml";
 import { dql } from "./bdd/dql";
+import { sqlAvance } from "./bdd/sqlAvance";
+import { oracleAdmin } from "./bdd/oracleAdmin";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -110,6 +112,8 @@ export const bddCourses: CourseSeed[] = [
   ...ddl,
   ...dml,
   ...dql,
+  ...sqlAvance,
+  ...oracleAdmin,
 ];
 
 /** Every course, in display order. */
