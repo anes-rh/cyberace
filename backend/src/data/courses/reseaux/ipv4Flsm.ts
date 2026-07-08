@@ -441,6 +441,67 @@ interface g0/3
 **Vérification PT :** \`show ip interface brief\` (4 interfaces up/up), puis ping inter-services — chaque PC prend la \`.1/.33/.65/.97\` de son bloc comme passerelle.`,
         tags: ["tp", "flsm", "config", "cisco", "architecture"],
       },
+      {
+        id: "res-lab-flsm-complet",
+        title: "🏁 LAB COMPLET — Découpage FLSM, ping entre tous les LAN",
+        order: 9,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏁 Lab guidé complet (sur un seul routeur)
+
+Un routeur **R1** dessert **4 services de 25 postes**. On découpe \`192.168.10.0/24\` en **FLSM** (4 sous-réseaux égaux). On simule chaque LAN par une **boucle locale** (\`Loopback0-3\`). Objectif : adressage correct, et **le ping doit passer entre les 4 LAN** (R1 les relie tous).
+
+**Découpage attendu (/27 = 255.255.255.224) :**
+
+| LAN | Boucle | Sous-réseau | 1re utilisable |
+|---|---|---|---|
+| Direction | Loopback0 | \`192.168.10.0/27\` | .1 |
+| Ventes | Loopback1 | \`192.168.10.32/27\` | .33 |
+| Technique | Loopback2 | \`192.168.10.64/27\` | .65 |
+| Stock | Loopback3 | \`192.168.10.96/27\` | .97 |
+
+**Instructions :** crée les 4 boucles, chacune avec la **1re adresse utilisable** de son sous-réseau, masque **/27**. (Sur un seul routeur, les 4 réseaux sont **directement connectés** → aucun routage à ajouter.)
+
+Écris la config **complète de R1** (les 4 boucles). La correction + la **matrice de ping** s'affiche après validation.`,
+        points: 500,
+        timeLimitSec: 1500,
+        starter: `! === R1 ===
+interface Loopback0
+`,
+        hints: [
+          { text: "Premières utilisables : .1, .33, .65, .97 — toutes en /27 (255.255.255.224).", cost: 50 },
+          { text: "📖 Correction :\n```\ninterface Loopback0\n ip address 192.168.10.1 255.255.255.224\ninterface Loopback1\n ip address 192.168.10.33 255.255.255.224\ninterface Loopback2\n ip address 192.168.10.65 255.255.255.224\ninterface Loopback3\n ip address 192.168.10.97 255.255.255.224\n```", cost: 120 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "LAN Direction (.1/27)", pattern: "ip\\s+address\\s+192\\.168\\.10\\.1\\s+255\\.255\\.255\\.224", flags: "i" },
+            { label: "LAN Ventes (.33/27)", pattern: "ip\\s+address\\s+192\\.168\\.10\\.33\\s+255\\.255\\.255\\.224", flags: "i" },
+            { label: "LAN Technique (.65/27)", pattern: "ip\\s+address\\s+192\\.168\\.10\\.65\\s+255\\.255\\.255\\.224", flags: "i" },
+            { label: "LAN Stock (.97/27)", pattern: "ip\\s+address\\s+192\\.168\\.10\\.97\\s+255\\.255\\.255\\.224", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction complète + vérification
+
+\`\`\`
+interface Loopback0
+ ip address 192.168.10.1 255.255.255.224    ! Direction  0–31
+interface Loopback1
+ ip address 192.168.10.33 255.255.255.224   ! Ventes     32–63
+interface Loopback2
+ ip address 192.168.10.65 255.255.255.224   ! Technique  64–95
+interface Loopback3
+ ip address 192.168.10.97 255.255.255.224   ! Stock      96–127
+\`\`\`
+
+25 postes → 2ⁿ−2 ≥ 25 → **/27** (30 hôtes). Le /24 tient exactement **8 blocs /27** ; on en utilise 4, il en reste 4 pour l'avenir.
+
+### 🎯 Comment savoir que TOUT est bon : la matrice de ping
+
+Depuis R1, \`ping\` chaque LAN : \`192.168.10.1\`, \`.33\`, \`.65\`, \`.97\` → **tout répond**. \`show ip route connected\` doit montrer les **4 sous-réseaux /27 distincts** (C). Si deux masques se chevauchent (mauvais /27), un réseau « avale » l'autre et un ping échoue — c'est le signal d'une erreur de découpage. 🏆`,
+        tags: ["lab", "flsm", "subnetting", "ping", "verification", "architecture"],
+      },
     ],
   },
 ];

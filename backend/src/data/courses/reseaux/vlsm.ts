@@ -391,6 +391,63 @@ interface g0/1
 Le **/30** est la taille parfaite d'un lien point-à-point : 2 adresses utilisables, zéro gaspillage — en FLSM il aurait fallu lui donner un /26 entier (62 adresses pour 2 !). Note : sans routes (statiques ou IGP), le LAN C reste injoignable depuis A/B — c'est l'objet du chapitre suivant. 😉`,
         tags: ["tp", "vlsm", "config", "cisco", "architecture"],
       },
+      {
+        id: "res-lab-vlsm-complet",
+        title: "🏁 LAB COMPLET — Découpage VLSM, ping entre tous les LAN",
+        order: 8,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏁 Lab guidé complet (sur un seul routeur)
+
+Un routeur **R1** dessert **3 LAN de tailles différentes** (100, 40, 10 hôtes). On découpe \`172.16.0.0/24\` en **VLSM** (du plus grand au plus petit). On simule chaque LAN par une **boucle locale**. Objectif : adressage VLSM correct, et **le ping doit passer entre les 3 LAN**.
+
+**Découpage attendu (VLSM) :**
+
+| LAN | Besoin | Boucle | Sous-réseau | 1re utilisable |
+|---|---|---|---|---|
+| A | 100 | Loopback0 | \`172.16.0.0/25\` | .1 |
+| B | 40 | Loopback1 | \`172.16.0.128/26\` | .129 |
+| C | 10 | Loopback2 | \`172.16.0.192/28\` | .193 |
+
+**Instructions :** crée les 3 boucles, chacune avec la **1re adresse utilisable** de son sous-réseau et le **bon masque** (/25, /26, /28).
+
+Écris la config **complète de R1** (les 3 boucles). La correction + la **matrice de ping** s'affiche après validation.`,
+        points: 500,
+        timeLimitSec: 1500,
+        starter: `! === R1 ===
+interface Loopback0
+`,
+        hints: [
+          { text: "/25 = 255.255.255.128 ; /26 = .192 ; /28 = .240. Premières utilisables : .1, .129, .193.", cost: 50 },
+          { text: "📖 Correction :\n```\ninterface Loopback0\n ip address 172.16.0.1 255.255.255.128\ninterface Loopback1\n ip address 172.16.0.129 255.255.255.192\ninterface Loopback2\n ip address 172.16.0.193 255.255.255.240\n```", cost: 120 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "LAN A (.1 /25, 100 hôtes)", pattern: "ip\\s+address\\s+172\\.16\\.0\\.1\\s+255\\.255\\.255\\.128", flags: "i" },
+            { label: "LAN B (.129 /26, 40 hôtes)", pattern: "ip\\s+address\\s+172\\.16\\.0\\.129\\s+255\\.255\\.255\\.192", flags: "i" },
+            { label: "LAN C (.193 /28, 10 hôtes)", pattern: "ip\\s+address\\s+172\\.16\\.0\\.193\\s+255\\.255\\.255\\.240", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction complète + vérification
+
+\`\`\`
+interface Loopback0
+ ip address 172.16.0.1 255.255.255.128     ! LAN A /25 → 126 hôtes (0–127)
+interface Loopback1
+ ip address 172.16.0.129 255.255.255.192   ! LAN B /26 → 62 hôtes (128–191)
+interface Loopback2
+ ip address 172.16.0.193 255.255.255.240   ! LAN C /28 → 14 hôtes (192–207)
+\`\`\`
+
+Règle d'or VLSM : **du plus grand au plus petit**. On loge 3 réseaux inégaux dans un seul /24, sans gaspillage (en FLSM il aurait fallu trois /25 → impossible).
+
+### 🎯 Comment savoir que TOUT est bon : la matrice de ping
+
+Depuis R1, \`ping\` chaque LAN : \`172.16.0.1\`, \`.129\`, \`.193\` → **tout répond**. \`show ip route connected\` doit montrer **/25, /26 et /28** distincts, sans chevauchement. Si un masque est trop large, deux réseaux se recouvrent et un ping échoue — signal d'une erreur VLSM. 🏆`,
+        tags: ["lab", "vlsm", "subnetting", "ping", "verification", "architecture"],
+      },
     ],
   },
 ];
