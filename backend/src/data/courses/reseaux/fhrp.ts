@@ -374,6 +374,75 @@ interface g0/0.20
 **Vérification PT :** \`show standby brief\` sur chaque routeur : R1 doit être *Active* pour le groupe 10 / *Standby* pour le 20, et R2 l'inverse. Éteins R2 → R1 devient Active partout. 🎯`,
         tags: ["tp", "hsrp", "load-sharing", "config", "architecture"],
       },
+      {
+        id: "res-lab-fhrp-complet",
+        title: "🏁 LAB COMPLET — HSRP redondant, ping qui survit à la panne",
+        order: 8,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏁 Lab guidé complet (fichier : « topologie de départ » du module)
+
+Ouvre le **.pka de départ** (sous le cours) : **R1 et R2 (passerelles redondantes)** vers **SW1/SW2**, avec des **PC**. Objectif : une **passerelle virtuelle** partagée, et **le ping ne doit JAMAIS s'arrêter, même quand on éteint R1**.
+
+**Plan imposé :** LAN \`192.168.1.0/24\`. R1 = \`.2\`, R2 = \`.3\`, **passerelle virtuelle HSRP = \`.254\`**. R1 doit être **Active**.
+
+**Instructions — dans Packet Tracer :**
+
+1. **R1** : \`G0/0\` = \`192.168.1.2/24\`, puis **HSRP groupe 1** : \`standby 1 ip 192.168.1.254\`, \`standby 1 priority 110\`, \`standby 1 preempt\`. \`no shutdown\`.
+2. **R2** : \`G0/0\` = \`192.168.1.3/24\`, même groupe : \`standby 1 ip 192.168.1.254\` (priorité par défaut 100 → Standby). \`no shutdown\`.
+3. **Chaque PC** : IP dans le LAN, **passerelle = 192.168.1.254** (la virtuelle, pas .2 ni .3 !).
+
+Écris ci-dessous la config **complète de R1** (IP réelle + HSRP). La correction (R1 + R2) + le **test de bascule** s'affiche après validation.`,
+        points: 700,
+        timeLimitSec: 2400,
+        starter: `! === R1 (Active) ===
+interface g0/0
+`,
+        hints: [
+          { text: "R1 : ip address .2, standby 1 ip 192.168.1.254, standby 1 priority 110, standby 1 preempt.", cost: 60 },
+          { text: "📖 Correction R1 :\n```\ninterface g0/0\n ip address 192.168.1.2 255.255.255.0\n standby 1 ip 192.168.1.254\n standby 1 priority 110\n standby 1 preempt\n no shutdown\n```", cost: 140 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "IP réelle de R1 (.2)", pattern: "ip\\s+address\\s+192\\.168\\.1\\.2\\s+255\\.255\\.255\\.0", flags: "i" },
+            { label: "IP virtuelle HSRP (.254)", pattern: "standby\\s+1\\s+ip\\s+192\\.168\\.1\\.254", flags: "i" },
+            { label: "Priorité 110 (R1 Active)", pattern: "standby\\s+1\\s+priority\\s+110", flags: "i" },
+            { label: "Preempt", pattern: "standby\\s+1\\s+preempt", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction complète + vérification
+
+\`\`\`
+! === R1 (Active) ===
+interface g0/0
+ ip address 192.168.1.2 255.255.255.0
+ standby 1 ip 192.168.1.254
+ standby 1 priority 110
+ standby 1 preempt
+ no shutdown
+! === R2 (Standby) ===
+interface g0/0
+ ip address 192.168.1.3 255.255.255.0
+ standby 1 ip 192.168.1.254     ! MÊME groupe, MÊME IP virtuelle
+ no shutdown
+\`\`\`
+
+Les PC pointent tous vers **192.168.1.254**, une adresse qui n'appartient physiquement à **aucun** routeur.
+
+### 🎯 Comment savoir que TOUT est bon : le test de bascule
+
+1. \`show standby brief\` → R1 = **Active**, R2 = **Standby** (IP virtuelle .254). ✅
+2. Sur un PC : \`ping -t 192.168.1.254\` (ping **continu**). ✅ répond.
+3. **Éteins R1** (ou débranche-le). Le ping se coupe **~10 s** puis **reprend tout seul** (R2 devient Active). 🏆 C'est LA preuve que la redondance marche.
+4. Rallume R1 → grâce à \`preempt\`, il **reprend** le rôle Active.
+
+Si le ping reprend seul après la panne de R1, la haute dispo est fonctionnelle.
+
+**Si la bascule ne marche pas :** même **numéro de groupe** (1) et même **IP virtuelle** des deux côtés ? Passerelle des PC = **.254** (pas .2/.3) ? \`preempt\` présent sur R1 ?`,
+        tags: ["lab", "fhrp", "hsrp", "ping", "verification", "architecture"],
+      },
     ],
   },
 ];

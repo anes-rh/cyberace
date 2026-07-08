@@ -437,6 +437,88 @@ ip routing                               ! le switch devient routeur !
 **Vérification PT :** \`show ip route\` sur le switch (2 réseaux **C**onnectés), \`show interface vlan 10\` (up/up), ping inter-VLAN. 🎯`,
         tags: ["tp", "vlan", "svi", "switch-l3", "architecture"],
       },
+      {
+        id: "res-lab-vlan-complet",
+        title: "🏁 LAB COMPLET — VLAN + inter-VLAN, ping de bout en bout",
+        order: 8,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏁 Lab guidé complet (fichier : « topologie de départ » du module)
+
+Ouvre le **.pka de départ** (sous le cours) : **R1 relié à un switch SW1** avec plusieurs **PC**, non configurés. Objectif : deux VLAN étanches, un routage inter-VLAN (router-on-a-stick), et **le ping doit passer entre TOUS les PC** — y compris entre VLAN différents.
+
+**Plan imposé :**
+
+| VLAN | Réseau | Passerelle (sous-interface R1) | PC |
+|---|---|---|---|
+| 10 « VENTES » | \`192.168.10.0/24\` | \`192.168.10.1\` | PC0, PC1 |
+| 20 « COMPTA » | \`192.168.20.0/24\` | \`192.168.20.1\` | PC2, PC3 |
+
+**Instructions — dans Packet Tracer :**
+
+1. **SW1** : crée \`vlan 10\` (VENTES) et \`vlan 20\` (COMPTA). Mets les ports des PC en **accès** dans le bon VLAN. Passe le port relié à **R1 en trunk** (\`switchport mode trunk\`).
+2. **R1** : crée les **sous-interfaces** \`G0/0.10\` et \`G0/0.20\` — \`encapsulation dot1Q 10/20\` **avant** l'IP, puis \`ip address\` = la passerelle .1 de chaque VLAN. \`no shutdown\` sur **G0/0** (la physique).
+3. **Chaque PC** : IP dans son VLAN + passerelle = la sous-interface .1.
+
+Écris ci-dessous la config **de R1** (les 2 sous-interfaces + activation). La correction (SW1 + R1 + PC) et la **matrice de ping** s'affiche après validation.`,
+        points: 700,
+        timeLimitSec: 2400,
+        starter: `! === R1 ===
+interface g0/0.10
+`,
+        hints: [
+          { text: "R1 : interface g0/0.10 → encapsulation dot1Q 10 → ip address 192.168.10.1 ; idem .20 ; puis no shutdown sur g0/0.", cost: 60 },
+          { text: "📖 Correction R1 :\n```\ninterface g0/0.10\n encapsulation dot1Q 10\n ip address 192.168.10.1 255.255.255.0\ninterface g0/0.20\n encapsulation dot1Q 20\n ip address 192.168.20.1 255.255.255.0\ninterface g0/0\n no shutdown\n```", cost: 140 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "Sous-interface taguée VLAN 10", pattern: "encapsulation\\s+dot1q\\s+10", flags: "i" },
+            { label: "Passerelle VLAN 10", pattern: "ip\\s+address\\s+192\\.168\\.10\\.1\\s+255\\.255\\.255\\.0", flags: "i" },
+            { label: "Sous-interface taguée VLAN 20", pattern: "encapsulation\\s+dot1q\\s+20", flags: "i" },
+            { label: "Passerelle VLAN 20", pattern: "ip\\s+address\\s+192\\.168\\.20\\.1\\s+255\\.255\\.255\\.0", flags: "i" },
+            { label: "Interface physique activée", pattern: "interface\\s+g\\S*0/0\\s*\\n\\s*no\\s+shut", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction complète + vérification
+
+\`\`\`
+! === SW1 ===
+vlan 10
+ name VENTES
+vlan 20
+ name COMPTA
+interface fa0/1                 ! PC0 (VLAN 10) — répéter pour chaque PC
+ switchport mode access
+ switchport access vlan 10
+interface g0/1                  ! lien vers R1
+ switchport mode trunk
+! === R1 ===
+interface g0/0.10
+ encapsulation dot1Q 10         ! AVANT l'IP
+ ip address 192.168.10.1 255.255.255.0
+interface g0/0.20
+ encapsulation dot1Q 20
+ ip address 192.168.20.1 255.255.255.0
+interface g0/0
+ no shutdown                    ! sinon toutes les sous-interfaces sont down
+\`\`\`
+
+**PC** : PC0/PC1 → 192.168.10.10/.11, passerelle **192.168.10.1** ; PC2/PC3 → 192.168.20.10/.11, passerelle **192.168.20.1**.
+
+### 🎯 Comment savoir que TOUT est bon : la matrice de ping
+
+| Depuis \\ Vers | PC0 (V10) | PC1 (V10) | PC2 (V20) | PC3 (V20) |
+|---|---|---|---|---|
+| **PC0** | — | ✅ direct | ✅ via R1 | ✅ via R1 |
+| **PC2** | ✅ via R1 | ✅ via R1 | — | ✅ direct |
+
+Si **tous les PC se pinguent** (même VLAN **direct**, VLAN croisés **via R1**), le router-on-a-stick est bon. 🏆
+
+**Si le cross-VLAN échoue :** \`encapsulation dot1Q\` doit précéder l'IP ; \`g0/0\` doit être **no shutdown** ; le port SW1↔R1 doit être **trunk** ; la passerelle du PC = la sous-interface .1.`,
+        tags: ["lab", "vlan", "inter-vlan", "ping", "verification", "architecture"],
+      },
     ],
   },
 ];

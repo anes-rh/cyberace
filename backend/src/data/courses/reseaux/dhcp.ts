@@ -454,6 +454,72 @@ ip route 192.168.50.0 255.255.255.0 10.0.0.1   ! route RETOUR indispensable
 **Vérification PT :** \`show ip dhcp binding\` sur R2 (les baux du site distant y apparaissent), \`ipconfig /renew\` sur un PC → IP entre .10 et .254, passerelle .1. 🎯`,
         tags: ["tp", "dhcp", "relais", "giaddr", "architecture"],
       },
+      {
+        id: "res-lab-dhcp-complet",
+        title: "🏁 LAB COMPLET — DHCP automatique, ping de bout en bout",
+        order: 8,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏁 Lab guidé complet (fichier : « topologie de départ » du module)
+
+Ouvre le **.pka de départ** (sous le cours) : **R1 + un switch + deux PC + un serveur**, non configurés. Objectif : les PC obtiennent leur adresse **automatiquement** par DHCP, et **le ping doit passer entre tous** (PC ↔ PC ↔ serveur ↔ passerelle) — **sans taper une seule IP sur les PC**.
+
+**Plan imposé :** LAN \`192.168.1.0/24\`, passerelle R1 = \`192.168.1.1\`, serveur en **statique** \`192.168.1.5\`, DNS \`8.8.8.8\`.
+
+**Instructions — dans Packet Tracer :**
+
+1. **R1** : adresse \`G0/0\` = \`192.168.1.1/24\`, \`no shutdown\`.
+2. **Serveur** : IP **statique** \`192.168.1.5\`, passerelle \`192.168.1.1\`.
+3. **R1 — service DHCP** : \`ip dhcp excluded-address 192.168.1.1 192.168.1.10\` (réserve passerelle + serveur), puis \`ip dhcp pool LAN\` avec \`network\`, \`default-router\`, \`dns-server\`.
+4. **Chaque PC** : passe en **DHCP** (Desktop → IP Configuration → *DHCP*). Il doit afficher « DHCP request successful » et une IP dans .11-.254.
+
+Écris ci-dessous la config **DHCP de R1** (exclusion + pool complet). La correction + la **matrice de ping** s'affiche après validation.`,
+        points: 700,
+        timeLimitSec: 2400,
+        starter: `! === R1 ===
+ip dhcp excluded-address 192.168.1.1 192.168.1.10
+`,
+        hints: [
+          { text: "Exclusion AVANT le pool. Pool : network 192.168.1.0 255.255.255.0 / default-router 192.168.1.1 / dns-server 8.8.8.8.", cost: 60 },
+          { text: "📖 Correction R1 :\n```\ninterface g0/0\n ip address 192.168.1.1 255.255.255.0\n no shutdown\nip dhcp excluded-address 192.168.1.1 192.168.1.10\nip dhcp pool LAN\n network 192.168.1.0 255.255.255.0\n default-router 192.168.1.1\n dns-server 8.8.8.8\n```", cost: 140 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "Passerelle du LAN sur R1", pattern: "ip\\s+address\\s+192\\.168\\.1\\.1\\s+255\\.255\\.255\\.0", flags: "i" },
+            { label: "Exclusion (passerelle + serveur)", pattern: "ip\\s+dhcp\\s+excluded-address\\s+192\\.168\\.1\\.1\\s+192\\.168\\.1\\.10", flags: "i" },
+            { label: "Pool DHCP créé", pattern: "ip\\s+dhcp\\s+pool\\s+\\w+", flags: "i" },
+            { label: "Réseau distribué", pattern: "network\\s+192\\.168\\.1\\.0\\s+255\\.255\\.255\\.0", flags: "i" },
+            { label: "Passerelle annoncée", pattern: "default-router\\s+192\\.168\\.1\\.1", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction complète + vérification
+
+\`\`\`
+! === R1 ===
+interface g0/0
+ ip address 192.168.1.1 255.255.255.0
+ no shutdown
+ip dhcp excluded-address 192.168.1.1 192.168.1.10   ! réserve passerelle + serveur
+ip dhcp pool LAN
+ network 192.168.1.0 255.255.255.0
+ default-router 192.168.1.1
+ dns-server 8.8.8.8
+\`\`\`
+
+Le **serveur** garde une IP **statique** (.5, dans la plage exclue). Les **PC** passés en DHCP déroulent **DORA** et reçoivent une IP entre .11 et .254, passerelle .1.
+
+### 🎯 Comment savoir que TOUT est bon : la matrice de ping
+
+1. Sur chaque PC : IP Configuration → **DHCP** → « request successful » + IP en .11-.254 ✅
+2. PC0 → PC1 ✅ · PC → serveur 192.168.1.5 ✅ · PC → passerelle 192.168.1.1 ✅
+
+Si **tous les équipements se pinguent** et que les PC ont pris leur bail tout seuls, le DHCP est bon. 🏆 Vérifie côté R1 : \`show ip dhcp binding\` (les baux attribués apparaissent).
+
+**Si un PC n'a pas d'IP :** le pool \`network\` correspond-il au sous-réseau de l'interface ? \`default-router\` correct ? Exclusion **avant** le pool ? Interface \`g0/0\` up ?`,
+        tags: ["lab", "dhcp", "ping", "verification", "architecture"],
+      },
     ],
   },
 ];
