@@ -46,6 +46,8 @@ import { processus } from "./systeme/processus";
 import { ordonnancement } from "./systeme/ordonnancement";
 import { synchronisation } from "./systeme/synchronisation";
 import { ipc } from "./systeme/ipc";
+import { memoire } from "./systeme/memoire";
+import { fichiers } from "./systeme/fichiers";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -90,6 +92,8 @@ export const systemeCourses: CourseSeed[] = [
   ...ordonnancement,
   ...synchronisation,
   ...ipc,
+  ...memoire,
+  ...fichiers,
 ];
 
 /** Every course, in display order. */
