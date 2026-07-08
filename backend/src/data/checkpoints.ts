@@ -22,11 +22,12 @@ export const allCheckpoints: CheckpointSeed[] = [
     slug: "systeme-exploitation",
     title: "Système d'exploitation",
     order: 2,
-    status: "empty",
+    status: "active",
     icon: "Cpu",
     accent: "#E8A87C",
-    description: "Processus, mémoire, ordonnancement, systèmes de fichiers et concurrence.",
-    tagline: "Bientôt disponible",
+    description:
+      "100 % pratique, cap sur Linux : installe ta VM Ubuntu (VirtualBox), dompte le terminal (fichiers, droits, find/grep, pipes), écris des scripts bash, et programme le système en C — processus (fork/exec/wait), ordonnancement, synchronisation par sémaphores, tubes (IPC), mémoire virtuelle et systèmes de fichiers. Cours condensés, TP réels dans la VM et exercices C à compiler.",
+    tagline: "Système & Linux — L2 → M1",
   },
   {
     slug: "base-de-donnees",

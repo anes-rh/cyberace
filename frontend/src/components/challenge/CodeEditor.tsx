@@ -5,7 +5,7 @@ import type { CodeLanguage } from "@/lib/types";
 
 /**
  * Lightweight code editor: a transparent <textarea> perfectly overlaid on a
- * highlighted <pre>. No heavy dependency, works for pseudo-code CyberAce and C.
+ * highlighted <pre>. No heavy dependency, works for pseudo-code CyberAce, C and bash.
  */
 
 const PSEUDO_KEYWORDS = [
@@ -21,6 +21,14 @@ const C_KEYWORDS = [
   "if", "else", "while", "for", "do", "switch", "case", "default", "break", "continue", "return",
   "struct", "typedef", "union", "enum", "sizeof", "static", "extern", "goto",
   "malloc", "calloc", "realloc", "free", "printf", "scanf", "include", "define", "NULL", "main",
+];
+
+const BASH_KEYWORDS = [
+  "if", "then", "elif", "else", "fi", "for", "in", "do", "done", "while", "until", "case", "esac",
+  "function", "return", "local", "export", "readonly", "declare", "break", "continue", "exit", "source",
+  "echo", "printf", "read", "cd", "ls", "pwd", "cp", "mv", "rm", "mkdir", "rmdir", "touch", "cat",
+  "grep", "find", "sed", "awk", "sort", "uniq", "wc", "head", "tail", "chmod", "chown", "ps", "kill",
+  "sudo", "apt", "test",
 ];
 
 function escapeHtml(s: string): string {
@@ -39,6 +47,11 @@ function highlight(code: string, language: CodeLanguage): string {
     html = html.replace(/(\/\/[^\n]*)/g, '<span class="tok-com">$1</span>');
     html = html.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="tok-com">$1</span>');
     html = html.replace(/(^|\n)(\s*#\s*\w+[^\n]*)/g, '$1<span class="tok-pre">$2</span>');
+  } else if (language === "bash") {
+    // full-line and inline `#` comments (not the ${#var}/$# expansions)
+    html = html.replace(/(^|\s)(#[^\n]*)/g, '$1<span class="tok-com">$2</span>');
+    // $VAR / ${VAR} / $1 highlighted as variables (reuse the arrow token colour)
+    html = html.replace(/(\$\{?\w+\}?)/g, '<span class="tok-arrow">$1</span>');
   } else {
     html = html.replace(/(\{[^{}\n]*\})/g, '<span class="tok-com">$1</span>');
     html = html.replace(/(\/\/[^\n]*)/g, '<span class="tok-com">$1</span>');
@@ -48,7 +61,7 @@ function highlight(code: string, language: CodeLanguage): string {
   html = html.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tok-num">$1</span>');
 
   // keywords (word-boundary, accent-aware manual list)
-  const kws = language === "c" ? C_KEYWORDS : PSEUDO_KEYWORDS;
+  const kws = language === "c" ? C_KEYWORDS : language === "bash" ? BASH_KEYWORDS : PSEUDO_KEYWORDS;
   const escaped = kws
     .slice()
     .sort((a, b) => b.length - a.length)
@@ -129,11 +142,15 @@ export function CodeEditor({
           autoCorrect="off"
           readOnly={readOnly}
           rows={lines}
-          aria-label={language === "c" ? "Éditeur de code C" : "Éditeur de pseudo-code"}
+          aria-label={
+            language === "c" ? "Éditeur de code C" : language === "bash" ? "Éditeur de commandes / script bash" : "Éditeur de pseudo-code"
+          }
           placeholder={
             language === "c"
               ? "// Écris ton programme C ici…"
-              : "Algorithme MonAlgo\nVar …\nDebut\n  …\nFin"
+              : language === "bash"
+                ? "#!/bin/bash\n# Écris ta commande ou ton script ici…"
+                : "Algorithme MonAlgo\nVar …\nDebut\n  …\nFin"
           }
         />
       </div>

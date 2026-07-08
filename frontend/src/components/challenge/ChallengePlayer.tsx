@@ -46,7 +46,9 @@ export function ChallengePlayer({
     challenge.starter ??
       (challenge.language === "c"
         ? "#include <stdio.h>\n\nint main(void) {\n  \n  return 0;\n}\n"
-        : "Algorithme MonAlgo\nVar\n  \nDebut\n  \nFin\n")
+        : challenge.language === "bash"
+          ? "#!/bin/bash\n\n"
+          : "Algorithme MonAlgo\nVar\n  \nDebut\n  \nFin\n")
   );
   const [feedback, setFeedback] = useState<SubmitResult["feedback"] | null>(null);
   const [running, setRunning] = useState(false);
@@ -266,7 +268,9 @@ export function ChallengePlayer({
                     <p className="text-xs text-faint">
                       {challenge.language === "c"
                         ? "Écris ton programme C, compile-le, puis soumets quand la sortie te convient."
-                        : "Écris ton algorithme en pseudo-code CyberAce (Algorithme, Var, Debut…Fin, Lire, Ecrire, ←)."}
+                        : challenge.language === "bash"
+                          ? "Écris ta commande / ton script bash (teste-le dans ta VM Ubuntu), puis soumets."
+                          : "Écris ton algorithme en pseudo-code CyberAce (Algorithme, Var, Debut…Fin, Lire, Ecrire, ←)."}
                     </p>
                     {challenge.language === "c" && (
                       <Button

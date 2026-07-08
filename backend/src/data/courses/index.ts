@@ -38,6 +38,8 @@ import { wan } from "./reseaux/wan";
 import { ipv6 } from "./reseaux/ipv6";
 import { dhcp } from "./reseaux/dhcp";
 import { architectures } from "./reseaux/architectures";
+import { intro as seIntro } from "./systeme/intro";
+import { tp0Vm } from "./systeme/tp0Vm";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -72,10 +74,17 @@ export const reseauxCourses: CourseSeed[] = [
   ...architectures,
 ];
 
+/** Courses of the "Système d'exploitation" checkpoint (pratique · Linux). */
+export const systemeCourses: CourseSeed[] = [
+  ...seIntro,
+  ...tp0Vm,
+];
+
 /** Every course, in display order. */
 export const allCourses: CourseSeed[] = [
   ...algoCourses,
   ...reseauxCourses,
+  ...systemeCourses,
   crypto,
   accessControl,
   activeDirectory,
