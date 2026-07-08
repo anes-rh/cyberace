@@ -42,6 +42,8 @@ import { intro as seIntro } from "./systeme/intro";
 import { tp0Vm } from "./systeme/tp0Vm";
 import { terminal } from "./systeme/terminal";
 import { bash } from "./systeme/bash";
+import { processus } from "./systeme/processus";
+import { ordonnancement } from "./systeme/ordonnancement";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -82,6 +84,8 @@ export const systemeCourses: CourseSeed[] = [
   ...tp0Vm,
   ...terminal,
   ...bash,
+  ...processus,
+  ...ordonnancement,
 ];
 
 /** Every course, in display order. */
