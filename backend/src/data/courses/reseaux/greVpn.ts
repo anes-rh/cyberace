@@ -392,6 +392,80 @@ router ospf 1
 **Vérification PT :** \`show ip ospf neighbor\` sur R1 → voisin **2.2.2.2 FULL** joignable via… \`Tunnel0\` ! Puis \`show ip route\` → \`O 192.168.2.0/24 via 172.16.0.2, Tunnel0\`. 🎯`,
         tags: ["tp", "gre", "ospf", "tunnel", "architecture"],
       },
+      {
+        id: "res-lab-gre-complet",
+        title: "🏁 LAB COMPLET — Tunnel GRE site à site, ping de bout en bout",
+        order: 8,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏁 Lab guidé complet (fichier : « topologie de départ » du module)
+
+Ouvre le **.pka de départ** (sous le cours) : **R1 et R2 reliés** (les deux sites, via « Internet »), non configurés. Chaque site a son **LAN** (boucle locale). Objectif : un **tunnel GRE** entre les sites, et **le ping doit passer entre les deux LAN à travers le tunnel**.
+
+**Plan imposé :**
+
+| Élément | R1 (Site A) | R2 (Site B) |
+|---|---|---|
+| IP « publique » (la liaison) | \`203.0.113.1\` | \`203.0.113.2\` (/30) |
+| Tunnel0 (\`172.16.0.0/30\`) | \`172.16.0.1\` | \`172.16.0.2\` |
+| LAN (\`Loopback0\`) | \`192.168.1.1/24\` | \`192.168.2.1/24\` |
+
+**Instructions — dans Packet Tracer :**
+
+1. **Adresse** la liaison publique + la boucle locale, \`no shutdown\`.
+2. **Interface Tunnel0** (les deux) : \`ip address 172.16.0.x/30\`, \`tunnel source <ma publique>\`, \`tunnel destination <sa publique>\`.
+3. **Route** le LAN distant **via le tunnel** : R1 → \`ip route 192.168.2.0 255.255.255.0 172.16.0.2\` ; R2 → symétrique vers 192.168.1.0.
+
+Écris ci-dessous la config **complète de R1** (Tunnel0 + route vers le LAN de R2). La correction (R1 + R2) + la **matrice de ping** s'affiche après validation.`,
+        points: 700,
+        timeLimitSec: 2400,
+        starter: `! === R1 (Site A) ===
+interface Tunnel0
+`,
+        hints: [
+          { text: "Tunnel0 : ip 172.16.0.1/30, tunnel source 203.0.113.1, tunnel destination 203.0.113.2. Puis ip route 192.168.2.0 … 172.16.0.2.", cost: 60 },
+          { text: "📖 Correction R1 :\n```\ninterface Tunnel0\n ip address 172.16.0.1 255.255.255.252\n tunnel source 203.0.113.1\n tunnel destination 203.0.113.2\nip route 192.168.2.0 255.255.255.0 172.16.0.2\n```", cost: 140 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "IP interne du tunnel (.1/30)", pattern: "ip\\s+address\\s+172\\.16\\.0\\.1\\s+255\\.255\\.255\\.252", flags: "i" },
+            { label: "Source = IP publique locale", pattern: "tunnel\\s+source\\s+203\\.0\\.113\\.1", flags: "i" },
+            { label: "Destination = IP publique distante", pattern: "tunnel\\s+destination\\s+203\\.0\\.113\\.2", flags: "i" },
+            { label: "Route le LAN distant via le tunnel", pattern: "ip\\s+route\\s+192\\.168\\.2\\.0\\s+255\\.255\\.255\\.0\\s+172\\.16\\.0\\.2", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction complète + vérification
+
+\`\`\`
+! === R1 (Site A) ===
+interface Tunnel0
+ ip address 172.16.0.1 255.255.255.252
+ tunnel source 203.0.113.1          ! MA publique
+ tunnel destination 203.0.113.2     ! SA publique
+ip route 192.168.2.0 255.255.255.0 172.16.0.2   ! LAN de R2 → via le tunnel
+! === R2 (Site B) ===
+interface Tunnel0
+ ip address 172.16.0.2 255.255.255.252
+ tunnel source 203.0.113.2
+ tunnel destination 203.0.113.1
+ip route 192.168.1.0 255.255.255.0 172.16.0.1
+\`\`\`
+
+Le \`source\` de R1 = la \`destination\` de R2 (et inversement). Le tunnel monté **ne suffit pas** : sans les routes qui pointent **dans** le tunnel, le trafic inter-LAN partirait vers Internet.
+
+### 🎯 Comment savoir que TOUT est bon : la matrice de ping
+
+1. \`show interfaces tunnel0\` → **up/up**. ✅
+2. R1 → **172.16.0.2** (l'autre bout du tunnel) ✅
+3. R1 → **192.168.2.1** (LAN de R2) ✅ · R2 → **192.168.1.1** ✅
+
+Si les **deux LAN se pinguent à travers le tunnel**, GRE est bon. 🏆
+
+**Si le tunnel est down :** \`source\`/\`destination\` = IP **publiques réelles** et croisées ? La liaison publique pingue-t-elle (203.0.113.1 ↔ .2) ? Si tunnel up mais LAN KO : les **routes statiques via 172.16.0.x** sont-elles présentes des deux côtés ?`,
+        tags: ["lab", "gre", "tunnel", "ping", "verification", "architecture"],
+      },
     ],
   },
 ];

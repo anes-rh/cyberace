@@ -452,6 +452,81 @@ ipv6 route ::/0 2001:db8:feed:12::2           ! ::/0 = « 0.0.0.0/0 » version I
 **Vérification PT :** mets un PC en « Automatic » IPv6 → il obtient \`2001:db8:acad:10:…\` sans DHCP ; \`show ipv6 route\` → \`S ::/0\` ; ping du PC vers \`2001:db8:feed:12::2\`. 🎯`,
         tags: ["tp", "ipv6", "slaac", "eui-64", "architecture"],
       },
+      {
+        id: "res-lab-ipv6-complet",
+        title: "🏁 LAB COMPLET — Réseau IPv6 routé, ping6 de bout en bout",
+        order: 8,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏁 Lab guidé complet (fichier : « topologie de départ » du module)
+
+Ouvre le **.pka de départ** (sous le cours) : **R1 et R2 reliés**, non configurés. Chaque routeur a son **LAN IPv6** (boucle locale). Objectif : réseau **IPv6 routé**, et **le \`ping6\` doit passer entre les deux LAN**.
+
+**Plan imposé :**
+
+| Élément | R1 | R2 |
+|---|---|---|
+| Liaison inter-routeurs (\`2001:db8:12::/64\`) | \`::1\` | \`::2\` |
+| LAN (\`Loopback0\`, /64) | \`2001:db8:1::1\` | \`2001:db8:2::1\` |
+
+**Instructions — dans Packet Tracer :**
+
+1. **Active le routage IPv6** (les deux) : \`ipv6 unicast-routing\` — l'oubli classique !
+2. **Adresse** la liaison et la boucle, \`no shutdown\`.
+3. **Route statique IPv6** vers le LAN distant : R1 → \`ipv6 route 2001:db8:2::/64 2001:db8:12::2\` ; R2 → symétrique vers \`2001:db8:1::/64\`.
+
+Écris ci-dessous la config **complète de R1** (unicast-routing + adresses + route). La correction (R1 + R2) + la **matrice de ping** s'affiche après validation.`,
+        points: 700,
+        timeLimitSec: 2400,
+        starter: `! === R1 ===
+ipv6 unicast-routing
+`,
+        hints: [
+          { text: "ipv6 unicast-routing (global) ; ipv6 address sur la liaison + la boucle ; ipv6 route 2001:db8:2::/64 2001:db8:12::2.", cost: 60 },
+          { text: "📖 Correction R1 :\n```\nipv6 unicast-routing\ninterface g0/0\n ipv6 address 2001:db8:12::1/64\n no shutdown\ninterface Loopback0\n ipv6 address 2001:db8:1::1/64\nipv6 route 2001:db8:2::/64 2001:db8:12::2\n```", cost: 140 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.65,
+          keypoints: [
+            { label: "Routage IPv6 activé", pattern: "ipv6\\s+unicast-routing", flags: "i" },
+            { label: "Liaison adressée en IPv6", pattern: "ipv6\\s+address\\s+2001:db8:12::1/64", flags: "i" },
+            { label: "LAN (boucle) adressé en IPv6", pattern: "ipv6\\s+address\\s+2001:db8:1::1/64", flags: "i" },
+            { label: "Route statique IPv6 vers le LAN distant", pattern: "ipv6\\s+route\\s+2001:db8:2::/64\\s+2001:db8:12::2", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction complète + vérification
+
+\`\`\`
+! === R1 ===
+ipv6 unicast-routing                      ! sans ça, aucun routage IPv6
+interface g0/0
+ ipv6 address 2001:db8:12::1/64
+ no shutdown
+interface Loopback0
+ ipv6 address 2001:db8:1::1/64
+ipv6 route 2001:db8:2::/64 2001:db8:12::2
+! === R2 (miroir) ===
+ipv6 unicast-routing
+interface g0/0
+ ipv6 address 2001:db8:12::2/64
+ no shutdown
+interface Loopback0
+ ipv6 address 2001:db8:2::1/64
+ipv6 route 2001:db8:1::/64 2001:db8:12::1
+\`\`\`
+
+### 🎯 Comment savoir que TOUT est bon : la matrice de ping
+
+1. \`show ipv6 interface brief\` → interfaces **up/up** avec leurs adresses. ✅
+2. R1 → \`ping 2001:db8:12::2\` (l'autre bout) ✅
+3. R1 → \`ping 2001:db8:2::1\` (LAN de R2) ✅ · R2 → \`ping 2001:db8:1::1\` ✅
+
+Si les **deux LAN IPv6 se pinguent**, le routage IPv6 est bon. 🏆 Vérifie \`show ipv6 route\` → le préfixe distant en **S** (statique).
+
+**Si le ping6 échoue :** \`ipv6 unicast-routing\` est-il activé (sinon rien ne route) ? La **route statique** existe-t-elle des DEUX côtés ? Les adresses sont-elles bien en **/64** ?`,
+        tags: ["lab", "ipv6", "ping", "verification", "architecture"],
+      },
     ],
   },
 ];

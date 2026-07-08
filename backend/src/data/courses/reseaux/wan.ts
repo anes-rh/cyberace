@@ -449,6 +449,83 @@ ip route 0.0.0.0 0.0.0.0 10.0.23.1
 **Debug méthodique si le ping échoue :** \`show interfaces s0/0/0\` (LCP Open ? sinon problème PPP/CHAP/horloge) → \`show ip route\` (les routes y sont ?) → ping de proche en proche (R1→10.0.12.2, puis →10.0.23.2, puis →LAN 3). 🎯`,
         tags: ["tp", "wan", "ppp", "chap", "routage", "architecture"],
       },
+      {
+        id: "res-lab-wan-complet",
+        title: "🏁 LAB COMPLET — Liaison WAN PPP/CHAP, ping de bout en bout",
+        order: 8,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏁 Lab guidé complet (fichier : « topologie de départ » du module)
+
+Ouvre le **.pka de départ** (sous le cours) : **R1 et R2 reliés par une liaison série**, non configurés. Chaque site simule son **LAN** par une **boucle locale**. Objectif : liaison **PPP authentifiée par CHAP**, et **le ping doit passer entre les deux LAN**.
+
+**Plan imposé :** liaison \`10.0.0.0/30\` (R1 = .1 **DCE**, R2 = .2). LAN R1 (\`Loopback0\`) = \`192.168.1.1/24\`, LAN R2 = \`192.168.2.1/24\`. Secret CHAP partagé : \`cisco123\`.
+
+**Instructions — dans Packet Tracer :**
+
+1. **Nomme** les routeurs \`R1\` / \`R2\` (\`hostname\`) — le nom sert à CHAP.
+2. **Comptes CHAP croisés** : sur R1 → \`username R2 password cisco123\` ; sur R2 → \`username R1 password cisco123\`.
+3. **Interface série** (les deux) : IP /30, \`encapsulation ppp\`, \`ppp authentication chap\`, \`no shutdown\`. Côté **DCE (R1)** : \`clock rate 64000\`.
+4. **Boucles + routes** : \`Loopback0\` sur chacun, puis une **route par défaut** vers l'autre bout (R1 → 10.0.0.2, R2 → 10.0.0.1).
+
+Écris ci-dessous la config **complète de R1** (username + série PPP/CHAP + clock rate + boucle + route). La correction (R1 + R2) + la **matrice de ping** s'affiche après validation.`,
+        points: 700,
+        timeLimitSec: 2400,
+        starter: `! === R1 (DCE) ===
+username R2 password cisco123
+`,
+        hints: [
+          { text: "R1 : username R2 password cisco123 ; interface série ip/encapsulation ppp/ppp authentication chap/clock rate 64000 ; Loopback0 ; ip route 0.0.0.0 0.0.0.0 10.0.0.2.", cost: 60 },
+          { text: "📖 Correction R1 :\n```\nusername R2 password cisco123\ninterface s0/0/0\n ip address 10.0.0.1 255.255.255.252\n encapsulation ppp\n ppp authentication chap\n clock rate 64000\n no shutdown\ninterface Loopback0\n ip address 192.168.1.1 255.255.255.0\nip route 0.0.0.0 0.0.0.0 10.0.0.2\n```", cost: 140 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.6,
+          keypoints: [
+            { label: "Compte CHAP du pair", pattern: "username\\s+R2\\s+password\\s+cisco123", flags: "i" },
+            { label: "IP de la liaison (.1/30)", pattern: "ip\\s+address\\s+10\\.0\\.0\\.1\\s+255\\.255\\.255\\.252", flags: "i" },
+            { label: "Encapsulation PPP", pattern: "encapsulation\\s+ppp", flags: "i" },
+            { label: "Authentification CHAP", pattern: "ppp\\s+authentication\\s+chap", flags: "i" },
+            { label: "Horloge côté DCE", pattern: "clock\\s+rate\\s+64000", flags: "i" },
+            { label: "Route vers le LAN distant", pattern: "ip\\s+route\\s+0\\.0\\.0\\.0\\s+0\\.0\\.0\\.0\\s+10\\.0\\.0\\.2", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction complète + vérification
+
+\`\`\`
+! === R1 (DCE) ===
+username R2 password cisco123
+interface s0/0/0
+ ip address 10.0.0.1 255.255.255.252
+ encapsulation ppp
+ ppp authentication chap
+ clock rate 64000
+ no shutdown
+interface Loopback0
+ ip address 192.168.1.1 255.255.255.0
+ip route 0.0.0.0 0.0.0.0 10.0.0.2
+! === R2 ===
+username R1 password cisco123
+interface s0/0/0
+ ip address 10.0.0.2 255.255.255.252
+ encapsulation ppp
+ ppp authentication chap
+ no shutdown
+interface Loopback0
+ ip address 192.168.2.1 255.255.255.0
+ip route 0.0.0.0 0.0.0.0 10.0.0.1
+\`\`\`
+
+### 🎯 Comment savoir que TOUT est bon : la matrice de ping
+
+1. \`show interfaces s0/0/0\` → *Encapsulation PPP*, **LCP Open** (sinon : CHAP/horloge). ✅
+2. R1 → 10.0.0.2 ✅ · R1 → **192.168.2.1** (LAN de R2) ✅ · R2 → **192.168.1.1** ✅
+
+Si les **deux LAN se pinguent** à travers la liaison PPP authentifiée, c'est gagné. 🏆
+
+**Si LCP n'est pas Open :** \`clock rate\` manquant côté **DCE** ? \`username\` = **hostname du pair** avec le **même** mot de passe des deux côtés ? Si LCP Open mais ping KO : la **route par défaut** est-elle présente des deux côtés ?`,
+        tags: ["lab", "wan", "ppp", "chap", "ping", "verification", "architecture"],
+      },
     ],
   },
 ];

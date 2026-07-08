@@ -392,6 +392,68 @@ router bgp 65300
 **Vérification PT :** \`show ip bgp summary\` sur R2 (2 sessions Established), \`show ip bgp\` sur R3 (AS-PATH 65200 65100), ping LAN à LAN. 🎯`,
         tags: ["tp", "bgp", "transit", "as-path", "architecture"],
       },
+      {
+        id: "res-lab-bgp-complet",
+        title: "🏁 LAB COMPLET — eBGP entre 2 AS, ping de bout en bout",
+        order: 8,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏁 Lab guidé complet (fichier : « topologie de départ » du module)
+
+Ouvre le **.pka de départ** (sous le cours) : **R1 et R2 reliés**, non configurés. Ils sont dans **deux AS différents**. Chaque AS a son **LAN** (boucle locale). Objectif : session **eBGP** établie, et **le ping doit passer entre les LAN des deux AS**.
+
+**Plan imposé :** liaison inter-AS \`203.0.113.0/30\` (R1 = .1, R2 = .2). R1 = **AS 65001**, LAN \`192.168.1.1/24\`. R2 = **AS 65002**, LAN \`192.168.2.1/24\`.
+
+**Instructions — dans Packet Tracer :**
+
+1. **Adresse** la liaison inter-AS et une **boucle locale** (\`Loopback0\`) par routeur, \`no shutdown\`.
+2. **R1** : \`router bgp 65001\`, déclare le voisin \`neighbor 203.0.113.2 remote-as 65002\`, et **annonce** son LAN \`network 192.168.1.0 mask 255.255.255.0\`.
+3. **R2** : symétrique (AS 65002, voisin 203.0.113.1 remote-as 65001, annonce 192.168.2.0).
+
+Écris ci-dessous la config **BGP complète de R1** (router bgp + neighbor + network). La correction (R1 + R2) + la **matrice de ping** s'affiche après validation.`,
+        points: 700,
+        timeLimitSec: 2400,
+        starter: `! === R1 (AS 65001) ===
+router bgp 65001
+`,
+        hints: [
+          { text: "router bgp 65001 / neighbor 203.0.113.2 remote-as 65002 / network 192.168.1.0 mask 255.255.255.0.", cost: 60 },
+          { text: "📖 Correction R1 :\n```\nrouter bgp 65001\n neighbor 203.0.113.2 remote-as 65002\n network 192.168.1.0 mask 255.255.255.0\n```", cost: 140 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "BGP dans l'AS 65001", pattern: "router\\s+bgp\\s+65001", flags: "i" },
+            { label: "Voisin eBGP déclaré", pattern: "neighbor\\s+203\\.0\\.113\\.2\\s+remote-as\\s+65002", flags: "i" },
+            { label: "LAN annoncé (avec mask)", pattern: "network\\s+192\\.168\\.1\\.0\\s+mask\\s+255\\.255\\.255\\.0", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction complète + vérification
+
+\`\`\`
+! === R1 (AS 65001) ===
+router bgp 65001
+ neighbor 203.0.113.2 remote-as 65002   ! AS différent → eBGP
+ network 192.168.1.0 mask 255.255.255.0
+! === R2 (AS 65002) ===
+router bgp 65002
+ neighbor 203.0.113.1 remote-as 65001
+ network 192.168.2.0 mask 255.255.255.0
+\`\`\`
+
+BGP ne **découvre pas** ses voisins : on les **déclare** (session TCP 179). Le \`network … mask …\` n'annonce la route que si elle est déjà dans la table (ici la boucle connectée).
+
+### 🎯 Comment savoir que TOUT est bon : la matrice de ping
+
+1. \`show ip bgp summary\` → l'état du voisin passe à **Established** (un nombre de préfixes, pas « Idle/Active »). ✅
+2. R1 → **192.168.2.1** (LAN de l'AS voisin) ✅ · R2 → **192.168.1.1** ✅
+
+Si les **deux LAN se pinguent** à travers les AS, l'eBGP fonctionne. 🏆 Vérifie \`show ip route\` → le LAN distant en **B**, et \`show ip bgp\` → son **AS-PATH**.
+
+**Si la session reste Idle/Active :** les IP \`neighbor\` et \`remote-as\` sont-ils corrects et croisés ? La liaison inter-AS pingue-t-elle (203.0.113.1 ↔ .2) ? Le \`network\` correspond-il exactement à la boucle (avec \`mask\`) ?`,
+        tags: ["lab", "bgp", "ebgp", "ping", "verification", "architecture"],
+      },
     ],
   },
 ];
