@@ -380,6 +380,108 @@ spanning-tree mode rapid-pvst
 **Vérification PT :** \`show spanning-tree\` sur SW1 (« This bridge is the root »), débranche SW1 → refais la commande sur SW2, et regarde la reconvergence quasi instantanée grâce à Rapid PVST+. 🎯`,
         tags: ["tp", "rstp", "portfast", "root-primary", "architecture"],
       },
+      {
+        id: "res-lab-campus-complet",
+        title: "🏁 LAB COMPLET — Campus 4 switches, ping de bout en bout",
+        order: 8,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏁 Lab guidé complet (fichier : « topologie de départ » du module)
+
+Ouvre le **.pka de départ** (téléchargeable sous le cours) : **4 switches multicouches SW1-SW4 en anneau** avec **8 PC** (PC0, PC1, PC2, PC4, PC5, PC6, PC7, PC8). Objectif : configurer TOUT, puis **le ping doit passer entre TOUS les PC** — c'est ça, la réussite.
+
+**Plan d'adressage imposé :**
+
+| VLAN | Réseau | Passerelle (SVI sur SW1) | PC concernés |
+|---|---|---|---|
+| 10 « ADMIN » | \`192.168.10.0/24\` | \`192.168.10.1\` | PC0, PC1, PC2, PC4 |
+| 20 « USERS » | \`192.168.20.0/24\` | \`192.168.20.1\` | PC5, PC6, PC7, PC8 |
+
+**Instructions — à faire dans Packet Tracer :**
+
+1. **Sur les 4 switches** : crée \`vlan 10\` (nom ADMIN) et \`vlan 20\` (nom USERS), et passe **tous les liens inter-switches en trunk** (\`switchport mode trunk\`).
+2. **Sur chaque switch** : mets les ports reliés aux PC en **accès** dans le bon VLAN (\`switchport mode access\` + \`switchport access vlan 10/20\`) + \`spanning-tree portfast\`.
+3. **Rapid PVST + racine** : \`spanning-tree mode rapid-pvst\` partout ; **SW1 = racine** (\`spanning-tree vlan 1,10,20 root primary\`).
+4. **Routage inter-VLAN sur SW1** (switch L3) : \`ip routing\`, puis les **SVI** \`interface vlan 10\` → \`192.168.10.1/24\` et \`interface vlan 20\` → \`192.168.20.1/24\`.
+5. **Sur chaque PC** : adresse IP dans son VLAN + **passerelle** = la SVI (.1) correspondante.
+
+Écris ci-dessous la config de **SW1** (VLAN + trunk + rapid-pvst + racine + \`ip routing\` + les 2 SVI). La correction complète (tous les équipements + la **matrice de ping**) s'affiche après validation.`,
+        points: 700,
+        timeLimitSec: 2400,
+        starter: `! === SW1 (switch multicouche, fait le routage) ===
+vlan 10
+`,
+        hints: [
+          { text: "SW1 doit : créer les VLAN, avoir ses liens en trunk, être racine, activer ip routing et porter les 2 SVI (192.168.10.1 et 192.168.20.1).", cost: 60 },
+          { text: "📖 Correction SW1 :\n```\nvlan 10\n name ADMIN\nvlan 20\n name USERS\ninterface range fa1/1 - 4\n switchport mode trunk\nspanning-tree mode rapid-pvst\nspanning-tree vlan 1,10,20 root primary\nip routing\ninterface vlan 10\n ip address 192.168.10.1 255.255.255.0\ninterface vlan 20\n ip address 192.168.20.1 255.255.255.0\n```", cost: 140 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.6,
+          keypoints: [
+            { label: "Crée le VLAN 10", pattern: "vlan\\s+10", flags: "i" },
+            { label: "Crée le VLAN 20", pattern: "vlan\\s+20", flags: "i" },
+            { label: "Liens inter-switches en trunk", pattern: "switchport\\s+mode\\s+trunk", flags: "i" },
+            { label: "Rapid PVST+", pattern: "spanning-tree\\s+mode\\s+rapid-pvst", flags: "i" },
+            { label: "SW1 racine", pattern: "spanning-tree\\s+vlan\\s+[\\d,]+\\s+root\\s+primary", flags: "i" },
+            { label: "Routage L3 activé", pattern: "^\\s*ip\\s+routing", flags: "im" },
+            { label: "SVI VLAN 10 (passerelle ADMIN)", pattern: "interface\\s+vlan\\s*10[\\s\\S]{0,60}ip\\s+address\\s+192\\.168\\.10\\.1", flags: "i" },
+            { label: "SVI VLAN 20 (passerelle USERS)", pattern: "interface\\s+vlan\\s*20[\\s\\S]{0,60}ip\\s+address\\s+192\\.168\\.20\\.1", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction complète + vérification
+
+**SW1 (le cerveau — routage inter-VLAN) :**
+\`\`\`
+vlan 10
+ name ADMIN
+vlan 20
+ name USERS
+interface range fa1/1 - 4
+ switchport mode trunk              ! liens vers SW2/SW3/SW4
+spanning-tree mode rapid-pvst
+spanning-tree vlan 1,10,20 root primary
+ip routing                          ! SW1 route entre les VLAN
+interface vlan 10
+ ip address 192.168.10.1 255.255.255.0
+interface vlan 20
+ ip address 192.168.20.1 255.255.255.0
+\`\`\`
+
+**SW2, SW3, SW4 (couche 2 — VLAN + trunks + accès) :**
+\`\`\`
+vlan 10
+ name ADMIN
+vlan 20
+ name USERS
+spanning-tree mode rapid-pvst
+interface range fa1/1 - 4           ! liens inter-switches
+ switchport mode trunk
+interface fa0/1                     ! exemple : un port PC
+ switchport mode access
+ switchport access vlan 10          ! (ou 20 selon le PC)
+ spanning-tree portfast
+\`\`\`
+
+**Chaque PC** (onglet Desktop → IP Configuration) :
+| PC | IP | Masque | Passerelle |
+|---|---|---|---|
+| PC0/PC1/PC2/PC4 (VLAN 10) | 192.168.10.10…13 | 255.255.255.0 | **192.168.10.1** |
+| PC5/PC6/PC7/PC8 (VLAN 20) | 192.168.20.10…13 | 255.255.255.0 | **192.168.20.1** |
+
+### 🎯 Comment savoir que TOUT est bon : la matrice de ping
+
+Depuis n'importe quel PC (\`Command Prompt\` → \`ping\`), **tout doit répondre** :
+
+1. **Même VLAN** (ex. PC0 → PC1, PC0 → PC4) → ✅ ping OK **directement** (couche 2).
+2. **VLAN différent** (ex. PC0 → PC5) → ✅ ping OK **via SW1** (les SVI routent). Le premier paquet peut se perdre (ARP), relance.
+3. **Vers la passerelle** (PC0 → 192.168.10.1 et → 192.168.20.1) → ✅ répond.
+
+Si **les 8 PC se pinguent tous entre eux** (même VLAN ET VLAN croisés), le campus est **entièrement fonctionnel** : VLAN, trunks, STP et routage inter-VLAN sont corrects. 🏆
+
+**Si un ping échoue**, débogue par couche : \`show vlan brief\` (le PC est-il dans le bon VLAN ?) → \`show interfaces trunk\` (les liens portent-ils les VLAN ?) → \`show ip route\` sur SW1 (les 2 réseaux sont-ils **C**onnectés ?) → la passerelle du PC est-elle la bonne SVI ?`,
+        tags: ["lab", "campus", "vlan", "svi", "ping", "verification", "architecture"],
+      },
     ],
   },
 ];
