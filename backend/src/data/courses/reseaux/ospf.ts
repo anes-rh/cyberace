@@ -27,7 +27,7 @@ export const ospf: CourseSeed[] = [
         label: "Architecture 1 — topologie de départ (.pka)",
         url: "/pka/res-ospf-architecture-1.pka",
         kind: "pkt-start",
-        note: "À ouvrir dans Cisco Packet Tracer : R1, R2 et R3 reliés, non configurés. Configure OSPF (processus 1, area 0, router-id, wildcards) selon l'Architecture 1.",
+        note: "À ouvrir dans Cisco Packet Tracer : 4 routeurs (R1 à R4) reliés par des liens série et ethernet, non configurés. Configure OSPF (processus 1, area 0, router-id, wildcards) sur les 4 routeurs selon l'Architecture 1.",
       },
     ],
     lesson: `# 🗺️ OSPF — le Dijkstra Drive

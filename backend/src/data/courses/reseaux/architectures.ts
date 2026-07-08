@@ -22,6 +22,14 @@ export const architectures: CourseSeed[] = [
       "Traiter un sujet d'examen IPv6 : adressage, OSPFv3, RSTP, EtherChannel, PortFast, route par défaut",
       "Acquérir la check-list de vérification (show …) pour valider chaque couche",
     ],
+    resources: [
+      {
+        label: "Topologie complexe de synthèse (.pka)",
+        url: "/pka/res-architectures-complexe.pka",
+        kind: "pkt-start",
+        note: "À ouvrir dans Cisco Packet Tracer : une topologie riche (routeurs R1-R3, switches SW1-SW3, hub) à configurer de bout en bout. Sers-t'en comme terrain d'entraînement pour combiner adressage, routage et commutation comme dans un vrai sujet d'examen.",
+      },
+    ],
     lesson: `# 🏆 Architectures d'examen — le Grand Prix Final
 
 Tu as vu **tous** les chapitres. Un sujet d'examen ne te demandera jamais « configure OSPF » tout seul : il te donnera **une topologie complète** et une liste de tâches qui mélangent VLAN, STP, routage, DHCP, IPv6… Ce module t'entraîne exactement à ça. 🏎️

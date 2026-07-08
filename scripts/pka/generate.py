@@ -33,8 +33,8 @@ def generate(base_path: str, out_path: str, renames: dict[str, str], keep_config
     # physical NODE — all must agree or PT reports "corrupted Physical Workspace").
     for new, old in renames.items():
         xml = xml.replace(old, new)
-    # Blank canvas notes so a starter carries no spoilers.
-    xml = re.sub(r'(<TEXT translate="true">).*?(</TEXT>)', r"\1\2", xml, flags=re.DOTALL)
+    # Blank canvas notes so a starter carries no spoilers (all <TEXT ...> variants).
+    xml = re.sub(r"(<TEXT\b[^>]*>).*?(</TEXT>)", r"\1\2", xml, flags=re.DOTALL)
     if not keep_config:
         pw = xml.find("<PHYSICALWORKSPACE")  # only edit the logical half
         head, tail = xml[:pw], xml[pw:]

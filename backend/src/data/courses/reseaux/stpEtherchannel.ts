@@ -27,7 +27,7 @@ export const stpEtherchannel: CourseSeed[] = [
         label: "Architecture 1 — topologie de départ (.pka)",
         url: "/pka/res-stp-etherchannel-architecture-1.pka",
         kind: "pkt-start",
-        note: "À ouvrir dans Cisco Packet Tracer : SW1 et SW2 reliés, non configurés. Ajoute un second lien, agrège en EtherChannel (LACP) et choisis la racine STP selon l'Architecture 1.",
+        note: "À ouvrir dans Cisco Packet Tracer : 4 switches (SW1 à SW4) en anneau redondant avec 8 PC répartis, non configurés. Observe les liens bloqués par STP, force la racine, puis agrège des liens en EtherChannel (LACP) selon l'Architecture 1.",
       },
     ],
     lesson: `# 🔁 Redondance couche 2 — le Loop Guard
