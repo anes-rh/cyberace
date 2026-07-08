@@ -58,6 +58,8 @@ import { sqlAvance } from "./bdd/sqlAvance";
 import { oracleAdmin } from "./bdd/oracleAdmin";
 import { dictionnaire } from "./bdd/dictionnaire";
 import { transactions } from "./bdd/transactions";
+import { optimisation } from "./bdd/optimisation";
+import { distribuees } from "./bdd/distribuees";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -118,6 +120,8 @@ export const bddCourses: CourseSeed[] = [
   ...oracleAdmin,
   ...dictionnaire,
   ...transactions,
+  ...optimisation,
+  ...distribuees,
 ];
 
 /** Every course, in display order. */
