@@ -410,6 +410,102 @@ ip route 0.0.0.0 0.0.0.0 203.0.113.2          ! tout le reste → Internet
 **Vérification PT :** \`show ip route\` sur HQ (2 routes S + 1 S*), ping PC-A → PC-B, puis PC-A → 203.0.113.2.`,
         tags: ["tp", "routage", "statique", "config", "architecture"],
       },
+      {
+        id: "res-lab-statique-complet",
+        title: "🏁 LAB COMPLET — 3 routeurs, ping de bout en bout",
+        order: 8,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏁 Lab guidé complet (fichier : « topologie de départ » du module)
+
+Ouvre le **.pka de départ** (sous le cours) : **R1 — R2 — R3 en chaîne** (liaisons série), non configurés. On simule le **LAN de chaque routeur** par une **boucle locale** (\`Loopback0\`). Objectif : **le ping doit passer entre TOUS les LAN** (les 3 boucles).
+
+**Plan d'adressage imposé :**
+
+| Élément | Réseau | Adresses |
+|---|---|---|
+| LAN de R1 (\`Loopback0\`) | \`192.168.1.0/24\` | R1 = .1 |
+| Liaison R1 ↔ R2 (série) | \`10.0.12.0/30\` | R1 = .1, R2 = .2 |
+| LAN de R2 (\`Loopback0\`) | \`192.168.2.0/24\` | R2 = .1 |
+| Liaison R2 ↔ R3 (série) | \`10.0.23.0/30\` | R2 = .1, R3 = .2 |
+| LAN de R3 (\`Loopback0\`) | \`192.168.3.0/24\` | R3 = .1 |
+
+**Instructions — dans Packet Tracer :**
+
+1. **Adresse toutes les interfaces** (les 2 boucles des extrémités + les liaisons série ; \`clock rate 64000\` côté DCE de chaque lien) et fais \`no shutdown\`.
+2. **Routes statiques** — pour que chaque routeur atteigne les 2 LAN qu'il ne connaît pas :
+   - **R1** : route par défaut vers R2 (\`0.0.0.0/0 → 10.0.12.2\`) ;
+   - **R2** (au centre) : route vers le LAN de R1 (via 10.0.12.1) **et** vers le LAN de R3 (via 10.0.23.2) ;
+   - **R3** : route par défaut vers R2 (\`0.0.0.0/0 → 10.0.23.1\`).
+
+Écris ci-dessous la config **complète de R2** (Loopback0 + les 2 interfaces série + les 2 routes statiques). La correction complète (R1, R2, R3) + la **matrice de ping** s'affiche après validation.`,
+        points: 700,
+        timeLimitSec: 2400,
+        starter: `! === R2 (au centre) ===
+interface Loopback0
+`,
+        hints: [
+          { text: "R2 porte Loopback0 (192.168.2.1/24), ses deux liaisons série (10.0.12.2 et 10.0.23.1), et DEUX routes statiques vers les LAN de R1 et R3.", cost: 60 },
+          { text: "📖 Correction R2 :\n```\ninterface Loopback0\n ip address 192.168.2.1 255.255.255.0\ninterface Serial0/0/0\n ip address 10.0.12.2 255.255.255.252\n no shutdown\ninterface Serial0/0/1\n ip address 10.0.23.1 255.255.255.252\n clock rate 64000\n no shutdown\nip route 192.168.1.0 255.255.255.0 10.0.12.1\nip route 192.168.3.0 255.255.255.0 10.0.23.2\n```", cost: 140 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.6,
+          keypoints: [
+            { label: "Boucle locale de R2 (son LAN)", pattern: "interface\\s+Loopback0[\\s\\S]{0,60}ip\\s+address\\s+192\\.168\\.2\\.1", flags: "i" },
+            { label: "Liaison vers R1 adressée", pattern: "ip\\s+address\\s+10\\.0\\.12\\.2\\s+255\\.255\\.255\\.252", flags: "i" },
+            { label: "Liaison vers R3 adressée", pattern: "ip\\s+address\\s+10\\.0\\.23\\.1\\s+255\\.255\\.255\\.252", flags: "i" },
+            { label: "Route vers le LAN de R1", pattern: "ip\\s+route\\s+192\\.168\\.1\\.0\\s+255\\.255\\.255\\.0\\s+10\\.0\\.12\\.1", flags: "i" },
+            { label: "Route vers le LAN de R3", pattern: "ip\\s+route\\s+192\\.168\\.3\\.0\\s+255\\.255\\.255\\.0\\s+10\\.0\\.23\\.2", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction complète + vérification
+
+\`\`\`
+! === R1 ===
+interface Loopback0
+ ip address 192.168.1.1 255.255.255.0
+interface Serial0/0/0
+ ip address 10.0.12.1 255.255.255.252
+ clock rate 64000            ! DCE de ce lien
+ no shutdown
+ip route 0.0.0.0 0.0.0.0 10.0.12.2
+! === R2 (centre) ===
+interface Loopback0
+ ip address 192.168.2.1 255.255.255.0
+interface Serial0/0/0
+ ip address 10.0.12.2 255.255.255.252
+ no shutdown
+interface Serial0/0/1
+ ip address 10.0.23.1 255.255.255.252
+ clock rate 64000
+ no shutdown
+ip route 192.168.1.0 255.255.255.0 10.0.12.1
+ip route 192.168.3.0 255.255.255.0 10.0.23.2
+! === R3 ===
+interface Loopback0
+ ip address 192.168.3.1 255.255.255.0
+interface Serial0/0/1
+ ip address 10.0.23.2 255.255.255.252
+ no shutdown
+ip route 0.0.0.0 0.0.0.0 10.0.23.1
+\`\`\`
+
+### 🎯 Comment savoir que TOUT est bon : la matrice de ping
+
+Depuis chaque routeur, teste les boucles des autres (\`ping <ip> source <sa boucle>\`). **Tout doit répondre :**
+
+| Depuis \\ Vers | 192.168.1.1 | 192.168.2.1 | 192.168.3.1 |
+|---|---|---|---|
+| **R1** | — (local) | ✅ | ✅ |
+| **R2** | ✅ | — | ✅ |
+| **R3** | ✅ | ✅ | — |
+
+Si les **3 LAN se pinguent tous entre eux**, le routage statique est complet. 🏆 Point clé : le routage est **bidirectionnel** — R2 doit connaître les DEUX LAN d'extrémité, sinon l'aller passe mais le retour est jeté.
+
+**Si un ping échoue :** \`show ip route\` (la route existe-t-elle des DEUX côtés ?), \`show ip interface brief\` (interfaces up/up ? sinon \`clock rate\` manquant côté DCE), et teste de proche en proche (R1 → 10.0.12.2, puis → 10.0.23.2).`,
+        tags: ["lab", "routage", "statique", "ping", "verification", "architecture"],
+      },
     ],
   },
 ];

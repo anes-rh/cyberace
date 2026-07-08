@@ -411,6 +411,81 @@ router rip
 **Vérification PT :** sur R2 → \`show ip route\` (ligne \`R* 0.0.0.0/0\`), puis \`ping 203.0.113.2\` depuis un PC du LAN 2 : il sort par R1 sans qu'aucune default n'ait été tapée sur R2. 🎯`,
         tags: ["tp", "rip", "default-information", "config", "architecture"],
       },
+      {
+        id: "res-lab-rip-complet",
+        title: "🏁 LAB COMPLET — RIPv2 sur 3 routeurs, ping de bout en bout",
+        order: 8,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏁 Lab guidé complet (fichier : « topologie de départ » du module)
+
+Ouvre le **.pka de départ** (sous le cours) : **3 routeurs R1, R2, R3**, non configurés. Chaque routeur simule son **LAN** par une **boucle locale** (\`Loopback0\`). Objectif : **RIPv2 fait que le ping passe entre TOUS les LAN**, sans une seule route statique.
+
+**Plan d'adressage imposé :**
+
+| Élément | Réseau |
+|---|---|
+| LAN de R1 (\`Loopback0\`) | \`192.168.1.1/24\` |
+| LAN de R2 (\`Loopback0\`) | \`192.168.2.1/24\` |
+| LAN de R3 (\`Loopback0\`) | \`192.168.3.1/24\` |
+| Liaisons entre routeurs | \`10.0.0.0/8\` (ex. 10.0.12.x, 10.0.23.x, /30) |
+
+**Instructions — dans Packet Tracer :**
+
+1. **Adresse** les boucles et les liaisons inter-routeurs, \`no shutdown\` (\`clock rate\` côté DCE des liens série).
+2. **Sur les 3 routeurs** : active **RIPv2** — \`router rip\`, \`version 2\`, \`no auto-summary\`.
+3. **Annonce les réseaux** : ⚠️ \`network\` est **classful** → \`network 10.0.0.0\` couvre TOUTES les liaisons 10.x, plus \`network 192.168.X.0\` pour la boucle locale.
+4. (Bonus) \`passive-interface Loopback0\` : inutile d'envoyer des updates RIP vers un LAN.
+
+Écris ci-dessous la config **RIP complète de R2** (les \`network\`). La correction (R1, R2, R3) + la **matrice de ping** s'affiche après validation.`,
+        points: 700,
+        timeLimitSec: 2400,
+        starter: `! === R2 ===
+router rip
+`,
+        hints: [
+          { text: "Chaque routeur : router rip / version 2 / no auto-summary / network 10.0.0.0 / network 192.168.X.0 (sa boucle).", cost: 60 },
+          { text: "📖 Correction R2 :\n```\nrouter rip\n version 2\n no auto-summary\n network 10.0.0.0\n network 192.168.2.0\n passive-interface Loopback0\n```", cost: 140 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.7,
+          keypoints: [
+            { label: "Processus RIP", pattern: "router\\s+rip", flags: "i" },
+            { label: "Version 2", pattern: "version\\s+2", flags: "i" },
+            { label: "Pas de résumé automatique", pattern: "no\\s+auto-summary", flags: "i" },
+            { label: "Annonce les liaisons 10.x (classful)", pattern: "network\\s+10\\.0\\.0\\.0", flags: "i" },
+            { label: "Annonce le LAN de R2", pattern: "network\\s+192\\.168\\.2\\.0", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction complète + vérification
+
+\`\`\`
+! Sur CHAQUE routeur (même squelette) :
+! === R1 ===              ! === R2 ===              ! === R3 ===
+router rip                router rip                router rip
+ version 2                 version 2                 version 2
+ no auto-summary           no auto-summary           no auto-summary
+ network 10.0.0.0          network 10.0.0.0          network 10.0.0.0
+ network 192.168.1.0       network 192.168.2.0       network 192.168.3.0
+ passive-interface Loopback0 (bonus, sur les 3)
+\`\`\`
+
+Chaque routeur apprend **automatiquement** les LAN des autres, propagés de proche en proche (RIP = vecteur de distance, métrique = nombre de sauts).
+
+### 🎯 Comment savoir que TOUT est bon : la matrice de ping
+
+| Depuis \\ Vers | LAN R1 (192.168.1.1) | LAN R2 (192.168.2.1) | LAN R3 (192.168.3.1) |
+|---|---|---|---|
+| **R1** | — | ✅ | ✅ |
+| **R2** | ✅ | — | ✅ |
+| **R3** | ✅ | ✅ | — |
+
+Si les **3 LAN se pinguent tous**, RIP a convergé. 🏆 Confirme avec \`show ip route\` : tu dois voir les réseaux distants en **R** (ex. \`R 192.168.3.0/24 [120/1] via 10.0.23.2\`) et \`show ip protocols\` (« Routing Protocol is rip »).
+
+**Si un ping échoue :** attends ~30 s (convergence RIP), vérifie \`no auto-summary\` (sinon RIP résume aux frontières classful et casse le /30), et que chaque \`network\` classful est bien présent.`,
+        tags: ["lab", "rip", "ping", "verification", "architecture"],
+      },
     ],
   },
 ];

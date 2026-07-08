@@ -411,6 +411,86 @@ router ospf 1
 **Vérification PT :** sur R1, \`show ip route\` → le LAN de R3 apparaît en **O IA** (*inter-area*), pas en simple O. Sur R2, \`show ip ospf\` montre « *Area BACKBONE(0)* » **et** « *Area 1* ». 🎯`,
         tags: ["tp", "ospf", "multi-area", "abr", "architecture"],
       },
+      {
+        id: "res-lab-ospf-complet",
+        title: "🏁 LAB COMPLET — OSPF sur 4 routeurs, ping de bout en bout",
+        order: 8,
+        difficulty: "hard",
+        type: "code",
+        language: "pseudo",
+        prompt: `## 🏁 Lab guidé complet (fichier : « topologie de départ » du module)
+
+Ouvre le **.pka de départ** (sous le cours) : **4 routeurs R1, R2, R3, R4** (R1 au centre, relié aux 3 autres par des liens série/ethernet), non configurés. Chaque routeur simule son **LAN** par une **boucle locale**. Objectif : **OSPF fait que le ping passe entre TOUS les LAN**.
+
+**Plan d'adressage imposé :**
+
+| Élément | Réseau |
+|---|---|
+| LAN R1 / R2 / R3 / R4 (\`Loopback0\`) | \`192.168.1.1/24\` … \`192.168.4.1/24\` |
+| Liens R1↔R2, R1↔R3, R1↔R4 | \`10.0.0.0/8\` en /30 |
+
+**Instructions — dans Packet Tracer :**
+
+1. **Adresse** les 4 boucles et les liens (\`clock rate\` côté DCE des liens série), \`no shutdown\`.
+2. **Sur les 4 routeurs** : \`router ospf 1\` + un \`router-id\` unique (\`1.1.1.1\` … \`4.4.4.4\`).
+3. **Annonce chaque réseau en \`area 0\`** avec le **bon wildcard** (LAN /24 → \`0.0.0.255\` ; lien /30 → \`0.0.0.3\`).
+4. **\`passive-interface Loopback0\`** sur chacun (pas de Hello vers un LAN).
+
+Écris ci-dessous la config OSPF **complète de R1** (router-id + tous ses \`network\` : sa boucle + ses 3 liens). La correction (R1-R4) + la **matrice de ping** s'affiche après validation.`,
+        points: 700,
+        timeLimitSec: 2400,
+        starter: `! === R1 (le hub) ===
+router ospf 1
+`,
+        hints: [
+          { text: "R1 annonce sa boucle (192.168.1.0 0.0.0.255) ET ses 3 liens /30 (0.0.0.3), tous en area 0. router-id 1.1.1.1.", cost: 60 },
+          { text: "📖 Correction R1 :\n```\nrouter ospf 1\n router-id 1.1.1.1\n network 192.168.1.0 0.0.0.255 area 0\n network 10.0.12.0 0.0.0.3 area 0\n network 10.0.13.0 0.0.0.3 area 0\n network 10.0.14.0 0.0.0.3 area 0\n passive-interface Loopback0\n```", cost: 140 },
+        ],
+        answer: JSON.stringify({
+          minRatio: 0.6,
+          keypoints: [
+            { label: "Processus OSPF 1", pattern: "router\\s+ospf\\s+1", flags: "i" },
+            { label: "Router-id de R1", pattern: "router-id\\s+1\\.1\\.1\\.1", flags: "i" },
+            { label: "LAN de R1 annoncé (wildcard /24)", pattern: "network\\s+192\\.168\\.1\\.0\\s+0\\.0\\.0\\.255\\s+area\\s+0", flags: "i" },
+            { label: "Un lien /30 annoncé (wildcard 0.0.0.3)", pattern: "network\\s+10\\.0\\.1[234]\\.0\\s+0\\.0\\.0\\.3\\s+area\\s+0", flags: "i" },
+            { label: "Boucle passive", pattern: "passive-interface\\s+Loopback0", flags: "i" },
+          ],
+        }),
+        explanation: `### ✅ Correction complète + vérification
+
+\`\`\`
+! === R1 (hub) ===
+router ospf 1
+ router-id 1.1.1.1
+ network 192.168.1.0 0.0.0.255 area 0
+ network 10.0.12.0 0.0.0.3 area 0
+ network 10.0.13.0 0.0.0.3 area 0
+ network 10.0.14.0 0.0.0.3 area 0
+ passive-interface Loopback0
+! === R2 / R3 / R4 (chacun : son router-id, sa boucle, son lien vers R1) ===
+router ospf 1
+ router-id 2.2.2.2                       ! (3.3.3.3 ; 4.4.4.4)
+ network 192.168.2.0 0.0.0.255 area 0    ! (…3.0 ; …4.0)
+ network 10.0.12.0 0.0.0.3 area 0        ! (10.0.13.0 ; 10.0.14.0)
+ passive-interface Loopback0
+\`\`\`
+
+OSPF construit sa LSDB, chaque routeur lance **Dijkstra** et apprend tous les LAN (chemin au meilleur **coût** = bande passante).
+
+### 🎯 Comment savoir que TOUT est bon : la matrice de ping
+
+| Depuis \\ Vers | LAN1 | LAN2 | LAN3 | LAN4 |
+|---|---|---|---|---|
+| **R1** | — | ✅ | ✅ | ✅ |
+| **R2** | ✅ | — | ✅ | ✅ |
+| **R3** | ✅ | ✅ | — | ✅ |
+| **R4** | ✅ | ✅ | ✅ | — |
+
+Si les **4 LAN se pinguent tous entre eux**, OSPF a convergé. 🏆 Vérifie : \`show ip ospf neighbor\` (3 voisins **FULL** sur R1), \`show ip route ospf\` (LAN distants en **O [110/…]**).
+
+**Si un ping échoue :** voisins pas FULL ? → vérifie le **wildcard** (inversé du masque) et que les deux extrémités du lien sont dans la **même area**. Interface down ? → \`clock rate\` manquant côté DCE.`,
+        tags: ["lab", "ospf", "ping", "verification", "architecture"],
+      },
     ],
   },
 ];
