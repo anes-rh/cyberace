@@ -40,6 +40,8 @@ import { dhcp } from "./reseaux/dhcp";
 import { architectures } from "./reseaux/architectures";
 import { intro as seIntro } from "./systeme/intro";
 import { tp0Vm } from "./systeme/tp0Vm";
+import { terminal } from "./systeme/terminal";
+import { bash } from "./systeme/bash";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -78,6 +80,8 @@ export const reseauxCourses: CourseSeed[] = [
 export const systemeCourses: CourseSeed[] = [
   ...seIntro,
   ...tp0Vm,
+  ...terminal,
+  ...bash,
 ];
 
 /** Every course, in display order. */
