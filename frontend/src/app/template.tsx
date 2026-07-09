@@ -1,14 +1,16 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { usePathname } from "next/navigation";
 
 /**
  * Subtle global page transition — a soft fade/rise on every route change.
- * Keyed on pathname so it replays per navigation.
+ * Keyed on pathname so it replays per navigation. Skipped under reduced-motion.
  */
 export default function Template({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const reduce = useReducedMotion();
+  if (reduce) return <>{children}</>;
   return (
     <motion.div
       key={pathname}

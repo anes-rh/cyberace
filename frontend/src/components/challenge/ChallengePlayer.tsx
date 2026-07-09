@@ -440,6 +440,28 @@ export function ChallengePlayer({
   );
 }
 
+/** Animates a number from 0 → value once on mount (skips under reduced-motion). */
+function CountUp({ value, duration = 900 }: { value: number; duration?: number }) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      setN(value);
+      return;
+    }
+    let raf = 0;
+    const start = performance.now();
+    const tick = (t: number) => {
+      const p = Math.min(1, (t - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3); // easeOutCubic
+      setN(Math.round(value * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value, duration]);
+  return <span className="tnum">{n}</span>;
+}
+
 function SolvedPanel({ result, nextHref }: { result: SubmitResult; nextHref?: string | null }) {
   return (
     <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
@@ -457,7 +479,7 @@ function SolvedPanel({ result, nextHref }: { result: SubmitResult; nextHref?: st
           {result.alreadySolved ? (
             <p className="text-sm text-muted">Déjà validé — {result.awarded ?? ""} pts acquis.</p>
           ) : (
-            <p className="text-sm text-muted tnum">+{result.awarded} XP gagnés</p>
+            <p className="text-sm text-muted">+<CountUp value={result.awarded ?? 0} /> XP gagnés</p>
           )}
         </div>
       </div>
