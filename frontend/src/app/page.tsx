@@ -29,8 +29,9 @@ export default function HomePage() {
     <div className="overflow-hidden">
       {/* ─── Hero ─────────────────────────────────────────────── */}
       <section className="relative mx-auto max-w-7xl px-5 pb-16 pt-16 sm:pt-24">
-        <div className="pointer-events-none absolute -left-20 top-0 h-72 w-72 rounded-full bg-primary/15 blur-3xl" />
-        <div className="pointer-events-none absolute -right-24 top-24 h-80 w-80 rounded-full bg-lavender/20 blur-3xl" />
+        <div className="animate-drift pointer-events-none absolute -left-20 top-0 h-72 w-72 rounded-full bg-primary/15 blur-3xl" />
+        <div className="animate-drift-slow pointer-events-none absolute -right-24 top-24 h-80 w-80 rounded-full bg-lavender/20 blur-3xl" />
+        <div className="animate-drift-mid pointer-events-none absolute left-1/3 top-40 h-64 w-64 rounded-full bg-secondary/15 blur-3xl" />
 
         <div className="relative mx-auto max-w-3xl text-center">
           <motion.p
@@ -48,7 +49,7 @@ export default function HomePage() {
             className="mt-5 font-display text-4xl font-bold leading-[1.1] tracking-tight text-fg sm:text-6xl"
           >
             L'informatique &amp; la cybersécurité,<br className="hidden sm:block" />{" "}
-            <span className="gradient-text">comme une course</span>.
+            <span className="gradient-text-anim">comme une course</span>.
           </motion.h1>
 
           <motion.p

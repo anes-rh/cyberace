@@ -12,6 +12,7 @@ import { DifficultyBadge } from "@/components/ui/DifficultyBadge";
 import { Markdown } from "@/components/Markdown";
 import { WidgetRenderer } from "@/components/widgets/WidgetRenderer";
 import { CodeEditor } from "@/components/challenge/CodeEditor";
+import Celebration from "@/components/Celebration";
 import { useAuth } from "@/context/AuthContext";
 import { api, ApiError } from "@/lib/api";
 import { formatTime, cn } from "@/lib/utils";
@@ -36,6 +37,7 @@ export function ChallengePlayer({
   );
   const [wrong, setWrong] = useState(false);
   const [error, setError] = useState("");
+  const [celebrateKey, setCelebrateKey] = useState(0);
 
   // Answer state per type.
   const [text, setText] = useState("");
@@ -106,6 +108,7 @@ export function ChallengePlayer({
       const r = await api.submit(challenge.id, answer, Date.now() - startRef.current);
       if (r.correct) {
         setResult(r);
+        if (!r.alreadySolved) setCelebrateKey((k) => k + 1); // fresh solve → celebrate
         onSolved?.();
       } else {
         setFeedback(r.feedback ?? null);
@@ -133,6 +136,7 @@ export function ChallengePlayer({
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+      <Celebration fireKey={celebrateKey} />
       {/* Main column */}
       <div className="space-y-6">
         <div className="glass rounded-2xl p-6">
@@ -440,9 +444,14 @@ function SolvedPanel({ result, nextHref }: { result: SubmitResult; nextHref?: st
   return (
     <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
       <div className="flex items-center gap-3 rounded-xl border border-success/40 bg-success/10 p-4">
-        <span className="grid h-11 w-11 place-items-center rounded-full bg-success/20 text-success">
-          <Check className="h-6 w-6" />
-        </span>
+        <motion.span
+          initial={{ scale: 0, rotate: -35 }}
+          animate={{ scale: [0, 1.25, 1], rotate: 0 }}
+          transition={{ type: "spring", stiffness: 480, damping: 14, delay: 0.08 }}
+          className="grid h-11 w-11 place-items-center rounded-full bg-success/20 text-success"
+        >
+          <Check className="h-6 w-6" strokeWidth={2.6} />
+        </motion.span>
         <div>
           <p className="font-display text-lg font-bold text-success">Défi résolu !</p>
           {result.alreadySolved ? (
@@ -467,8 +476,14 @@ function SolvedPanel({ result, nextHref }: { result: SubmitResult; nextHref?: st
       )}
 
       {result.newBadge && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4">
-          <Trophy className="h-6 w-6 text-warning" />
+        <motion.div initial={{ opacity: 0, y: 12, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 320, damping: 20, delay: 0.35 }} className="flex items-center gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4">
+          <motion.span
+            initial={{ rotate: 0 }}
+            animate={{ rotate: [0, -18, 14, -8, 0], scale: [1, 1.2, 1] }}
+            transition={{ delay: 0.5, duration: 0.7 }}
+          >
+            <Trophy className="h-6 w-6 text-warning" />
+          </motion.span>
           <div>
             <p className="font-display font-semibold text-warning">Badge débloqué : {result.newBadge.name}</p>
             <p className="text-sm text-muted">{result.newBadge.description}</p>
