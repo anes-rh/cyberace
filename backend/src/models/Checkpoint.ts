@@ -10,6 +10,8 @@ export interface CheckpointDoc extends Document {
   accent: string;
   description: string;
   tagline: string;
+  /** Parent checkpoint slug for a mini-checkpoint; unset for top-level ones. */
+  parent?: string | null;
 }
 
 const checkpointSchema = new Schema<CheckpointDoc>(
@@ -22,6 +24,7 @@ const checkpointSchema = new Schema<CheckpointDoc>(
     accent: { type: String, required: true },
     description: { type: String, default: "" },
     tagline: { type: String, default: "" },
+    parent: { type: String, default: null, index: true },
   },
   { timestamps: true }
 );

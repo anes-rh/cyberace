@@ -59,8 +59,58 @@ export const allCheckpoints: CheckpointSeed[] = [
     icon: "ShieldCheck",
     accent: "#9B8CCB",
     description:
-      "Le grand final : cryptographie, contrôle d'accès, Active Directory, réseau, système, SOC, systèmes distribués, bases de données, paiement, OSINT, forensic, cloud, web et social engineering.",
+      "Le grand final, organisé en mini-checkpoints : introduction à la sécurité, sécurité des réseaux, du sans-fil et des systèmes. Choisis un axe et progresse à ton rythme.",
     tagline: "Checkpoint final",
+  },
+
+  // ── Mini-checkpoints de « Cybersécurité » (sous-route, parent = cybersecurite) ──
+  {
+    slug: "cyber-intro",
+    title: "Introduction à la sécurité",
+    order: 1,
+    status: "empty",
+    icon: "ShieldCheck",
+    accent: "#9B8CCB",
+    description:
+      "Les fondations : menaces, vulnérabilités, CIA (confidentialité, intégrité, disponibilité), surface d'attaque et vocabulaire de la sécurité.",
+    tagline: "Point de départ sécurité",
+    parent: "cybersecurite",
+  },
+  {
+    slug: "cyber-reseaux",
+    title: "Sécurité réseaux",
+    order: 2,
+    status: "empty",
+    icon: "Network",
+    accent: "#5FB3C6",
+    description:
+      "Protéger le réseau : pare-feu, filtrage, VPN, IDS/IPS, attaques réseau courantes et bonnes pratiques de segmentation.",
+    tagline: "Défendre le réseau",
+    parent: "cybersecurite",
+  },
+  {
+    slug: "cyber-wifi",
+    title: "Sécurité réseaux sans fil",
+    order: 3,
+    status: "empty",
+    icon: "Wifi",
+    accent: "#93B896",
+    description:
+      "Le Wi-Fi sous surveillance : WEP/WPA/WPA2/WPA3, attaques sans fil, portails captifs et durcissement des points d'accès.",
+    tagline: "Sécuriser le sans-fil",
+    parent: "cybersecurite",
+  },
+  {
+    slug: "cyber-systeme",
+    title: "Sécurité système",
+    order: 4,
+    status: "empty",
+    icon: "Server",
+    accent: "#E8A87C",
+    description:
+      "Durcir les machines : droits et privilèges, journalisation, malwares, gestion des correctifs et sécurité des systèmes d'exploitation.",
+    tagline: "Durcir les systèmes",
+    parent: "cybersecurite",
   },
 ];
 

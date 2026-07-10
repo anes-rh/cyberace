@@ -18,6 +18,8 @@ export interface CheckpointSummary {
   solvedCount: number;
   progress: number;
   completed: boolean;
+  /** Parent checkpoint slug for a mini-checkpoint; null for top-level. */
+  parent?: string | null;
 }
 
 export interface CheckpointDetail {
@@ -30,8 +32,11 @@ export interface CheckpointDetail {
     accent: string;
     description: string;
     tagline: string;
+    parent?: string | null;
   };
   courses: CourseSummary[];
+  /** Present when this checkpoint is a hub of mini-checkpoints. */
+  children?: CheckpointSummary[];
   progress: { solvedCount: number; total: number; ratio: number };
 }
 

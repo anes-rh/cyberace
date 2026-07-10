@@ -111,6 +111,12 @@ export interface CheckpointSeed {
   description: string;
   /** Short line shown on the roadmap station. */
   tagline: string;
+  /**
+   * Parent checkpoint slug for a "mini-checkpoint" (sub-route). Top-level
+   * checkpoints on the main roadmap leave this undefined. A parent's progress
+   * aggregates all of its children's modules.
+   */
+  parent?: string;
 }
 
 export interface CourseSeed {
