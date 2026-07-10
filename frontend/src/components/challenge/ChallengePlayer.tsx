@@ -468,8 +468,8 @@ function SolvedPanel({ result, nextHref }: { result: SubmitResult; nextHref?: st
       <div className="flex items-center gap-3 rounded-xl border border-success/40 bg-success/10 p-4">
         <motion.span
           initial={{ scale: 0, rotate: -35 }}
-          animate={{ scale: [0, 1.25, 1], rotate: 0 }}
-          transition={{ type: "spring", stiffness: 480, damping: 14, delay: 0.08 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 480, damping: 13, delay: 0.08 }}
           className="grid h-11 w-11 place-items-center rounded-full bg-success/20 text-success"
         >
           <Check className="h-6 w-6" strokeWidth={2.6} />
