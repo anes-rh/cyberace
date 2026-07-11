@@ -54,6 +54,12 @@ import { conformite as cyiConformite } from "./cyber/intro/conformite";
 import { footprinting as cyiFootprinting } from "./cyber/intro/footprinting";
 import { enumeration as cyiEnumeration } from "./cyber/intro/enumeration";
 import { scan as cyiScan } from "./cyber/intro/scan";
+import { fondamentaux as cywFondamentaux } from "./cyber/wifi/fondamentaux";
+import { protocoles as cywProtocoles } from "./cyber/wifi/protocoles";
+import { handshake as cywHandshake } from "./cyber/wifi/handshake";
+import { attaques as cywAttaques } from "./cyber/wifi/attaques";
+import { entreprise as cywEntreprise } from "./cyber/wifi/entreprise";
+import { architecture as cywArchitecture } from "./cyber/wifi/architecture";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -130,6 +136,16 @@ export const cyberIntroCourses: CourseSeed[] = [
   ...cyiScan,
 ];
 
+/** Courses of the "Sécurité réseaux sans fil" mini-checkpoint (théorie). */
+export const cyberWifiCourses: CourseSeed[] = [
+  ...cywFondamentaux,
+  ...cywProtocoles,
+  ...cywHandshake,
+  ...cywAttaques,
+  ...cywEntreprise,
+  ...cywArchitecture,
+];
+
 /** Every course, in display order. */
 export const allCourses: CourseSeed[] = [
   ...algoCourses,
@@ -137,4 +153,5 @@ export const allCourses: CourseSeed[] = [
   ...systemeCourses,
   ...bddCourses,
   ...cyberIntroCourses,
+  ...cyberWifiCourses,
 ];

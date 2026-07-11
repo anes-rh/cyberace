@@ -92,11 +92,11 @@ export const allCheckpoints: CheckpointSeed[] = [
     slug: "cyber-wifi",
     title: "Sécurité réseaux sans fil",
     order: 3,
-    status: "empty",
+    status: "active",
     icon: "Wifi",
     accent: "#93B896",
     description:
-      "Le Wi-Fi sous surveillance : WEP/WPA/WPA2/WPA3, attaques sans fil, portails captifs et durcissement des points d'accès.",
+      "Le Wi-Fi sous surveillance : fondamentaux radio & 802.11, WEP/WPA/WPA2/WPA3, 4-way handshake & KRACK, attaques sans fil (evil twin, rogue AP, deauth, WPS, DoS), 802.1X d'entreprise et durcissement (isolation invités, DMZ/VPN/NAC).",
     tagline: "Sécuriser le sans-fil",
     parent: "cybersecurite",
   },
