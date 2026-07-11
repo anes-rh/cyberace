@@ -22,6 +22,26 @@ export const conformite: CourseSeed[] = [
       "Maîtriser les grands principes du RGPD/GDPR et du DPA 2018",
       "Situer les enjeux juridiques du hacking (autorisation, territorialité)",
     ],
+    resources: [
+      {
+        label: "RGPD — texte et explications (gdpr.eu)",
+        url: "https://gdpr.eu/",
+        kind: "link",
+        note: "Le RGPD expliqué article par article, avec check-lists de conformité.",
+      },
+      {
+        label: "PCI Security Standards Council (officiel)",
+        url: "https://www.pcisecuritystandards.org/",
+        kind: "link",
+        note: "L'organisme officiel du standard PCI DSS (sécurité des données de cartes de paiement).",
+      },
+      {
+        label: "ISO/IEC 27001 — page officielle ISO",
+        url: "https://www.iso.org/standard/27001",
+        kind: "link",
+        note: "La norme internationale du système de management de la sécurité de l'information (SMSI).",
+      },
+    ],
     lesson: `# 📜 Lois, normes & conformité — Rule Book
 
 La cybersécurité n'est pas qu'une affaire de technique : c'est aussi un **cadre légal**. Ignorer la conformité, c'est risquer des **amendes énormes** et des poursuites. Tour d'horizon des cadres à connaître. 🏎️
@@ -74,6 +94,18 @@ Le **RGPD** (Règlement Général sur la Protection des Données) est **le** tex
 
 Le **DPA 2018** (UK) reprend l'essentiel du RGPD au niveau britannique.
 
+**Les acteurs du RGPD (qui fait quoi) :**
+- **Personne concernée** (*data subject*) : l'individu dont on traite les données.
+- **Responsable de traitement** (*data controller*) : celui qui **décide** des finalités et moyens — c'est lui le premier responsable.
+- **Sous-traitant** (*data processor*) : celui qui traite les données **pour le compte** du responsable (ex. un hébergeur cloud).
+- **Autorité de contrôle** : le régulateur qui veille et sanctionne (en France, la **CNIL**).
+
+**Catégories particulières** (données « sensibles ») : origine, opinions politiques/religieuses, santé, orientation sexuelle, données biométriques/génétiques… Leur traitement est **interdit par principe**, sauf exceptions strictes — protection renforcée.
+
+**Privacy by design & by default** : la protection des données doit être pensée **dès la conception** (*by design*) et le réglage **le plus protecteur** doit être **actif par défaut** (*by default*) — pas une option à activer.
+
+> 🧭 Ne confonds pas **PII** (*Personally Identifiable Information* — toute donnée identifiant une personne) et **PHI** (*Protected Health Information* — données de santé, cœur d'HIPAA).
+
 ---
 
 ## 4. Panorama des lois cyber par pays 🌍
@@ -86,14 +118,23 @@ Au-delà des grands cadres, **chaque pays** dispose de lois réprimant la **cybe
 
 > ⚠️ **Conséquence directe pour le hacking éthique** : sans **autorisation écrite** du propriétaire, tester un système — même sans nuire — constitue un **accès non autorisé**, donc un **délit**. Le « scope » et le contrat ne sont pas une formalité : ils sont ce qui rend l'activité **légale**.
 
+### Deux directives cyber européennes récentes 🇪🇺
+
+- **NIS2** (2023) : renforce la cybersécurité des **entités essentielles et importantes** (énergie, santé, transport, numérique…), avec obligations de gestion du risque et de **notification d'incident**.
+- **DORA** (*Digital Operational Resilience Act*) : cible le **secteur financier** — résilience opérationnelle face aux incidents TIC, y compris chez les prestataires.
+
+### Classer l'information avant de la protéger 🏷️
+
+On ne protège pas tout de la même façon. On **classe** les données par sensibilité, typiquement : **Public → Interne → Confidentiel → Restreint/Secret**. La classification détermine les contrôles (chiffrement, accès, durée de conservation) : c'est un préalable concret à toute politique de sécurité et de conformité.
+
 ---
 
 ## 🧠 À retenir
 
 - **Loi** (obligatoire, État, sanctions) vs **norme** (référentiel de bonnes pratiques) vs **conformité** (respect prouvé par audit). Une norme peut être **de facto obligatoire** (PCI DSS).
 - **PCI DSS** = cartes bancaires · **ISO/IEC 27001** = SMSI (risque, certifiable) · **HIPAA** = santé US · **SOX** = rapports financiers US · **DMCA** = droit d'auteur US · **FISMA** = agences fédérales US.
-- **RGPD/GDPR** (UE) : extraterritorial, **consentement**, **droits** (accès/rectification/effacement/portabilité), **minimisation**, notification de violation **sous 72 h**, sanctions jusqu'à **4 % du CA mondial**. **DPA 2018** = version UK.
-- **Lois cyber par pays** : l'**accès non autorisé** et l'**altération de données** sont des délits partout ; la **territorialité** est complexe.
+- **RGPD/GDPR** (UE) : extraterritorial, **consentement**, **droits** (accès/rectification/effacement/portabilité), **minimisation**, notification de violation **sous 72 h**, sanctions jusqu'à **4 % du CA mondial**. **DPA 2018** = version UK. Acteurs : **responsable de traitement** vs **sous-traitant** ; **privacy by design/default** ; **PII** ≠ **PHI**.
+- **Lois cyber par pays** : l'**accès non autorisé** et l'**altération de données** sont des délits partout ; la **territorialité** est complexe. UE récente : **NIS2** (entités essentielles), **DORA** (finance). **Classer** les données (Public→Interne→Confidentiel→Restreint) précède toute protection.
 - **Pour le pentester** : sans **autorisation écrite**, tester = **accès non autorisé** = **délit**. Le contrat/scope, c'est la **légalité**.`,
     badge: {
       id: "badge-cyi-rule-book",

@@ -22,6 +22,26 @@ export const defense: CourseSeed[] = [
       "Décrire la threat intelligence et les 6 phases de son cycle de vie",
       "Connaître les étapes de la gestion des incidents et le threat modeling",
     ],
+    resources: [
+      {
+        label: "NIST — Cybersecurity Framework (CSF) officiel",
+        url: "https://www.nist.gov/cyberframework",
+        kind: "link",
+        note: "La source officielle des fonctions Identify/Protect/Detect/Respond/Recover, avec guides et ressources.",
+      },
+      {
+        label: "CISA — bonnes pratiques et alertes (agence US)",
+        url: "https://www.cisa.gov/",
+        kind: "link",
+        note: "Recommandations défensives, guides de durcissement et renseignement sur les menaces.",
+      },
+      {
+        label: "SANS — white papers & incident handling",
+        url: "https://www.sans.org/white-papers/",
+        kind: "link",
+        note: "Bibliothèque de référence (dont l'Incident Handler's Handbook) sur la réponse à incident et la défense.",
+      },
+    ],
     lesson: `# 🛡️ Frameworks & contrôles défensifs — Blue Shield
 
 Après l'attaquant, le **défenseur** (*blue team*). Comment structurer une défense complète ? Grâce à des **frameworks** qui couvrent tout le cycle : anticiper, protéger, détecter, réagir, se relever. 🏎️
@@ -44,6 +64,21 @@ Le **NIST CSF** (*Cybersecurity Framework*) organise la sécurité en **5 foncti
 5. **Reprendre** (*Recover*) : **rétablir** les services et tirer les leçons — restauration, sauvegardes, amélioration continue.
 
 > 🧭 Ces 5 fonctions forment un **cycle continu** : ce qu'on apprend en *Recover* alimente l'*Identify* suivant. Le framework n'est pas une checklist figée mais une **boussole** pour couvrir tout le spectre (avant, pendant, après l'incident).
+
+> 💡 La version **NIST CSF 2.0** (2024) a ajouté une **6ᵉ fonction transversale : Gouverner** (*Govern*) — les rôles, politiques et gestion du risque qui chapeautent les cinq autres.
+
+### Le SOC et les outils de la Blue Team 🖥️
+
+La défense opérationnelle vit dans un **SOC** (*Security Operations Center*), l'équipe qui surveille **24/7**. Ses outils clés :
+- **SIEM** (*Security Information and Event Management*) : centralise et **corrèle les logs** de toute l'infra pour lever des alertes (ex. Splunk, ELK, Wazuh).
+- **IDS / IPS** : **détecte** (IDS) ou **bloque** (IPS) le trafic malveillant, par **signatures** (motifs connus) ou par **anomalie** (comportement inhabituel).
+- **EDR / XDR** (*Endpoint / Extended Detection & Response*) : surveille finement les **postes/serveurs** (EDR) ou corrèle plusieurs sources — endpoint, réseau, mail, cloud (XDR).
+- **SOAR** (*Security Orchestration, Automation & Response*) : **automatise** les réponses (playbooks) pour aller plus vite.
+- **Honeypot** : leurre volontairement exposé pour **piéger et étudier** l'attaquant.
+
+### Niveaux d'un SOC : détecter, mais bien
+
+Toute détection produit 4 cas : **vrai positif** (alerte juste), **faux positif** (fausse alerte — le fléau du SOC), **vrai négatif** (rien, à raison), **faux négatif** (attaque **ratée** — le plus dangereux). Bien régler ses détections = **maximiser les vrais positifs** tout en limitant le **bruit** (faux positifs).
 
 ---
 
@@ -77,6 +112,17 @@ La **défense en profondeur** (*defense in depth*) empile **plusieurs couches** 
 
 > 🎯 Principe : **aucune couche unique n'est infaillible**. En multipliant les barrières **indépendantes**, on augmente le coût et le temps pour l'attaquant, et on multiplie les **occasions de détection**. Complète le principe du **moindre privilège** et de la **segmentation**.
 
+### Le Zero Trust 🚫🤝
+
+Le modèle **Zero Trust** (« ne fais confiance à rien ») renverse l'ancien réflexe du « à l'intérieur du réseau = de confiance ». Sa devise : **« never trust, always verify »**. Chaque accès est **vérifié** (identité, appareil, contexte), **à chaque fois**, où qu'il vienne. Principes :
+- **Vérifier explicitement** chaque requête (pas de confiance implicite liée au réseau).
+- **Moindre privilège** : donner juste les droits nécessaires, juste le temps nécessaire.
+- **Supposer la compromission** (*assume breach*) : segmenter (*micro-segmentation*) pour **limiter le rayon d'explosion** d'une intrusion.
+
+Deux principes fondateurs à ne pas confondre :
+- **Moindre privilège** (*least privilege*) : chacun n'a **que** les droits utiles à sa tâche.
+- **Séparation des tâches** (*separation of duties*) : une action sensible exige **plusieurs personnes** (ex. celui qui demande un paiement ≠ celui qui l'approuve) — contre la fraude.
+
 ---
 
 ## 4. La threat intelligence 🔎
@@ -101,6 +147,13 @@ Un processus en **6 phases** (proche du cycle du renseignement classique) :
 \`\`\`
 
 > 🧠 Le renseignement **utile** répond à un **besoin** (phase 1) et boucle par un **retour** (phase 6) : c'est un cycle, pas une ligne droite.
+
+### IoC vs IoA, et le partage 📡
+
+- **IoC** (*Indicator of Compromise*) : une **preuve** qu'une compromission a **déjà eu lieu** — une IP malveillante, un hash de fichier, un domaine C2. On regarde **en arrière**.
+- **IoA** (*Indicator of Attack*) : un **comportement** trahissant une attaque **en cours**, quel que soit l'outil (ex. un processus Office qui lance PowerShell). On regarde **le présent**, plus proactif.
+
+Pour **échanger** ce renseignement entre organisations, des standards existent : **STIX** (format de description structuré des menaces), **TAXII** (protocole de transport), et des plateformes comme **MISP** (partage communautaire d'indicateurs).
 
 ---
 
@@ -129,10 +182,12 @@ Un **incident de sécurité** est un événement qui compromet (ou menace) la CI
 
 ## 🧠 À retenir
 
-- **NIST CSF — 5 fonctions** : **Identifier** (connaître ses actifs/risques) → **Protéger** → **Détecter** → **Réagir** → **Reprendre**. Un **cycle continu**.
+- **NIST CSF — 5 fonctions** : **Identifier** (connaître ses actifs/risques) → **Protéger** → **Détecter** → **Réagir** → **Reprendre**. Un **cycle continu** (+ **Gouverner** en CSF 2.0).
+- **SOC & outils** : **SIEM** (corrèle les logs), **IDS/IPS** (détecte/bloque), **EDR/XDR** (endpoints), **SOAR** (automatise), **honeypot** (leurre). Détection = vrai/faux positif/négatif ; le **faux négatif** (attaque ratée) est le plus dangereux.
+- **Zero Trust** : « never trust, always verify » — vérifier chaque accès, **moindre privilège**, *assume breach* + micro-segmentation. À distinguer de la **séparation des tâches**.
 - **Gap analysis** : comparer l'**état actuel** à l'**état cible** (norme) ; l'**écart** définit le plan de remédiation (définir cible → évaluer → identifier écarts → prioriser).
 - **Défense en profondeur** : **empiler des couches indépendantes** (humain, physique, périmètre, réseau, hôte, appli, données) → aucune couche n'est infaillible seule.
-- **Threat intelligence** : données → **connaissance exploitable** (stratégique/tactique/opérationnelle/technique) ; **cycle en 6 phases** : Direction, Collecte, Traitement, Analyse, Diffusion, Retour.
+- **Threat intelligence** : données → **connaissance exploitable** (stratégique/tactique/opérationnelle/technique) ; **cycle en 6 phases** : Direction, Collecte, Traitement, Analyse, Diffusion, Retour. **IoC** (compromission passée) vs **IoA** (attaque en cours) ; partage via **STIX/TAXII/MISP**.
 - **Threat modeling** : anticiper « qu'est-ce qui peut mal tourner ? » **dès la conception** (ex. STRIDE).
 - **Gestion des incidents** : Préparation → Détection/Analyse → **Endiguement** → Éradication → Récupération → **Leçons apprises**. La **préparation** est clé.`,
     badge: {

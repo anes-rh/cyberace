@@ -22,6 +22,26 @@ export const scan: CourseSeed[] = [
       "Citer les outils de scan (Nmap, Hping, Metasploit, NetScanTools Pro)",
       "Connaître les contre-mesures de scan",
     ],
+    resources: [
+      {
+        label: "Nmap — le livre officiel « Nmap Network Scanning » (gratuit)",
+        url: "https://nmap.org/book/toc.html",
+        kind: "link",
+        note: "La référence complète et gratuite du scan réseau, par l'auteur de Nmap (host discovery, types de scans, détection…).",
+      },
+      {
+        label: "HackTricks — Pentesting Network",
+        url: "https://book.hacktricks.xyz/generic-methodologies-and-resources/pentesting-network",
+        kind: "link",
+        note: "Méthodologie de découverte réseau : sweep, ARP, scans de ports, contournement de pare-feu.",
+      },
+      {
+        label: "TryHackMe — salles Nmap (gratuit)",
+        url: "https://tryhackme.com/",
+        kind: "link",
+        note: "S'exercer au scan avec Nmap dans un environnement légal et guidé.",
+      },
+    ],
     lesson: `# 📡 Scan & découverte réseau — Radar Sweep
 
 Le **scan** est la reconnaissance **active** qui cartographie la cible : **quels hôtes sont vivants ? quels ports sont ouverts ? quels services tournent ?** C'est le radar de l'attaquant — et il laisse des **traces**. 🏎️
@@ -69,7 +89,35 @@ Une fois les hôtes trouvés, on **scanne les ports** pour savoir quels **servic
 - **ACK scan** : sert à **cartographier les règles de pare-feu** (déterminer si un port est **filtré** ou non).
 - **UDP scan** : teste les services **UDP** (DNS, SNMP, DHCP…), plus lent (pas de handshake).
 
-Le scan révèle aussi la **détection de version** (bannières → nom et version du service) et parfois l'**OS fingerprinting** (deviner le système d'exploitation d'après le comportement TCP/IP).
+Le scan révèle aussi la **détection de version** (bannières → nom et version du service) et parfois l'**OS fingerprinting** (deviner le système d'exploitation d'après le comportement TCP/IP — **actif** avec Nmap \`-O\`, ou **passif** avec un outil comme **p0f**).
+
+### Les plages de ports & les ports à connaître 🔢
+
+Les **65 536** ports (0–65535) se répartissent en trois plages :
+- **Bien connus** (*well-known*) : **0–1023** (services standards).
+- **Enregistrés** (*registered*) : **1024–49151**.
+- **Dynamiques / éphémères** : **49152–65535** (connexions clientes temporaires).
+
+Ports **incontournables** à mémoriser :
+
+| Port | Service | Port | Service |
+|---|---|---|---|
+| **21** | FTP | **143** | IMAP |
+| **22** | SSH | **443** | HTTPS |
+| **23** | Telnet | **445** | SMB |
+| **25** | SMTP | **1433** | MS SQL |
+| **53** | DNS | **3306** | MySQL |
+| **80** | HTTP | **3389** | RDP (bureau distant) |
+| **110** | POP3 | **8080** | HTTP alternatif |
+
+### Contourner pare-feu et IDS (évasion) 🥷
+
+Un attaquant expérimenté **masque** son scan :
+- **Fragmentation** (\`-f\`) : découper les paquets pour brouiller les IDS.
+- **Leurres** (*decoys*, \`-D\`) : noyer sa vraie IP au milieu de fausses.
+- **Timing lent** (\`-T0\`/\`-T1\`) : scanner très doucement pour passer sous les seuils de détection.
+- **Idle/zombie scan** (\`-sI\`) : scanner **à travers** une machine tierce « zombie » pour ne jamais exposer sa propre IP — le scan le plus **furtif**.
+- **Spoofing** d'adresse source ou de port source (ex. port 53/80, souvent autorisés).
 
 ---
 
@@ -107,6 +155,8 @@ Contre le scan, on **réduit la visibilité** et on **détecte** :
 - États de port : **ouvert** (\`SYN/ACK\`), **fermé** (\`RST\`), **filtré** (aucune réponse).
 - **Découverte d'hôtes** : **ping sweep** (ICMP), **scan ARP** (fiable en LAN), scan UDP/ICMP.
 - **Scans de ports** : **TCP Connect** (complet, bruyant), **SYN** (half-open, discret, référence Nmap), **FIN/NULL/Xmas** (contourner pare-feu), **ACK** (mapper le pare-feu), **UDP**.
+- **Plages** : well-known **0–1023**, registered **1024–49151**, dynamiques **49152–65535**. Ports clés : 21 FTP, 22 SSH, 23 Telnet, 25 SMTP, 53 DNS, 80 HTTP, 443 HTTPS, 445 SMB, 3389 RDP, 3306 MySQL.
+- **Évasion** IDS/pare-feu : **fragmentation** (\`-f\`), **leurres** (\`-D\`), **timing lent** (\`-T0/-T1\`), **idle/zombie scan** (\`-sI\`, le plus furtif), spoofing de port source.
 - Outils : **Nmap** (référence, NSE), **Hping2/3** (forge de paquets), **Metasploit**, **NetScanTools Pro**.
 - Contre-mesures : **pare-feu strict** (filtrer/drop), **IDS/IPS** (détecter les scans), **segmentation**, **fermer les services inutiles**, **surveillance**.`,
     badge: {

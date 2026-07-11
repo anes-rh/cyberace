@@ -22,6 +22,26 @@ export const footprinting: CourseSeed[] = [
       "Exploiter réseaux sociaux, email footprinting et dark web (OSINT)",
       "Citer les outils (Maltego, recon-ng, FOCA, OSINT Framework) et les contre-mesures",
     ],
+    resources: [
+      {
+        label: "OSINT Framework — portail d'outils OSINT",
+        url: "https://osintframework.com/",
+        kind: "link",
+        note: "Arborescence classant des centaines d'outils/sources OSINT par catégorie (emails, domaines, réseaux sociaux…).",
+      },
+      {
+        label: "Google Hacking Database (GHDB) — Exploit-DB",
+        url: "https://www.exploit-db.com/google-hacking-database",
+        kind: "link",
+        note: "Des milliers de « dorks » Google prêts à l'emploi, classés par type de donnée exposée.",
+      },
+      {
+        label: "Shodan — moteur des appareils connectés",
+        url: "https://www.shodan.io/",
+        kind: "link",
+        note: "Rechercher des serveurs, caméras, IoT et systèmes exposés sur Internet (reconnaissance passive).",
+      },
+    ],
     lesson: `# 🕵️ Footprinting & reconnaissance passive — Recon
 
 Avant toute attaque vient la **reconnaissance** : rassembler un **maximum d'informations** sur la cible. Le **footprinting passif** le fait **sans jamais toucher** aux systèmes de la cible — donc **indétectable**. 🏎️
@@ -79,13 +99,23 @@ Trois sources techniques **publiques** essentielles :
   - **SOA / PTR** : autorité de zone / résolution inverse.
 - **Traceroute** : trace le **chemin réseau** (les routeurs traversés) jusqu'à la cible → révèle la **topologie**, les équipements intermédiaires, parfois le fournisseur et des pare-feu.
 
+### Website footprinting & découverte de sous-domaines 🌐
+
+Le site web lui-même est une mine d'infos, souvent **sans rien envoyer d'agressif** :
+- **Empreinte technologique** : identifier le **CMS**, le serveur, les frameworks et versions (outils **Wappalyzer**, **BuiltWith**). Connaître la techno = connaître ses **vulnérabilités** connues.
+- **Fichiers révélateurs** : \`robots.txt\` et \`sitemap.xml\` listent parfois des chemins **cachés** que le propriétaire ne voulait pas indexer (mais pas protéger !).
+- **Miroir de site** : copier tout un site en local (**HTTrack**) pour l'analyser **hors ligne**, tranquillement.
+- **Certificate Transparency** : les **certificats TLS** émis sont publics (journaux **CT**, consultables via **crt.sh**). Ils **trahissent des sous-domaines** (ex. \`vpn.\`, \`dev.\`, \`admin.\`) qu'aucun lien public ne montrait. Des outils comme **Sublist3r** ou **theHarvester** agrègent ces sous-domaines.
+
+> 🧠 La découverte de sous-domaines **élargit la surface d'attaque** : chaque \`dev.\`, \`test.\` ou \`old.\` oublié est une porte potentielle. La **veille concurrentielle** (*competitive intelligence*) applique la même logique côté business : recueillir de l'info **publique** sur une organisation.
+
 ---
 
 ## 5. Réseaux sociaux, email et dark web 👥
 
 - **Réseaux sociaux** : mine d'or pour l'**OSINT** — noms d'employés, postes, technologies utilisées (offres d'emploi !), habitudes, relations. Utile pour l'**ingénierie sociale** ciblée.
 - **Email footprinting / email tracking** : analyser les **en-têtes** d'un email révèle le chemin des serveurs, l'IP d'origine, le client de messagerie ; des **traceurs** (pixels) indiquent si/quand un email est ouvert et depuis où.
-- **Ingénierie sociale** (en reconnaissance) : soutirer des infos directement aux **humains** — par téléphone (*pretexting*), en se faisant passer pour un tiers, etc.
+- **Ingénierie sociale** (en reconnaissance) : soutirer des infos directement aux **humains** — par téléphone (*pretexting*), en se faisant passer pour un tiers, etc. Variantes physiques : **dumpster diving** (fouiller les poubelles à la recherche de documents/notes), **shoulder surfing** (regarder par-dessus l'épaule), **eavesdropping** (écoute de conversations).
 - **Dark web** : les données **fuitées** (identifiants, bases de données volées) circulent sur des places de marché du **dark web** (accessibles via Tor). Y chercher le nom d'une organisation peut révéler des **credentials compromis**.
 
 ---
@@ -123,6 +153,7 @@ Se défendre contre le footprinting, c'est **réduire ce qu'on expose** :
 - **Google Hacking (dorks)** : \`site:\`, \`filetype:\`, \`intitle:\`, \`inurl:\`, \`intext:\`, \`cache:\` ; la **GHDB** recense des milliers de requêtes prêtes.
 - **Shodan** = moteur des **appareils connectés** (serveurs, caméras, IoT, SCADA) → dispositifs exposés/mal sécurisés.
 - **WHOIS** (titulaire/contacts/dates), **DNS** (A/AAAA, **MX**, **NS**, CNAME, TXT, SOA/PTR), **traceroute** (chemin réseau) : la trinité technique.
+- **Website footprinting** : empreinte techno (**Wappalyzer/BuiltWith**), \`robots.txt\`/\`sitemap.xml\`, miroir (**HTTrack**), et **sous-domaines** via **Certificate Transparency** (crt.sh), Sublist3r, theHarvester → surface d'attaque élargie.
 - **OSINT** via **réseaux sociaux**, **email footprinting** (en-têtes, traceurs), **ingénierie sociale**, **dark web** (credentials fuités).
 - Outils : **Maltego** (graphe), **recon-ng** (framework), **FOCA** (métadonnées), **OSINT Framework** (portail), theHarvester.
 - Contre-mesures : **exposer moins**, **WHOIS privé**, désactiver les **transferts de zone**, **nettoyer les métadonnées**, **sensibiliser**.`,

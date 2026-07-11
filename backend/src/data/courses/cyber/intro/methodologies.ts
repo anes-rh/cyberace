@@ -22,6 +22,26 @@ export const methodologies: CourseSeed[] = [
       "Définir les TTPs et leur utilité en threat intelligence",
       "Situer où la défense peut interrompre la chaîne d'attaque",
     ],
+    resources: [
+      {
+        label: "Lockheed Martin — The Cyber Kill Chain (page officielle)",
+        url: "https://www.lockheedmartin.com/en-us/capabilities/cyber/cyber-kill-chain.html",
+        kind: "link",
+        note: "La source d'origine des 7 étapes de la Cyber Kill Chain, par ses créateurs.",
+      },
+      {
+        label: "MITRE ATT&CK — la matrice officielle",
+        url: "https://attack.mitre.org/",
+        kind: "link",
+        note: "Base de connaissances mondiale : tactiques, techniques (IDs Txxxx) et procédures des attaquants réels.",
+      },
+      {
+        label: "Diamond Model of Intrusion Analysis — papier original",
+        url: "https://apps.dtic.mil/sti/pdfs/ADA586960.pdf",
+        kind: "link",
+        note: "Le document fondateur du Diamond Model (Adversaire/Capacité/Infrastructure/Victime).",
+      },
+    ],
     lesson: `# 🔗 Méthodologies & frameworks d'attaque — Kill Chain
 
 Une attaque n'est pas un événement unique : c'est une **suite d'étapes**. Les décrire permet de **détecter tôt** et d'**interrompre** l'attaquant. Trois modèles de référence + la notion de **TTPs**. 🏎️
@@ -52,6 +72,18 @@ Inspirée du militaire, la **Cyber Kill Chain** décompose une attaque ciblée e
 
 > 🎯 **Idée clé (défense)** : **plus on interrompt tôt, mieux c'est**. Bloquer la *Delivery* (filtrage email) évite tout le reste. Détecter le *C2* (trafic sortant anormal) permet d'agir avant les *Actions on Objectives*. Chaque maillon est une **opportunité de défense**.
 
+### Les 6 actions défensives (*courses of action*)
+
+À chaque maillon de la chaîne, le défenseur peut appliquer **six** types d'action (les « 6 D ») :
+- **Detect** (détecter) : repérer l'activité (IDS, logs).
+- **Deny** (refuser) : empêcher l'accès (pare-feu, droits).
+- **Disrupt** (perturber) : casser l'action en cours (antivirus qui bloque).
+- **Degrade** (dégrader) : ralentir/limiter l'attaquant (*rate limiting*).
+- **Deceive** (tromper) : induire en erreur (*honeypot*, faux comptes).
+- **Destroy** (détruire) : neutraliser la capacité de l'attaquant (surtout en contexte militaire/légal).
+
+Croiser les **7 étapes** × les **6 actions** donne la *course-of-action matrix* : un plan défensif complet, étape par étape.
+
 ---
 
 ## 2. MITRE ATT&CK 🗂️
@@ -68,7 +100,11 @@ Inspirée du militaire, la **Cyber Kill Chain** décompose une attaque ciblée e
    Persistence                          Registry Run Keys           …
 \`\`\`
 
-> 🧠 ATT&CK est plus **granulaire** que la Kill Chain : là où la Kill Chain donne 7 grandes étapes **linéaires**, ATT&CK cartographie **des dizaines de techniques** par tactique, sans ordre imposé. On l'utilise pour **classer** les attaques, **évaluer sa couverture** défensive et **partager** du renseignement.
+**Les 14 tactiques Enterprise** (dans l'ordre logique d'une intrusion) : *Reconnaissance → Resource Development → Initial Access → Execution → Persistence → Privilege Escalation → Defense Evasion → Credential Access → Discovery → Lateral Movement → Collection → Command and Control → Exfiltration → Impact*.
+
+**Plusieurs matrices** couvrent différents terrains : **Enterprise** (Windows/Linux/macOS, cloud, réseau), **Mobile** (Android/iOS) et **ICS** (systèmes industriels). Deux outils gravitent autour : **ATT&CK Navigator** (colorier sa couverture défensive sur la matrice) et **CAR** / les analytics de détection.
+
+> 🧠 ATT&CK est plus **granulaire** que la Kill Chain : là où la Kill Chain donne 7 grandes étapes **linéaires**, ATT&CK cartographie **des dizaines de techniques** par tactique, sans ordre imposé. On l'utilise pour **classer** les attaques, **évaluer sa couverture** défensive (*gap analysis*) et **partager** du renseignement.
 
 ---
 
@@ -105,16 +141,31 @@ Les 4 sommets sont **liés** : connaître l'infrastructure peut révéler l'adve
 - **Techniques** : les **méthodes générales** pour y parvenir (le « comment »).
 - **Procédures** : les **étapes précises et outils** réellement employés (le « comment exactement »).
 
-> 🎯 Les **TTPs** sont au cœur de la **threat intelligence** : ils décrivent le **comportement** d'un adversaire, bien plus **stable** que de simples indicateurs techniques (une IP ou un hash changent vite ; une **façon d'opérer** persiste). Reconnaître les TTPs d'un groupe permet de l'**identifier** et d'**anticiper** ses prochains mouvements. (À rapprocher de la « **pyramide de la douleur** » : plus on détecte haut — les TTPs — plus on **fait mal** à l'attaquant, car il doit tout changer.)
+> 🎯 Les **TTPs** sont au cœur de la **threat intelligence** : ils décrivent le **comportement** d'un adversaire, bien plus **stable** que de simples indicateurs techniques (une IP ou un hash changent vite ; une **façon d'opérer** persiste). Reconnaître les TTPs d'un groupe permet de l'**identifier** et d'**anticiper** ses prochains mouvements.
+
+### La pyramide de la douleur 🔺
+
+La **pyramide de la douleur** (*Pyramid of Pain*) classe les indicateurs selon la **difficulté qu'a l'attaquant à les changer** — donc la **douleur** qu'on lui inflige en les détectant. De la base (facile pour lui) au sommet (très douloureux) :
+
+\`\`\`
+        TTPs                ← 😫 « Tough! » : changer sa méthode = énorme effort
+    Outils                  ← 😖 « Challenging » : recoder/racheter un outil
+  Artefacts réseau/hôte     ← 😣 « Annoying »
+ Noms de domaine            ← 😐 « Simple »
+ Adresses IP                ← 🙂 « Easy »
+Hachages de fichiers        ← 😀 « Trivial » : un octet modifié = nouveau hash
+\`\`\`
+
+Détecter un **hash** ne gêne presque pas l'attaquant (il recompile). Détecter ses **TTPs** l'oblige à **repenser toute son opération** : c'est là qu'une défense fait le plus mal. **Monter dans la pyramide = défense plus durable.**
 
 ---
 
 ## 🧠 À retenir
 
-- **Cyber Kill Chain (7 étapes)** : Reconnaissance → Weaponization → Delivery → Exploitation → Installation → **C2** → Actions on Objectives. **Interrompre tôt = gagner** ; chaque maillon est une opportunité de défense.
-- **MITRE ATT&CK** : base de connaissances du comportement réel des attaquants. **Tactiques** (le « pourquoi », colonnes) → **Techniques** (le « comment », avec ID comme T1566) → **Procédures** (mises en œuvre). Plus **granulaire** et non linéaire que la Kill Chain.
+- **Cyber Kill Chain (7 étapes)** : Reconnaissance → Weaponization → Delivery → Exploitation → Installation → **C2** → Actions on Objectives. **Interrompre tôt = gagner** ; à chaque maillon, **6 actions** défensives : **Detect, Deny, Disrupt, Degrade, Deceive, Destroy**.
+- **MITRE ATT&CK** : base de connaissances du comportement réel des attaquants. **Tactiques** (le « pourquoi », colonnes) → **Techniques** (le « comment », avec ID comme T1566) → **Procédures** (mises en œuvre). **14 tactiques Enterprise**, matrices **Enterprise/Mobile/ICS**. Plus **granulaire** et non linéaire que la Kill Chain.
 - **Diamond Model** : 4 sommets liés — **Adversaire, Capacité, Infrastructure, Victime** — pour analyser/corréler une intrusion.
-- **TTPs** = Tactiques, Techniques, Procédures = le **mode opératoire** ; base de la **threat intelligence**, plus stable qu'une IP/un hash.`,
+- **TTPs** = Tactiques, Techniques, Procédures = le **mode opératoire** ; base de la **threat intelligence**, plus stable qu'une IP/un hash. **Pyramide de la douleur** : plus on détecte haut (TTPs), plus on fait mal à l'attaquant.`,
     badge: {
       id: "badge-cyi-kill-chain",
       name: "Kill Chain",

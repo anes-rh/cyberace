@@ -22,6 +22,26 @@ export const fondamentaux: CourseSeed[] = [
       "Comprendre les 3 A : authentification, autorisation, traçabilité (AAA)",
       "Décomposer une attaque en motif + méthode + vulnérabilité et citer les motivations",
     ],
+    resources: [
+      {
+        label: "TryHackMe — Introduction to Cyber Security (gratuit)",
+        url: "https://tryhackme.com/",
+        kind: "link",
+        note: "Parcours débutant interactif (Pre Security, Intro to Cyber Security) : labs en navigateur, aucun prérequis.",
+      },
+      {
+        label: "NIST — Glossaire de la sécurité (CIA, AAA, termes officiels)",
+        url: "https://csrc.nist.gov/glossary",
+        kind: "link",
+        note: "Définitions de référence (confidentiality, integrity, availability, authentication…) par l'organisme de normalisation US.",
+      },
+      {
+        label: "OWASP Foundation — ressources ouvertes",
+        url: "https://owasp.org/",
+        kind: "link",
+        note: "Fondation de référence en sécurité applicative : guides, cheat sheets et projets gratuits.",
+      },
+    ],
     lesson: `# 🛡️ Fondamentaux de la sécurité de l'information — Ground Zero
 
 Avant d'attaquer ou de défendre, il faut parler la même langue. Ce module pose **tout le vocabulaire** et les propriétés que la sécurité cherche à garantir. 🏎️
@@ -68,6 +88,15 @@ La triade est souvent étendue par :
 
 On parle parfois de **quintette** : Confidentialité, Intégrité, Disponibilité, Authenticité, Non-répudiation.
 
+### Le Parkerian Hexad (extension à 6 propriétés)
+
+Certains modèles vont plus loin avec le **Parkerian Hexad**, qui ajoute à la triade **trois** propriétés :
+- **Possession / contrôle** (*possession or control*) : maîtriser le **support** de l'information. On peut perdre la **possession** d'un disque chiffré **sans** perdre la confidentialité (les données restent illisibles) — les deux notions sont donc distinctes.
+- **Authenticité** : la véracité de l'origine (déjà vue).
+- **Utilité** (*utility*) : l'information reste **utilisable**. Une donnée chiffrée dont on a **perdu la clé** est toujours confidentielle, intègre et disponible… mais **inutile** — c'est une perte d'**utilité**.
+
+Le Parkerian Hexad = **Confidentialité, Possession, Intégrité, Authenticité, Disponibilité, Utilité**. Il affine l'analyse en séparant des cas que la triade CIA regroupe.
+
 ---
 
 ## 3. Les 3 A : AAA 🔑
@@ -85,6 +114,41 @@ Un cadre opérationnel du contrôle d'accès, les **trois A** :
 - **Traçabilité** (*Accounting*, parfois *Auditing*) : **enregistrer** qui a fait quoi et quand (logs) — indispensable pour la non-répudiation, la détection et l'investigation.
 
 > 🧠 Ne confonds pas **authentification** (prouver qui on est) et **autorisation** (ce qu'on peut faire). On s'authentifie **une fois**, on est autorisé **à chaque accès**.
+
+### Les 5 facteurs d'authentification
+
+On combine des **facteurs** de natures différentes (plus il y en a, plus c'est fort) :
+1. **Ce que tu SAIS** (*knowledge*) : mot de passe, code PIN, question secrète.
+2. **Ce que tu AS** (*possession*) : token physique, carte à puce, smartphone (OTP).
+3. **Ce que tu ES** (*inherence*) : biométrie — empreinte, visage, iris, voix.
+4. **Où tu ES** (*location*) : géolocalisation, adresse IP/réseau de confiance.
+5. **Ce que tu FAIS** (*behavior*) : biométrie comportementale (façon de taper, de tenir le téléphone).
+
+La **MFA** (*Multi-Factor Authentication*) combine **au moins deux facteurs de catégories différentes** (ex. mot de passe **+** OTP). Utiliser deux mots de passe = **un seul** facteur (savoir), donc **pas** de la MFA.
+
+### Les modèles de contrôle d'accès 🚪
+
+Comment décider **qui** accède à **quoi** ? Quatre grands modèles :
+- **DAC** (*Discretionary Access Control*) : le **propriétaire** d'une ressource décide qui y accède (ex. permissions de fichiers). Souple mais risqué.
+- **MAC** (*Mandatory Access Control*) : le **système** impose l'accès selon des **niveaux de classification** (Secret, Confidentiel…) et des habilitations. Très strict (militaire).
+- **RBAC** (*Role-Based Access Control*) : l'accès dépend du **rôle** de l'utilisateur (« comptable », « admin »). Le plus courant en entreprise.
+- **ABAC** (*Attribute-Based Access Control*) : l'accès dépend d'**attributs** combinés (utilisateur, ressource, contexte, heure, lieu). Le plus **fin** et flexible.
+
+### Les types de contrôles de sécurité 🛠️
+
+On classe les **contrôles** (mesures) de deux façons :
+- Par **nature** : **techniques/logiques** (pare-feu, chiffrement), **administratifs/organisationnels** (politiques, formation), **physiques** (badges, caméras, serrures).
+- Par **fonction** : **préventifs** (empêcher — pare-feu), **détectifs** (repérer — IDS, logs), **correctifs** (réparer — restauration), **dissuasifs** (décourager — panneau « site surveillé »), **compensatoires** (mesure de substitution quand l'idéale est impossible).
+
+### Le traitement du risque 🎲
+
+Face à un risque identifié, **quatre** options :
+- **Réduire / atténuer** (*mitigate*) : mettre des contrôles pour baisser la probabilité/l'impact.
+- **Transférer** (*transfer*) : refiler le risque à un tiers (assurance cyber, sous-traitance).
+- **Accepter** (*accept*) : assumer le risque (s'il est faible / le coût de traitement est trop élevé).
+- **Éviter** (*avoid*) : renoncer à l'activité qui génère le risque.
+
+> 🧠 Le **risque zéro n'existe pas** : on parle de **risque résiduel** (ce qui reste après traitement) — à **accepter** consciemment.
 
 ---
 
@@ -135,6 +199,10 @@ Comprendre **pourquoi** on attaque aide à anticiper. Grandes motivations :
 - **Triade CIA** : **Confidentialité** (accès autorisé seulement, via chiffrement), **Intégrité** (non altérée, via hachage/signatures), **Disponibilité** (accessible, via redondance). Souvent en **tension** → équilibre.
 - Étendue par **Authenticité** (est bien ce qu'elle prétend) et **Non-répudiation** (ne peut nier son action).
 - **AAA** : **Authentification** (qui es-tu), **Autorisation** (droits), **Traçabilité** (logs de ce que tu as fait). Auth ≠ Autz.
+- **5 facteurs d'authentification** : savoir, avoir, être, où, faire ; **MFA** = **≥ 2 catégories différentes** (2 mots de passe = 1 seul facteur).
+- **Modèles de contrôle d'accès** : **DAC** (le propriétaire décide), **MAC** (classification imposée), **RBAC** (par rôle, le plus courant), **ABAC** (par attributs, le plus fin).
+- **Types de contrôles** : techniques / administratifs / physiques ; préventifs / détectifs / correctifs / dissuasifs / compensatoires.
+- **Parkerian Hexad** = CIA + **possession**, **authenticité**, **utilité** ; **traitement du risque** : réduire, transférer, accepter, éviter (+ **risque résiduel**).
 - **Attaque = Motif + Méthode + Vulnérabilité** ; casser un ingrédient bloque l'attaque. \`Risque ≈ Menace × Vulnérabilité × Impact\`.
 - Vocabulaire : menace, vulnérabilité, risque, exploit, payload, **surface d'attaque**, **zero-day**.
 - Motivations : **financière** (n°1), vol/espionnage, **hacktivisme**, **étatique (APT)**, interne, défi, terrorisme.`,

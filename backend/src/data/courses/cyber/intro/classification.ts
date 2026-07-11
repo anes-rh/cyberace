@@ -22,6 +22,26 @@ export const classification: CourseSeed[] = [
       "Citer les compétences techniques et non techniques d'un hacker éthique",
       "Saisir le rôle de l'IA/ML dans le hacking éthique moderne",
     ],
+    resources: [
+      {
+        label: "Hack The Box Academy — modules débutants (gratuits)",
+        url: "https://academy.hackthebox.com/",
+        kind: "link",
+        note: "Modules guidés de hacking éthique, dont beaucoup gratuits (bases offensives et défensives).",
+      },
+      {
+        label: "OWASP — Top 10 & guides d'attaques web",
+        url: "https://owasp.org/www-project-top-ten/",
+        kind: "link",
+        note: "La référence des grandes catégories d'attaques applicatives, mise à jour par la communauté.",
+      },
+      {
+        label: "MITRE ATT&CK — Groups (acteurs de menace réels)",
+        url: "https://attack.mitre.org/groups/",
+        kind: "link",
+        note: "Fiches des groupes d'attaquants connus (APT…) : motivations, secteurs visés, TTPs documentés.",
+      },
+    ],
     lesson: `# 🐛 Classification des attaques & hacking éthique — Know Your Enemy
 
 « Connais ton ennemi. » On classe d'abord **les attaques**, puis on identifie **les acteurs**, et enfin on découvre le métier de **hacker éthique** : celui qui attaque… pour défendre. 🏎️
@@ -59,6 +79,25 @@ Un **hacker** est une personne dotée de **compétences techniques poussées** q
 
 > ⚠️ Différence clé : un **white hat** agit **toujours avec autorisation écrite** ; un **grey hat** peut agir sans permission (donc dans l'illégalité même sans mauvaise intention) ; un **black hat** est malveillant.
 
+### Les motivations des attaquants 💰
+
+Comprendre **pourquoi** on attaque aide à anticiper. Grandes motivations :
+- **Financière** : rançon (*ransomware*), vol de données bancaires, fraude — la plus répandue.
+- **Espionnage** : voler des secrets industriels ou d'État (*cyber-espionnage*).
+- **Idéologique / politique** : hacktivisme, déstabilisation.
+- **Vengeance / rancune** : souvent le fait d'**insiders** mécontents.
+- **Notoriété / défi** : prouver sa compétence, « pour la gloire ».
+- **Sabotage** : détruire ou paralyser (infrastructures critiques).
+
+### Les APT (menaces persistantes avancées) 🎯
+
+Une **APT** (*Advanced Persistent Threat*) est un attaquant **sophistiqué**, souvent **soutenu par un État** ou fortement financé, qui vise une cible **précise** et y reste **caché longtemps** (mois, années) :
+- **Advanced** : techniques pointues, parfois des failles **0-day** (inconnues de l'éditeur).
+- **Persistent** : discrétion et présence durable (objectif d'espionnage/sabotage, pas un coup rapide).
+- **Threat** : acteur humain organisé, avec des moyens et des objectifs clairs.
+
+Les groupes APT sont catalogués (ex. dans **MITRE ATT&CK — Groups**) avec leurs secteurs cibles et leurs **TTPs** (techniques, tactiques, procédures).
+
 ---
 
 ## 3. Le hacking éthique 🎩✅
@@ -72,6 +111,18 @@ Le **hacking éthique** (*ethical hacking*) consiste à utiliser **les mêmes te
 - **Ne pas nuire** : ne pas détruire de données, minimiser l'impact.
 
 **Objectifs :** évaluer la posture de sécurité, identifier les vulnérabilités, tester les défenses (détection/réaction), aider à la mise en conformité, sensibiliser.
+
+**Les 3 types de test selon la connaissance donnée :**
+- **Black box** (boîte noire) : le testeur ne sait **rien** de la cible — il part de zéro, comme un attaquant externe. Réaliste mais long.
+- **White box** (boîte blanche) : le testeur a **tout** (code source, schémas, comptes). Test exhaustif et rapide (audit en profondeur).
+- **Grey box** (boîte grise) : le testeur a un **accès partiel** (ex. un compte utilisateur). Bon compromis, simule un attaquant qui a déjà un pied dans la place.
+
+**Les couleurs d'équipes :**
+- **Red Team** : l'**attaque** — simule un adversaire réel pour tester les défenses.
+- **Blue Team** : la **défense** — détecte, répond, protège (SOC, analystes).
+- **Purple Team** : fait **collaborer** rouge et bleu pour améliorer défense et détection ensemble.
+
+**Bug bounty & divulgation responsable :** un **bug bounty** est un programme où une organisation **récompense** les chercheurs qui trouvent et **signalent** des failles (HackerOne, Bug Bounty…). La **divulgation responsable** (*responsible disclosure*) = prévenir l'éditeur **en privé** et lui laisser le temps de corriger **avant** toute publication.
 
 > 🧠 Le hacking éthique reproduit l'**état d'esprit de l'attaquant** (*think like an attacker*) mais dans un **cadre légal strict**. La seule différence avec un black hat, c'est l'**autorisation** et l'**intention**.
 
@@ -119,7 +170,9 @@ L'**intelligence artificielle** et le **machine learning** transforment le méti
 
 - **Attaques** : **passives** (observer sans modifier, discrètes), **actives** (modifier/perturber, détectables), **rapprochées** (proximité physique : shoulder surfing, dumpster diving), **internes** (insider, accès légitime), **par distribution** (piéger le matériel/logiciel en amont).
 - Un **hacker** = compétences ; l'**intention** définit le chapeau : **white** (légal, autorisé), **black** (malveillant), **grey** (sans autorisation mais pas malveillant), + script kiddie, hacktiviste, étatique, cyberterroriste, suicide hacker.
+- **Motivations** : financière (n°1), espionnage, idéologie, vengeance, notoriété, sabotage. Une **APT** = attaquant sophistiqué, souvent étatique, **persistant** et **discret** sur une cible précise.
 - **Hacking éthique** = mêmes techniques que l'attaquant, mais **autorisation écrite + scope + confidentialité + ne pas nuire**. Aussi appelé **pentest**.
+- **Types de pentest** : **black box** (aucune info), **white box** (tout), **grey box** (partiel). **Équipes** : **Red** (attaque), **Blue** (défense), **Purple** (collaboration). **Bug bounty** + **divulgation responsable** = signaler en privé avant publication.
 - Compétences : **OS, réseau, programmation, outils, crypto/web/BDD/cloud** (techniques) + **curiosité, éthique, communication** (non techniques).
 - L'**IA/ML** amplifie **attaque et défense** (automatisation, détection d'anomalies, phishing/deepfakes) mais ne remplace pas le **jugement humain**.`,
     badge: {

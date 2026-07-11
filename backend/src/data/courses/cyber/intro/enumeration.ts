@@ -22,6 +22,26 @@ export const enumeration: CourseSeed[] = [
       "Comprendre ce que révèle chaque service (partages, comptes, communautés SNMP…)",
       "Citer les contre-mesures d'énumération",
     ],
+    resources: [
+      {
+        label: "HackTricks — Pentesting des services par port",
+        url: "https://book.hacktricks.xyz/",
+        kind: "link",
+        note: "Fiches détaillées par service/port (NetBIOS, SMB, SNMP, LDAP, SMTP…) : techniques d'énumération concrètes.",
+      },
+      {
+        label: "Hack The Box Academy — Footprinting & Enumeration",
+        url: "https://academy.hackthebox.com/",
+        kind: "link",
+        note: "Modules guidés sur l'énumération service par service.",
+      },
+      {
+        label: "TryHackMe — salles d'énumération (gratuit)",
+        url: "https://tryhackme.com/",
+        kind: "link",
+        note: "Salles pratiques en navigateur pour s'exercer à l'énumération (théorie du module ici, pratique là-bas).",
+      },
+    ],
     lesson: `# 🔬 Énumération — Deep Probe
 
 Après avoir repéré les **services ouverts** (scan), l'**énumération** va **interroger activement** ces services pour en extraire des **informations exploitables** : noms d'utilisateurs, partages réseau, comptes, groupes, tables de routage. C'est une reconnaissance **active** et **détectable**. 🏎️
@@ -47,6 +67,9 @@ L'**énumération** établit une **connexion active** aux services d'une cible p
 - **Brute force de l'Active Directory** : interroger/forcer l'annuaire **AD** pour énumérer comptes et groupes (ex. via LDAP).
 - **Transfert de zone DNS** (*zone transfer*, requête **AXFR**) : si un serveur DNS est **mal configuré**, il peut livrer **toute la zone** (tous les enregistrements : hôtes, sous-domaines, serveurs) d'un coup — un cadeau pour l'attaquant.
 - **Énumération SNMP** : exploiter le protocole d'administration réseau pour lister interfaces, processus, comptes, tables de routage (voir ci-dessous).
+- **Banner grabbing** : lire la **bannière** qu'un service renvoie à la connexion — elle trahit souvent le **logiciel et sa version** (ex. \`Apache/2.4.49\`, \`OpenSSH_8.2\`). Connaître la version = chercher ses **vulnérabilités** connues. Se fait avec \`telnet\`, \`netcat\` (\`nc\`) ou Nmap.
+- **Sessions nulles** (*null sessions*) : sur les vieux Windows (NetBIOS/SMB), une connexion **anonyme** (sans identifiants) pouvait lister utilisateurs, groupes et partages. À bannir absolument.
+- **RID cycling** : deviner les comptes Windows en parcourant les **RID** (le compte Administrateur a toujours le RID **500**, les premiers utilisateurs commencent à **1000**).
 
 ---
 
@@ -74,6 +97,18 @@ L'**énumération** établit une **connexion active** aux services d'une cible p
 - **LDAP (389)** est la clé de l'énumération **Active Directory**.
 - **DNS (53)** : le **transfert de zone** se fait en **TCP** (les requêtes normales en UDP).
 
+### À chaque service, ses outils 🧰
+
+| Service | Outils courants |
+|---|---|
+| **SMB / NetBIOS** | \`enum4linux\`, \`smbclient\`, \`nbtstat\`, \`rpcclient\`, scripts **Nmap NSE** (\`smb-enum-*\`) |
+| **SNMP** | \`snmpwalk\`, \`snmp-check\`, \`onesixtyone\` |
+| **LDAP / AD** | \`ldapsearch\`, \`windapsearch\`, **BloodHound** (cartographie les chemins d'attaque AD) |
+| **DNS** | \`dig\`, \`nslookup\`, \`host\`, \`dnsrecon\` (dont l'AXFR) |
+| **SMTP** | \`smtp-user-enum\`, \`telnet\`/\`nc\` (VRFY/EXPN) |
+
+> 🧠 Le couteau suisse reste **Nmap** et ses **scripts NSE** (\`--script\`) : ils automatisent l'énumération de la plupart de ces services en une commande.
+
 ---
 
 ## 4. Les contre-mesures 🛡️
@@ -93,7 +128,8 @@ Limiter l'énumération = **fermer, filtrer, durcir** :
 ## 🧠 À retenir
 
 - **Énumération** = **connexion active** aux services pour extraire **usernames, partages, comptes, routes** (détectable). Vient **après** le scan.
-- Techniques : **extraction de usernames**, **brute force AD**, **transfert de zone DNS (AXFR)**, **énumération SNMP**.
+- Techniques : **extraction de usernames**, **brute force AD**, **transfert de zone DNS (AXFR)**, **énumération SNMP**, **banner grabbing** (version des services), **sessions nulles**, **RID cycling** (Admin = RID 500).
+- Outils par service : SMB → \`enum4linux\`/\`smbclient\` ; SNMP → \`snmpwalk\` ; LDAP → \`ldapsearch\`/**BloodHound** ; DNS → \`dig\`/\`dnsrecon\` ; SMTP → \`smtp-user-enum\`. **Nmap NSE** automatise le tout.
 - **Ports clés** : NetBIOS **137/138/139**, SMB **445**, SNMP **161/162**, LDAP **389/636**, NTP **123**, NFS **2049**, SMTP **25**, DNS **53**, IPsec/IKE **500**, SIP **5060/5061**, RPC **135**.
 - **SMTP** : commandes **\`VRFY\`/\`EXPN\`** pour valider des emails ; **SNMP** : communautés par défaut **\`public\`/\`private\`** ; **DNS** : transfert de zone en **TCP**.
 - Contre-mesures : **désactiver les services inutiles**, **SNMPv3** + changer les communautés, **désactiver sessions nulles SMB**, **interdire les transferts de zone**, **désactiver VRFY/EXPN**, segmenter et filtrer.`,
