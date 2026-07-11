@@ -68,11 +68,11 @@ export const allCheckpoints: CheckpointSeed[] = [
     slug: "cyber-intro",
     title: "Introduction à la sécurité",
     order: 1,
-    status: "empty",
+    status: "active",
     icon: "ShieldCheck",
     accent: "#9B8CCB",
     description:
-      "Les fondations : menaces, vulnérabilités, CIA (confidentialité, intégrité, disponibilité), surface d'attaque et vocabulaire de la sécurité.",
+      "Les fondations théoriques : triade CIA, AAA, hacking éthique, Cyber Kill Chain, MITRE ATT&CK, NIST, lois & conformité, footprinting, énumération et scan réseau.",
     tagline: "Point de départ sécurité",
     parent: "cybersecurite",
   },

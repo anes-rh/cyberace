@@ -46,6 +46,11 @@ import { dictionnaire } from "./bdd/dictionnaire";
 import { transactions } from "./bdd/transactions";
 import { optimisation } from "./bdd/optimisation";
 import { distribuees } from "./bdd/distribuees";
+import { fondamentaux as cyiFondamentaux } from "./cyber/intro/fondamentaux";
+import { classification as cyiClassification } from "./cyber/intro/classification";
+import { methodologies as cyiMethodologies } from "./cyber/intro/methodologies";
+import { defense as cyiDefense } from "./cyber/intro/defense";
+import { conformite as cyiConformite } from "./cyber/intro/conformite";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -110,10 +115,20 @@ export const bddCourses: CourseSeed[] = [
   ...distribuees,
 ];
 
+/** Courses of the "Introduction à la sécurité" mini-checkpoint (théorie). */
+export const cyberIntroCourses: CourseSeed[] = [
+  ...cyiFondamentaux,
+  ...cyiClassification,
+  ...cyiMethodologies,
+  ...cyiDefense,
+  ...cyiConformite,
+];
+
 /** Every course, in display order. */
 export const allCourses: CourseSeed[] = [
   ...algoCourses,
   ...reseauxCourses,
   ...systemeCourses,
   ...bddCourses,
+  ...cyberIntroCourses,
 ];
