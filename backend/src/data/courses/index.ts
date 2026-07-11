@@ -51,6 +51,9 @@ import { classification as cyiClassification } from "./cyber/intro/classificatio
 import { methodologies as cyiMethodologies } from "./cyber/intro/methodologies";
 import { defense as cyiDefense } from "./cyber/intro/defense";
 import { conformite as cyiConformite } from "./cyber/intro/conformite";
+import { footprinting as cyiFootprinting } from "./cyber/intro/footprinting";
+import { enumeration as cyiEnumeration } from "./cyber/intro/enumeration";
+import { scan as cyiScan } from "./cyber/intro/scan";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -122,6 +125,9 @@ export const cyberIntroCourses: CourseSeed[] = [
   ...cyiMethodologies,
   ...cyiDefense,
   ...cyiConformite,
+  ...cyiFootprinting,
+  ...cyiEnumeration,
+  ...cyiScan,
 ];
 
 /** Every course, in display order. */
