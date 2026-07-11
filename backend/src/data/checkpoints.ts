@@ -104,11 +104,11 @@ export const allCheckpoints: CheckpointSeed[] = [
     slug: "cyber-systeme",
     title: "Sécurité système",
     order: 4,
-    status: "empty",
+    status: "active",
     icon: "Server",
     accent: "#E8A87C",
     description:
-      "Durcir les machines : droits et privilèges, journalisation, malwares, gestion des correctifs et sécurité des systèmes d'exploitation.",
+      "Au cœur de la machine : rootkits et compromission du noyau, protection mémoire (ASLR, DEP, canaries, ROP), modèles de contrôle d'accès (DAC/MAC/RBAC), Bell-LaPadula et sécurité multi-niveaux, canaux cachés, architecture de la virtualisation et attaques contre les hyperviseurs.",
     tagline: "Durcir les systèmes",
     parent: "cybersecurite",
   },

@@ -70,6 +70,13 @@ import { applications as cyrApplications } from "./cyber/reseaux/applications";
 import { routageDns as cyrRoutageDns } from "./cyber/reseaux/routageDns";
 import { vulnerabilites as cyrVulnerabilites } from "./cyber/reseaux/vulnerabilites";
 import { aptCase as cyrAptCase } from "./cyber/reseaux/aptCase";
+import { rootkits as cysRootkits } from "./cyber/systeme/rootkits";
+import { memoire as cysMemoire } from "./cyber/systeme/memoire";
+import { controleAcces as cysControleAcces } from "./cyber/systeme/controleAcces";
+import { bellLapadula as cysBellLapadula } from "./cyber/systeme/bellLapadula";
+import { canauxCaches as cysCanauxCaches } from "./cyber/systeme/canauxCaches";
+import { virtualisation as cysVirtualisation } from "./cyber/systeme/virtualisation";
+import { attaquesVirtualisation as cysAttaquesVirtualisation } from "./cyber/systeme/attaquesVirtualisation";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -170,6 +177,17 @@ export const cyberReseauxCourses: CourseSeed[] = [
   ...cyrAptCase,
 ];
 
+/** Courses of the "Sécurité système" mini-checkpoint (théorie). */
+export const cyberSystemeCourses: CourseSeed[] = [
+  ...cysRootkits,
+  ...cysMemoire,
+  ...cysControleAcces,
+  ...cysBellLapadula,
+  ...cysCanauxCaches,
+  ...cysVirtualisation,
+  ...cysAttaquesVirtualisation,
+];
+
 /** Every course, in display order. */
 export const allCourses: CourseSeed[] = [
   ...algoCourses,
@@ -179,4 +197,5 @@ export const allCourses: CourseSeed[] = [
   ...cyberIntroCourses,
   ...cyberWifiCourses,
   ...cyberReseauxCourses,
+  ...cyberSystemeCourses,
 ];
