@@ -60,6 +60,16 @@ import { handshake as cywHandshake } from "./cyber/wifi/handshake";
 import { attaques as cywAttaques } from "./cyber/wifi/attaques";
 import { entreprise as cywEntreprise } from "./cyber/wifi/entreprise";
 import { architecture as cywArchitecture } from "./cyber/wifi/architecture";
+import { introduction as cyrIntroduction } from "./cyber/reseaux/introduction";
+import { attaques as cyrAttaques } from "./cyber/reseaux/attaques";
+import { coucheLiaison as cyrCoucheLiaison } from "./cyber/reseaux/coucheLiaison";
+import { infrastructures as cyrInfrastructures } from "./cyber/reseaux/infrastructures";
+import { interconnexion as cyrInterconnexion } from "./cyber/reseaux/interconnexion";
+import { ipv6Ipsec as cyrIpv6Ipsec } from "./cyber/reseaux/ipv6Ipsec";
+import { applications as cyrApplications } from "./cyber/reseaux/applications";
+import { routageDns as cyrRoutageDns } from "./cyber/reseaux/routageDns";
+import { vulnerabilites as cyrVulnerabilites } from "./cyber/reseaux/vulnerabilites";
+import { aptCase as cyrAptCase } from "./cyber/reseaux/aptCase";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -146,6 +156,20 @@ export const cyberWifiCourses: CourseSeed[] = [
   ...cywArchitecture,
 ];
 
+/** Courses of the "Sécurité réseaux" mini-checkpoint (théorie). */
+export const cyberReseauxCourses: CourseSeed[] = [
+  ...cyrIntroduction,
+  ...cyrAttaques,
+  ...cyrCoucheLiaison,
+  ...cyrInfrastructures,
+  ...cyrInterconnexion,
+  ...cyrIpv6Ipsec,
+  ...cyrApplications,
+  ...cyrRoutageDns,
+  ...cyrVulnerabilites,
+  ...cyrAptCase,
+];
+
 /** Every course, in display order. */
 export const allCourses: CourseSeed[] = [
   ...algoCourses,
@@ -154,4 +178,5 @@ export const allCourses: CourseSeed[] = [
   ...bddCourses,
   ...cyberIntroCourses,
   ...cyberWifiCourses,
+  ...cyberReseauxCourses,
 ];

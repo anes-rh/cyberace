@@ -80,11 +80,11 @@ export const allCheckpoints: CheckpointSeed[] = [
     slug: "cyber-reseaux",
     title: "Sécurité réseaux",
     order: 2,
-    status: "empty",
+    status: "active",
     icon: "Network",
     accent: "#5FB3C6",
     description:
-      "Protéger le réseau : pare-feu, filtrage, VPN, IDS/IPS, attaques réseau courantes et bonnes pratiques de segmentation.",
+      "Protéger le réseau de bout en bout : normes & gestion des risques, attaques (DoS, spoofing, hijacking), sécurité L2 (ARP/DAI, STP/BPDU Guard, VLAN, MACsec), pare-feu/NAT/proxy/DMZ, IPsec & VPN, IPv6, SSH/TLS/DNS, sécurité du routage, vulnérabilités avancées et étude de cas APT (Kill Chain/MITRE ATT&CK).",
     tagline: "Défendre le réseau",
     parent: "cybersecurite",
   },
