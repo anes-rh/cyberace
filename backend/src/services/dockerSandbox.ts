@@ -121,24 +121,30 @@ export async function startSession(
     const networkId = (network as unknown as { id: string }).id;
 
     // 2) Target container (no added capability), resolvable as "target".
-    const target = await docker.createContainer({
-      Image: sandbox.targetImage,
-      name: `cyberace_target_${sid}`,
-      Labels: labels,
-      HostConfig: {
-        ...QUOTAS,
-        NetworkMode: networkName,
-      },
-      NetworkingConfig: {
-        EndpointsConfig: {
-          [networkName]: {
-            Aliases: ["target"],
-            ...(sandbox.targetStaticIp ? { IPAMConfig: { IPv4Address: sandbox.targetStaticIp } } : {}),
+    //    Only in modules that declare a `targetImage`; single-container modules
+    //    (e.g. privilege escalation) skip it — the attacker IS the environment.
+    let targetContainerId: string | undefined;
+    if (sandbox.targetImage) {
+      const target = await docker.createContainer({
+        Image: sandbox.targetImage,
+        name: `cyberace_target_${sid}`,
+        Labels: labels,
+        HostConfig: {
+          ...QUOTAS,
+          NetworkMode: networkName,
+        },
+        NetworkingConfig: {
+          EndpointsConfig: {
+            [networkName]: {
+              Aliases: ["target"],
+              ...(sandbox.targetStaticIp ? { IPAMConfig: { IPv4Address: sandbox.targetStaticIp } } : {}),
+            },
           },
         },
-      },
-    } as Docker.ContainerCreateOptions);
-    await target.start();
+      } as Docker.ContainerCreateOptions);
+      await target.start();
+      targetContainerId = target.id;
+    }
 
     // 3) Attacker container: extra caps + published terminal port, resolvable as "attacker".
     const exposedPorts: Record<string, Record<string, never>> = {};
@@ -188,7 +194,7 @@ export async function startSession(
       networkId,
       networkName,
       attackerContainerId: attacker.id,
-      targetContainerId: target.id,
+      targetContainerId,
       terminalUrl,
       status: "running",
       startedAt: new Date(),
@@ -227,7 +233,7 @@ export async function stopSession(sessionId: string): Promise<void> {
 
   // Remove by stored ids first, then sweep by label to catch anything missed.
   await removeContainerSafe(session.attackerContainerId);
-  await removeContainerSafe(session.targetContainerId);
+  if (session.targetContainerId) await removeContainerSafe(session.targetContainerId);
   await removeNetworkSafe(session.networkId);
   await cleanupBySessionLabel(String(session._id));
 

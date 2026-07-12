@@ -34,7 +34,7 @@ const badgeSchema = new Schema<BadgeSeed>(
 const sandboxSchema = new Schema<SandboxConfig>(
   {
     attackerImage: { type: String, required: true },
-    targetImage: { type: String, required: true },
+    targetImage: { type: String, required: false },
     ttlSec: { type: Number, required: true },
     attackerCapAdd: { type: [String], default: [] },
     ports: {

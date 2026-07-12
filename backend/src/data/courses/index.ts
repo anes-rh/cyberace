@@ -79,6 +79,7 @@ import { virtualisation as cysVirtualisation } from "./cyber/systeme/virtualisat
 import { attaquesVirtualisation as cysAttaquesVirtualisation } from "./cyber/systeme/attaquesVirtualisation";
 import { module1Recon } from "./cyber-pratique/module1Recon";
 import { module2ArpSpoofing } from "./cyber-pratique/module2ArpSpoofing";
+import { module3PrivescLinux } from "./cyber-pratique/module3PrivescLinux";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -191,7 +192,11 @@ export const cyberSystemeCourses: CourseSeed[] = [
 ];
 
 /** Courses of the "Cybersécurité — Pratique" checkpoint (labs Docker réels). */
-export const cyberPratiqueCourses: CourseSeed[] = [...module1Recon, ...module2ArpSpoofing];
+export const cyberPratiqueCourses: CourseSeed[] = [
+  ...module1Recon,
+  ...module2ArpSpoofing,
+  ...module3PrivescLinux,
+];
 
 /** Every course, in display order. */
 export const allCourses: CourseSeed[] = [

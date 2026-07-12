@@ -140,7 +140,7 @@ export interface SandboxNetwork {
 
 export interface SandboxConfig {
   attackerImage: string;
-  targetImage: string;
+  targetImage?: string;
   ttlSec: number;
   attackerCapAdd?: string[];
   ports: SandboxPort[];

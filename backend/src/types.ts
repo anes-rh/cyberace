@@ -132,8 +132,8 @@ export interface SandboxNetwork {
 export interface SandboxConfig {
   /** Image Docker de l'attaquant, partagée entre tous les modules pratiques. */
   attackerImage: string;
-  /** Image Docker de la cible, spécifique à ce module. */
-  targetImage: string;
+  /** Image Docker de la cible, spécifique à ce module. Absent = mode mono-conteneur (l'attaquant EST l'environnement). */
+  targetImage?: string;
   /** Durée de vie max de la session avant nettoyage forcé. */
   ttlSec: number;
   /** Capabilities Linux additionnelles à donner au conteneur attaquant (jamais à la cible). */

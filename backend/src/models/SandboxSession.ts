@@ -8,7 +8,8 @@ export interface SandboxSessionDoc extends Document {
   networkId: string;
   networkName: string;
   attackerContainerId: string;
-  targetContainerId: string;
+  /** Optional: absent in single-container modules (no separate target). */
+  targetContainerId?: string;
   terminalUrl: string;
   status: SandboxStatus;
   startedAt: Date;
@@ -23,7 +24,7 @@ const sandboxSessionSchema = new Schema<SandboxSessionDoc>(
     networkId: { type: String, required: true },
     networkName: { type: String, required: true },
     attackerContainerId: { type: String, required: true },
-    targetContainerId: { type: String, required: true },
+    targetContainerId: { type: String, required: false },
     terminalUrl: { type: String, required: true },
     status: { type: String, enum: ["starting", "running", "stopping", "stopped", "error"], default: "starting" },
     startedAt: { type: Date, default: Date.now },
