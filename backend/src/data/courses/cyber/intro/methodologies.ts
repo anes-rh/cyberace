@@ -22,26 +22,6 @@ export const methodologies: CourseSeed[] = [
       "Définir les TTPs et leur utilité en threat intelligence",
       "Situer où la défense peut interrompre la chaîne d'attaque",
     ],
-    resources: [
-      {
-        label: "Lockheed Martin — The Cyber Kill Chain (page officielle)",
-        url: "https://www.lockheedmartin.com/en-us/capabilities/cyber/cyber-kill-chain.html",
-        kind: "link",
-        note: "La source d'origine des 7 étapes de la Cyber Kill Chain, par ses créateurs.",
-      },
-      {
-        label: "MITRE ATT&CK — la matrice officielle",
-        url: "https://attack.mitre.org/",
-        kind: "link",
-        note: "Base de connaissances mondiale : tactiques, techniques (IDs Txxxx) et procédures des attaquants réels.",
-      },
-      {
-        label: "Diamond Model of Intrusion Analysis — papier original",
-        url: "https://apps.dtic.mil/sti/pdfs/ADA586960.pdf",
-        kind: "link",
-        note: "Le document fondateur du Diamond Model (Adversaire/Capacité/Infrastructure/Victime).",
-      },
-    ],
     lesson: `# 🔗 Méthodologies & frameworks d'attaque — Kill Chain
 
 Une attaque n'est pas un événement unique : c'est une **suite d'étapes**. Les décrire permet de **détecter tôt** et d'**interrompre** l'attaquant. Trois modèles de référence + la notion de **TTPs**. 🏎️

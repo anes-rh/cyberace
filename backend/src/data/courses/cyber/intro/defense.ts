@@ -22,26 +22,6 @@ export const defense: CourseSeed[] = [
       "Décrire la threat intelligence et les 6 phases de son cycle de vie",
       "Connaître les étapes de la gestion des incidents et le threat modeling",
     ],
-    resources: [
-      {
-        label: "NIST — Cybersecurity Framework (CSF) officiel",
-        url: "https://www.nist.gov/cyberframework",
-        kind: "link",
-        note: "La source officielle des fonctions Identify/Protect/Detect/Respond/Recover, avec guides et ressources.",
-      },
-      {
-        label: "CISA — bonnes pratiques et alertes (agence US)",
-        url: "https://www.cisa.gov/",
-        kind: "link",
-        note: "Recommandations défensives, guides de durcissement et renseignement sur les menaces.",
-      },
-      {
-        label: "SANS — white papers & incident handling",
-        url: "https://www.sans.org/white-papers/",
-        kind: "link",
-        note: "Bibliothèque de référence (dont l'Incident Handler's Handbook) sur la réponse à incident et la défense.",
-      },
-    ],
     lesson: `# 🛡️ Frameworks & contrôles défensifs — Blue Shield
 
 Après l'attaquant, le **défenseur** (*blue team*). Comment structurer une défense complète ? Grâce à des **frameworks** qui couvrent tout le cycle : anticiper, protéger, détecter, réagir, se relever. 🏎️

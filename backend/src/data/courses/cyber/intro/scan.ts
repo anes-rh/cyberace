@@ -22,26 +22,6 @@ export const scan: CourseSeed[] = [
       "Citer les outils de scan (Nmap, Hping, Metasploit, NetScanTools Pro)",
       "Connaître les contre-mesures de scan",
     ],
-    resources: [
-      {
-        label: "Nmap — le livre officiel « Nmap Network Scanning » (gratuit)",
-        url: "https://nmap.org/book/toc.html",
-        kind: "link",
-        note: "La référence complète et gratuite du scan réseau, par l'auteur de Nmap (host discovery, types de scans, détection…).",
-      },
-      {
-        label: "HackTricks — Pentesting Network",
-        url: "https://book.hacktricks.xyz/generic-methodologies-and-resources/pentesting-network",
-        kind: "link",
-        note: "Méthodologie de découverte réseau : sweep, ARP, scans de ports, contournement de pare-feu.",
-      },
-      {
-        label: "TryHackMe — salles Nmap (gratuit)",
-        url: "https://tryhackme.com/",
-        kind: "link",
-        note: "S'exercer au scan avec Nmap dans un environnement légal et guidé.",
-      },
-    ],
     lesson: `# 📡 Scan & découverte réseau — Radar Sweep
 
 Le **scan** est la reconnaissance **active** qui cartographie la cible : **quels hôtes sont vivants ? quels ports sont ouverts ? quels services tournent ?** C'est le radar de l'attaquant — et il laisse des **traces**. 🏎️

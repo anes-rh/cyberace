@@ -22,26 +22,6 @@ export const classification: CourseSeed[] = [
       "Citer les compétences techniques et non techniques d'un hacker éthique",
       "Saisir le rôle de l'IA/ML dans le hacking éthique moderne",
     ],
-    resources: [
-      {
-        label: "Hack The Box Academy — modules débutants (gratuits)",
-        url: "https://academy.hackthebox.com/",
-        kind: "link",
-        note: "Modules guidés de hacking éthique, dont beaucoup gratuits (bases offensives et défensives).",
-      },
-      {
-        label: "OWASP — Top 10 & guides d'attaques web",
-        url: "https://owasp.org/www-project-top-ten/",
-        kind: "link",
-        note: "La référence des grandes catégories d'attaques applicatives, mise à jour par la communauté.",
-      },
-      {
-        label: "MITRE ATT&CK — Groups (acteurs de menace réels)",
-        url: "https://attack.mitre.org/groups/",
-        kind: "link",
-        note: "Fiches des groupes d'attaquants connus (APT…) : motivations, secteurs visés, TTPs documentés.",
-      },
-    ],
     lesson: `# 🐛 Classification des attaques & hacking éthique — Know Your Enemy
 
 « Connais ton ennemi. » On classe d'abord **les attaques**, puis on identifie **les acteurs**, et enfin on découvre le métier de **hacker éthique** : celui qui attaque… pour défendre. 🏎️

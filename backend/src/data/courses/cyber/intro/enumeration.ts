@@ -22,26 +22,6 @@ export const enumeration: CourseSeed[] = [
       "Comprendre ce que révèle chaque service (partages, comptes, communautés SNMP…)",
       "Citer les contre-mesures d'énumération",
     ],
-    resources: [
-      {
-        label: "HackTricks — Pentesting des services par port",
-        url: "https://book.hacktricks.xyz/",
-        kind: "link",
-        note: "Fiches détaillées par service/port (NetBIOS, SMB, SNMP, LDAP, SMTP…) : techniques d'énumération concrètes.",
-      },
-      {
-        label: "Hack The Box Academy — Footprinting & Enumeration",
-        url: "https://academy.hackthebox.com/",
-        kind: "link",
-        note: "Modules guidés sur l'énumération service par service.",
-      },
-      {
-        label: "TryHackMe — salles d'énumération (gratuit)",
-        url: "https://tryhackme.com/",
-        kind: "link",
-        note: "Salles pratiques en navigateur pour s'exercer à l'énumération (théorie du module ici, pratique là-bas).",
-      },
-    ],
     lesson: `# 🔬 Énumération — Deep Probe
 
 Après avoir repéré les **services ouverts** (scan), l'**énumération** va **interroger activement** ces services pour en extraire des **informations exploitables** : noms d'utilisateurs, partages réseau, comptes, groupes, tables de routage. C'est une reconnaissance **active** et **détectable**. 🏎️

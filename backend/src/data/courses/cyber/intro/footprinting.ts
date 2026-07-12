@@ -22,26 +22,6 @@ export const footprinting: CourseSeed[] = [
       "Exploiter réseaux sociaux, email footprinting et dark web (OSINT)",
       "Citer les outils (Maltego, recon-ng, FOCA, OSINT Framework) et les contre-mesures",
     ],
-    resources: [
-      {
-        label: "OSINT Framework — portail d'outils OSINT",
-        url: "https://osintframework.com/",
-        kind: "link",
-        note: "Arborescence classant des centaines d'outils/sources OSINT par catégorie (emails, domaines, réseaux sociaux…).",
-      },
-      {
-        label: "Google Hacking Database (GHDB) — Exploit-DB",
-        url: "https://www.exploit-db.com/google-hacking-database",
-        kind: "link",
-        note: "Des milliers de « dorks » Google prêts à l'emploi, classés par type de donnée exposée.",
-      },
-      {
-        label: "Shodan — moteur des appareils connectés",
-        url: "https://www.shodan.io/",
-        kind: "link",
-        note: "Rechercher des serveurs, caméras, IoT et systèmes exposés sur Internet (reconnaissance passive).",
-      },
-    ],
     lesson: `# 🕵️ Footprinting & reconnaissance passive — Recon
 
 Avant toute attaque vient la **reconnaissance** : rassembler un **maximum d'informations** sur la cible. Le **footprinting passif** le fait **sans jamais toucher** aux systèmes de la cible — donc **indétectable**. 🏎️

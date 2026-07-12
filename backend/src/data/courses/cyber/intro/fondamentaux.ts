@@ -22,26 +22,6 @@ export const fondamentaux: CourseSeed[] = [
       "Comprendre les 3 A : authentification, autorisation, traçabilité (AAA)",
       "Décomposer une attaque en motif + méthode + vulnérabilité et citer les motivations",
     ],
-    resources: [
-      {
-        label: "TryHackMe — Introduction to Cyber Security (gratuit)",
-        url: "https://tryhackme.com/",
-        kind: "link",
-        note: "Parcours débutant interactif (Pre Security, Intro to Cyber Security) : labs en navigateur, aucun prérequis.",
-      },
-      {
-        label: "NIST — Glossaire de la sécurité (CIA, AAA, termes officiels)",
-        url: "https://csrc.nist.gov/glossary",
-        kind: "link",
-        note: "Définitions de référence (confidentiality, integrity, availability, authentication…) par l'organisme de normalisation US.",
-      },
-      {
-        label: "OWASP Foundation — ressources ouvertes",
-        url: "https://owasp.org/",
-        kind: "link",
-        note: "Fondation de référence en sécurité applicative : guides, cheat sheets et projets gratuits.",
-      },
-    ],
     lesson: `# 🛡️ Fondamentaux de la sécurité de l'information — Ground Zero
 
 Avant d'attaquer ou de défendre, il faut parler la même langue. Ce module pose **tout le vocabulaire** et les propriétés que la sécurité cherche à garantir. 🏎️

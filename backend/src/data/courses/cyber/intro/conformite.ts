@@ -22,26 +22,6 @@ export const conformite: CourseSeed[] = [
       "Maîtriser les grands principes du RGPD/GDPR et du DPA 2018",
       "Situer les enjeux juridiques du hacking (autorisation, territorialité)",
     ],
-    resources: [
-      {
-        label: "RGPD — texte et explications (gdpr.eu)",
-        url: "https://gdpr.eu/",
-        kind: "link",
-        note: "Le RGPD expliqué article par article, avec check-lists de conformité.",
-      },
-      {
-        label: "PCI Security Standards Council (officiel)",
-        url: "https://www.pcisecuritystandards.org/",
-        kind: "link",
-        note: "L'organisme officiel du standard PCI DSS (sécurité des données de cartes de paiement).",
-      },
-      {
-        label: "ISO/IEC 27001 — page officielle ISO",
-        url: "https://www.iso.org/standard/27001",
-        kind: "link",
-        note: "La norme internationale du système de management de la sécurité de l'information (SMSI).",
-      },
-    ],
     lesson: `# 📜 Lois, normes & conformité — Rule Book
 
 La cybersécurité n'est pas qu'une affaire de technique : c'est aussi un **cadre légal**. Ignorer la conformité, c'est risquer des **amendes énormes** et des poursuites. Tour d'horizon des cadres à connaître. 🏎️
