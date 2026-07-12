@@ -1,0 +1,5 @@
+# Shell scripts and Dockerfiles must keep LF endings so Docker builds don't
+# break on a CRLF shebang when checked out on Windows.
+*.sh text eol=lf
+Dockerfile text eol=lf
+*/start.sh text eol=lf

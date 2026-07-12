@@ -119,6 +119,24 @@ export interface CheckpointSeed {
   parent?: string;
 }
 
+export interface SandboxPort {
+  containerPort: number;
+  label: string; // ex. "Terminal web (ttyd)"
+}
+
+export interface SandboxConfig {
+  /** Image Docker de l'attaquant, partagée entre tous les modules pratiques. */
+  attackerImage: string;
+  /** Image Docker de la cible, spécifique à ce module. */
+  targetImage: string;
+  /** Durée de vie max de la session avant nettoyage forcé. */
+  ttlSec: number;
+  /** Capabilities Linux additionnelles à donner au conteneur attaquant (jamais à la cible). */
+  attackerCapAdd?: string[];
+  /** Port(s) à publier côté attaquant (typiquement le terminal web). */
+  ports: SandboxPort[];
+}
+
 export interface CourseSeed {
   slug: string;
   title: string;
@@ -143,6 +161,8 @@ export interface CourseSeed {
   videos?: CourseVideo[];
   /** Downloadable resources: PT installers, .pkt files, links. */
   resources?: CourseResource[];
+  /** Practical courses only: the Docker sandbox started for the whole course. */
+  sandbox?: SandboxConfig;
   badge: BadgeSeed;
   challenges: ChallengeSeed[];
 }

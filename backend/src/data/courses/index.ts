@@ -77,6 +77,7 @@ import { bellLapadula as cysBellLapadula } from "./cyber/systeme/bellLapadula";
 import { canauxCaches as cysCanauxCaches } from "./cyber/systeme/canauxCaches";
 import { virtualisation as cysVirtualisation } from "./cyber/systeme/virtualisation";
 import { attaquesVirtualisation as cysAttaquesVirtualisation } from "./cyber/systeme/attaquesVirtualisation";
+import { module1Recon } from "./cyber-pratique/module1Recon";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -188,6 +189,9 @@ export const cyberSystemeCourses: CourseSeed[] = [
   ...cysAttaquesVirtualisation,
 ];
 
+/** Courses of the "Cybersécurité — Pratique" checkpoint (labs Docker réels). */
+export const cyberPratiqueCourses: CourseSeed[] = [...module1Recon];
+
 /** Every course, in display order. */
 export const allCourses: CourseSeed[] = [
   ...algoCourses,
@@ -198,4 +202,5 @@ export const allCourses: CourseSeed[] = [
   ...cyberWifiCourses,
   ...cyberReseauxCourses,
   ...cyberSystemeCourses,
+  ...cyberPratiqueCourses,
 ];

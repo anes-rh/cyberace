@@ -84,6 +84,7 @@ export async function getCourse(req: Request, res: Response): Promise<void> {
       lesson: course.lesson,
       videos: course.videos ?? [],
       resources: course.resources ?? [],
+      sandbox: course.sandbox ?? undefined,
       badge: course.badge,
     },
     challenges: serialized,

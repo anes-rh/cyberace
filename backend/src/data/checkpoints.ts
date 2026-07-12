@@ -53,14 +53,14 @@ export const allCheckpoints: CheckpointSeed[] = [
   },
   {
     slug: "cybersecurite",
-    title: "Cybersécurité",
+    title: "Cybersécurité — Théorie",
     order: 5,
     status: "active",
     icon: "ShieldCheck",
     accent: "#9B8CCB",
     description:
-      "Le grand final, organisé en mini-checkpoints : introduction à la sécurité, sécurité des réseaux, du sans-fil et des systèmes. Choisis un axe et progresse à ton rythme.",
-    tagline: "Checkpoint final",
+      "Les fondations théoriques, organisées en mini-checkpoints : introduction à la sécurité, sécurité des réseaux, du sans-fil et des systèmes. Choisis un axe et progresse à ton rythme, avant de passer à la pratique.",
+    tagline: "Les fondations théoriques",
   },
 
   // ── Mini-checkpoints de « Cybersécurité » (sous-route, parent = cybersecurite) ──
@@ -111,6 +111,19 @@ export const allCheckpoints: CheckpointSeed[] = [
       "Au cœur de la machine : rootkits et compromission du noyau, protection mémoire (ASLR, DEP, canaries, ROP), modèles de contrôle d'accès (DAC/MAC/RBAC), Bell-LaPadula et sécurité multi-niveaux, canaux cachés, architecture de la virtualisation et attaques contre les hyperviseurs.",
     tagline: "Durcir les systèmes",
     parent: "cybersecurite",
+  },
+
+  // ── Checkpoint « Cybersécurité — Pratique » (top-level, labs Docker réels) ──
+  {
+    slug: "cybersecurite-pratique",
+    title: "Cybersécurité — Pratique",
+    order: 6,
+    status: "active",
+    icon: "Terminal",
+    accent: "#E0685E",
+    description:
+      "Le prolongement pratique du parcours théorique : de vrais conteneurs isolés, un vrai terminal, de vraies commandes. Chaque module reprend des notions vues côté théorie et te met aux commandes — dans un ordre volontairement mélangé entre réseau, système et reconnaissance, pas un thème à la fois.",
+    tagline: "Environnements réels, terminal en direct",
   },
 ];
 

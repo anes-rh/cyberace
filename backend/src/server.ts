@@ -4,10 +4,16 @@ import { env } from "./config/env";
 import { Course } from "./models/Course";
 import { Checkpoint } from "./models/Checkpoint";
 import { runSeed } from "./data/seed";
+import { pruneOrphans, reapExpired } from "./services/dockerSandbox";
 
 async function bootstrap() {
   const dbMessage = await connectDatabase();
   console.log(`[db] ${dbMessage}`);
+
+  // Destroy any sandbox container/network left over from a previous run BEFORE
+  // anything else — ts-node-dev respawns on every save, so orphans pile up fast.
+  console.log("[sandbox] Nettoyage des conteneurs/réseaux orphelins au démarrage…");
+  await pruneOrphans();
 
   if (env.autoSeed) {
     const [courseCount, checkpointCount] = await Promise.all([
@@ -31,8 +37,15 @@ async function bootstrap() {
     console.log(`[api] CORS autorisé pour: ${env.clientOrigins.join(", ")}`);
   });
 
+  // Reaper: every 30s, force-stop sandbox sessions that have outlived their TTL.
+  const reaper = setInterval(() => {
+    reapExpired().catch((err) => console.error("[sandbox] reaper:", err));
+  }, 30_000);
+  reaper.unref();
+
   const shutdown = async (signal: string) => {
     console.log(`\n[api] ${signal} reçu, arrêt en cours…`);
+    clearInterval(reaper);
     server.close(async () => {
       await disconnectDatabase();
       process.exit(0);

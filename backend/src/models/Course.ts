@@ -1,5 +1,5 @@
 import { Schema, model, Document } from "mongoose";
-import type { BadgeSeed, CourseResource, CourseVideo, Difficulty } from "../types";
+import type { BadgeSeed, CourseResource, CourseVideo, Difficulty, SandboxConfig } from "../types";
 
 export interface CourseDoc extends Document {
   slug: string;
@@ -17,6 +17,7 @@ export interface CourseDoc extends Document {
   lesson: string;
   videos: CourseVideo[];
   resources: CourseResource[];
+  sandbox?: SandboxConfig;
   badge: BadgeSeed;
 }
 
@@ -26,6 +27,20 @@ const badgeSchema = new Schema<BadgeSeed>(
     name: { type: String, required: true },
     icon: { type: String, required: true },
     description: { type: String, required: true },
+  },
+  { _id: false }
+);
+
+const sandboxSchema = new Schema<SandboxConfig>(
+  {
+    attackerImage: { type: String, required: true },
+    targetImage: { type: String, required: true },
+    ttlSec: { type: Number, required: true },
+    attackerCapAdd: { type: [String], default: [] },
+    ports: {
+      type: [{ _id: false, containerPort: Number, label: String }],
+      default: [],
+    },
   },
   { _id: false }
 );
@@ -54,6 +69,7 @@ const courseSchema = new Schema<CourseDoc>(
       type: [{ _id: false, label: String, url: String, kind: String, os: String, note: String }],
       default: [],
     },
+    sandbox: { type: sandboxSchema, required: false },
     badge: { type: badgeSchema, required: true },
   },
   { timestamps: true }

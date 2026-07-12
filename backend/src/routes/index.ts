@@ -6,6 +6,7 @@ import labsRoutes from "./labsRoutes";
 import leaderboardRoutes from "./leaderboardRoutes";
 import progressRoutes from "./progressRoutes";
 import executeRoutes from "./executeRoutes";
+import sandboxRoutes from "./sandboxRoutes";
 
 const router = Router();
 
@@ -13,7 +14,7 @@ router.get("/", (_req, res) => {
   res.json({
     name: "CyberAce API",
     version: "1.1.0",
-    endpoints: ["/auth", "/checkpoints", "/courses", "/labs", "/leaderboard", "/progress", "/execute"],
+    endpoints: ["/auth", "/checkpoints", "/courses", "/labs", "/leaderboard", "/progress", "/execute", "/sandbox"],
   });
 });
 
@@ -24,5 +25,6 @@ router.use("/labs", labsRoutes);
 router.use("/leaderboard", leaderboardRoutes);
 router.use("/progress", progressRoutes);
 router.use("/execute", executeRoutes);
+router.use("/sandbox", sandboxRoutes);
 
 export default router;
