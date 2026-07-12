@@ -81,6 +81,7 @@ import { module1Recon } from "./cyber-pratique/module1Recon";
 import { module2ArpSpoofing } from "./cyber-pratique/module2ArpSpoofing";
 import { module3PrivescLinux } from "./cyber-pratique/module3PrivescLinux";
 import { module4MacFloodingDetect } from "./cyber-pratique/module4MacFloodingDetect";
+import { module5CronPrivesc } from "./cyber-pratique/module5CronPrivesc";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -198,6 +199,7 @@ export const cyberPratiqueCourses: CourseSeed[] = [
   ...module2ArpSpoofing,
   ...module3PrivescLinux,
   ...module4MacFloodingDetect,
+  ...module5CronPrivesc,
 ];
 
 /** Every course, in display order. */
