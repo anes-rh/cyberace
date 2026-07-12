@@ -114,6 +114,20 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ code, stdin }),
     }),
+
+  sandbox: {
+    start: (courseSlug: string) =>
+      request<{ session: { terminalUrl: string; expiresAt: string; status: string } }>(
+        `/sandbox/${courseSlug}/start`,
+        { method: "POST" }
+      ),
+    stop: (courseSlug: string) =>
+      request<{ ok: true }>(`/sandbox/${courseSlug}/stop`, { method: "POST" }),
+    status: (courseSlug: string) =>
+      request<{ session: { terminalUrl: string; expiresAt: string; status: string } | null }>(
+        `/sandbox/${courseSlug}/status`
+      ),
+  },
 };
 
 export type { User, Challenge };

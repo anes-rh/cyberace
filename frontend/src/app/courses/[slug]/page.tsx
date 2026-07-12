@@ -10,6 +10,7 @@ import { DifficultyBadge } from "@/components/ui/DifficultyBadge";
 import { Progress } from "@/components/ui/Progress";
 import { Markdown, slugifyHeading } from "@/components/Markdown";
 import { LessonMedia } from "@/components/LessonMedia";
+import { SandboxPanel } from "@/components/sandbox/SandboxPanel";
 import { FullScreenLoader } from "@/components/ui/Spinner";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -81,6 +82,9 @@ export default function CourseDetailPage() {
           </div>
         </div>
       </motion.div>
+
+      {/* Practical lab: only when the course ships a Docker sandbox. */}
+      {course.sandbox && <SandboxPanel course={course} />}
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         {/* Lesson */}

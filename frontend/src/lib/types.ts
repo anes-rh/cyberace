@@ -128,6 +128,19 @@ export interface Challenge {
   pointsPossible?: number;
 }
 
+export interface SandboxPort {
+  containerPort: number;
+  label: string;
+}
+
+export interface SandboxConfig {
+  attackerImage: string;
+  targetImage: string;
+  ttlSec: number;
+  attackerCapAdd?: string[];
+  ports: SandboxPort[];
+}
+
 export interface CourseDetail {
   course: {
     slug: string;
@@ -144,6 +157,7 @@ export interface CourseDetail {
     lesson: string;
     videos?: CourseVideo[];
     resources?: CourseResource[];
+    sandbox?: SandboxConfig;
     badge: Badge;
   };
   challenges: Challenge[];
