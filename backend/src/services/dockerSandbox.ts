@@ -106,12 +106,17 @@ export async function startSession(
   const portKey = `${terminalContainerPort}/tcp`;
 
   try {
-    // 1) Isolated internal network (no Internet).
+    // 1) Isolated internal network (no Internet). A dedicated subnet with a
+    //    fixed gateway is used when the module needs predictable static IPs
+    //    (e.g. ARP spoofing); otherwise IPAM is left to Docker (Module 1).
     const network = await docker.createNetwork({
       Name: networkName,
       Driver: "bridge",
       Internal: true,
       Labels: labels,
+      ...(sandbox.network
+        ? { IPAM: { Config: [{ Subnet: sandbox.network.subnet, Gateway: sandbox.network.gateway }] } }
+        : {}),
     });
     const networkId = (network as unknown as { id: string }).id;
 
@@ -125,7 +130,12 @@ export async function startSession(
         NetworkMode: networkName,
       },
       NetworkingConfig: {
-        EndpointsConfig: { [networkName]: { Aliases: ["target"] } },
+        EndpointsConfig: {
+          [networkName]: {
+            Aliases: ["target"],
+            ...(sandbox.targetStaticIp ? { IPAMConfig: { IPv4Address: sandbox.targetStaticIp } } : {}),
+          },
+        },
       },
     } as Docker.ContainerCreateOptions);
     await target.start();
@@ -151,7 +161,12 @@ export async function startSession(
         PortBindings: portBindings,
       },
       NetworkingConfig: {
-        EndpointsConfig: { [networkName]: { Aliases: ["attacker"] } },
+        EndpointsConfig: {
+          [networkName]: {
+            Aliases: ["attacker"],
+            ...(sandbox.attackerStaticIp ? { IPAMConfig: { IPv4Address: sandbox.attackerStaticIp } } : {}),
+          },
+        },
       },
     } as Docker.ContainerCreateOptions);
     await attacker.start();

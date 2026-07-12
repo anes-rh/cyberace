@@ -133,12 +133,20 @@ export interface SandboxPort {
   label: string;
 }
 
+export interface SandboxNetwork {
+  subnet: string;
+  gateway: string;
+}
+
 export interface SandboxConfig {
   attackerImage: string;
   targetImage: string;
   ttlSec: number;
   attackerCapAdd?: string[];
   ports: SandboxPort[];
+  network?: SandboxNetwork;
+  targetStaticIp?: string;
+  attackerStaticIp?: string;
 }
 
 export interface CourseDetail {

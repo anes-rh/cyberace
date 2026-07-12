@@ -124,6 +124,11 @@ export interface SandboxPort {
   label: string; // ex. "Terminal web (ttyd)"
 }
 
+export interface SandboxNetwork {
+  subnet: string; // ex. "10.55.0.0/24"
+  gateway: string; // ex. "10.55.0.1"
+}
+
 export interface SandboxConfig {
   /** Image Docker de l'attaquant, partagée entre tous les modules pratiques. */
   attackerImage: string;
@@ -135,6 +140,12 @@ export interface SandboxConfig {
   attackerCapAdd?: string[];
   /** Port(s) à publier côté attaquant (typiquement le terminal web). */
   ports: SandboxPort[];
+  /** Sous-réseau dédié avec IP statiques. Absent = comportement Module 1 (IPAM auto). */
+  network?: SandboxNetwork;
+  /** IP statique du conteneur cible, utilisée seulement si `network` est défini. */
+  targetStaticIp?: string;
+  /** IP statique du conteneur attaquant, utilisée seulement si `network` est défini. */
+  attackerStaticIp?: string;
 }
 
 export interface CourseSeed {

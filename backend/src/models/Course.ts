@@ -41,6 +41,12 @@ const sandboxSchema = new Schema<SandboxConfig>(
       type: [{ _id: false, containerPort: Number, label: String }],
       default: [],
     },
+    network: {
+      type: { _id: false, subnet: String, gateway: String },
+      required: false,
+    },
+    targetStaticIp: { type: String, required: false },
+    attackerStaticIp: { type: String, required: false },
   },
   { _id: false }
 );
