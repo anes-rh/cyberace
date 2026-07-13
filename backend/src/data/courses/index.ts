@@ -87,6 +87,12 @@ import { module7GitExposure } from "./cyber-pratique/module7GitExposure";
 import { module8CapabilitiesPrivesc } from "./cyber-pratique/module8CapabilitiesPrivesc";
 import { module9IcmpExfilDetect } from "./cyber-pratique/module9IcmpExfilDetect";
 import { module10CapstoneChain } from "./cyber-pratique/module10CapstoneChain";
+import { module11VhostEnum } from "./cyber-pratique/module11VhostEnum";
+import { module12DnsZoneTransfer } from "./cyber-pratique/module12DnsZoneTransfer";
+import { module13PortscanDetect } from "./cyber-pratique/module13PortscanDetect";
+import { module14PasswordCracking } from "./cyber-pratique/module14PasswordCracking";
+import { module15PasswdWritable } from "./cyber-pratique/module15PasswdWritable";
+import { module16TlsCertLeak } from "./cyber-pratique/module16TlsCertLeak";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -210,6 +216,12 @@ export const cyberPratiqueCourses: CourseSeed[] = [
   ...module8CapabilitiesPrivesc,
   ...module9IcmpExfilDetect,
   ...module10CapstoneChain,
+  ...module11VhostEnum,
+  ...module12DnsZoneTransfer,
+  ...module13PortscanDetect,
+  ...module14PasswordCracking,
+  ...module15PasswdWritable,
+  ...module16TlsCertLeak,
 ];
 
 /** Every course, in display order. */
