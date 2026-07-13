@@ -83,6 +83,10 @@ import { module3PrivescLinux } from "./cyber-pratique/module3PrivescLinux";
 import { module4MacFloodingDetect } from "./cyber-pratique/module4MacFloodingDetect";
 import { module5CronPrivesc } from "./cyber-pratique/module5CronPrivesc";
 import { module6SnmpSniffing } from "./cyber-pratique/module6SnmpSniffing";
+import { module7GitExposure } from "./cyber-pratique/module7GitExposure";
+import { module8CapabilitiesPrivesc } from "./cyber-pratique/module8CapabilitiesPrivesc";
+import { module9IcmpExfilDetect } from "./cyber-pratique/module9IcmpExfilDetect";
+import { module10CapstoneChain } from "./cyber-pratique/module10CapstoneChain";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -202,6 +206,10 @@ export const cyberPratiqueCourses: CourseSeed[] = [
   ...module4MacFloodingDetect,
   ...module5CronPrivesc,
   ...module6SnmpSniffing,
+  ...module7GitExposure,
+  ...module8CapabilitiesPrivesc,
+  ...module9IcmpExfilDetect,
+  ...module10CapstoneChain,
 ];
 
 /** Every course, in display order. */
