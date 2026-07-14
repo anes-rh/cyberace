@@ -158,10 +158,13 @@ export async function startSession(
     });
     const networkId = (network as unknown as { id: string }).id;
 
-    // 1b) A second, NON-internal network carries only the attacker's published
-    //     web-terminal port. An internal network never assigns a host port
+    // 1b) A second, NON-internal network carries ONLY the attacker's published
+    //     web-terminal port. An internal-only network never assigns a host port
     //     binding (verified: HostPort stays null), so ttyd would be unreachable.
-    //     The target keeps NO Internet access — it stays on the internal net above.
+    //     It is attached to the attacker as a SECONDARY endpoint (eth1) so the
+    //     lab network above stays the attacker's primary (eth0) — in-course
+    //     commands like `tcpdump -i eth0` / arpspoof must see the lab segment.
+    //     The target never touches this network and keeps NO Internet access.
     const pubNetworkName = `cyberace_pub_${sid}`;
     const pubNetwork = await docker.createNetwork({
       Name: pubNetworkName,
@@ -169,7 +172,7 @@ export async function startSession(
       Internal: false,
       Labels: labels,
     });
-    void (pubNetwork as unknown as { id: string }).id;
+    const pubNetworkId = (pubNetwork as unknown as { id: string }).id;
 
     // 2) Target container (no added capability), resolvable as "target".
     //    Only in modules that declare a `targetImage`; single-container modules
@@ -214,27 +217,27 @@ export async function startSession(
       ExposedPorts: exposedPorts,
       HostConfig: {
         ...QUOTAS,
-        NetworkMode: pubNetworkName,
+        NetworkMode: networkName,
         CapAdd: sandbox.attackerCapAdd ?? [],
         PortBindings: portBindings,
       },
       NetworkingConfig: {
         EndpointsConfig: {
-          // Primary endpoint = publish network, so ttyd's port binds to a host port.
-          [pubNetworkName]: {},
+          // Primary endpoint (eth0) = lab network, resolvable as "attacker" and
+          // carrying a static IP where a module needs one. In-course commands
+          // (tcpdump -i eth0, arpspoof) therefore act on the lab segment.
+          [networkName]: {
+            Aliases: ["attacker"],
+            ...(sandbox.attackerStaticIp ? { IPAMConfig: { IPv4Address: sandbox.attackerStaticIp } } : {}),
+          },
         },
       },
     } as Docker.ContainerCreateOptions);
 
-    // Also attach the attacker to the isolated lab network as "attacker", so it
-    // reaches "target" by name (and carries a static IP where a module needs one).
-    await docker.getNetwork(networkId).connect({
-      Container: attacker.id,
-      EndpointConfig: {
-        Aliases: ["attacker"],
-        ...(sandbox.attackerStaticIp ? { IPAMConfig: { IPv4Address: sandbox.attackerStaticIp } } : {}),
-      },
-    });
+    // Attach the NON-internal publish network as a secondary endpoint (eth1) so
+    // the ttyd host-port binding is created (an internal-only network never
+    // publishes). The lab network stays eth0.
+    await docker.getNetwork(pubNetworkId).connect({ Container: attacker.id });
     await attacker.start();
 
     // 4) Discover the published host port for the web terminal.

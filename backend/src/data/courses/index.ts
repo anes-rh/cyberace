@@ -106,6 +106,7 @@ import { module26JsSecretLeak } from "./cyber-pratique/module26JsSecretLeak";
 import { module27SuidAudit } from "./cyber-pratique/module27SuidAudit";
 import { module28BackupFileDiscovery } from "./cyber-pratique/module28BackupFileDiscovery";
 import { module29SymlinkLeak } from "./cyber-pratique/module29SymlinkLeak";
+import { module30ArpFlapDetect } from "./cyber-pratique/module30ArpFlapDetect";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -248,6 +249,7 @@ export const cyberPratiqueCourses: CourseSeed[] = [
   ...module27SuidAudit,
   ...module28BackupFileDiscovery,
   ...module29SymlinkLeak,
+  ...module30ArpFlapDetect,
 ];
 
 /** Every course, in display order. */
