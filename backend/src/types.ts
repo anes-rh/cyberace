@@ -223,16 +223,25 @@ export interface TopologyPort {
   kind?: "terminal" | "http";
 }
 
+/** Quotas de ressources par nœud (section 14 — les services réels comme MySQL
+ *  ont besoin de plus que le quota par défaut d'un lab léger). */
+export interface NodeResources {
+  memMb?: number; // mémoire max en Mo
+  cpu?: number; // fraction de CPU (ex. 0.25)
+}
+
 export interface TopologyNode {
   id: string; // "attacker" | "firewall" | "waf" | "webapp" | "db"
   image: string;
   role: NodeRole;
   capAdd?: string[];
   sysctls?: Record<string, string>;
+  env?: Record<string, string>; // variables d'environnement (creds DVWA→db, etc.)
   terminal: boolean; // expose un terminal web (ttyd)
   networks: NodeNetworkAttachment[];
   postStartRoutes?: PostStartRoute[];
   ports?: TopologyPort[]; // ports publiés côté hôte
+  resources?: NodeResources;
 }
 
 export interface ProjectTopology {

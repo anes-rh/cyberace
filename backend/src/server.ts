@@ -5,6 +5,7 @@ import { Course } from "./models/Course";
 import { Checkpoint } from "./models/Checkpoint";
 import { runSeed } from "./data/seed";
 import { pruneOrphans, reapExpired } from "./services/dockerSandbox";
+import { reapExpiredProjects } from "./services/dockerTopology";
 
 async function bootstrap() {
   const dbMessage = await connectDatabase();
@@ -40,6 +41,7 @@ async function bootstrap() {
   // Reaper: every 30s, force-stop sandbox sessions that have outlived their TTL.
   const reaper = setInterval(() => {
     reapExpired().catch((err) => console.error("[sandbox] reaper:", err));
+    reapExpiredProjects().catch((err) => console.error("[topology] reaper:", err));
   }, 30_000);
   reaper.unref();
 

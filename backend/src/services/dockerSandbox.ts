@@ -17,11 +17,11 @@ import type { SandboxConfig } from "../types";
  *  - At most one active session per user (409 otherwise).
  */
 
-const MANAGED_LABEL = "com.cyberace.managed";
-const SESSION_LABEL = "com.cyberace.session";
+export const MANAGED_LABEL = "com.cyberace.managed";
+export const SESSION_LABEL = "com.cyberace.session";
 
 /** Resource quotas applied to every container without exception. */
-const QUOTAS = {
+export const QUOTAS = {
   Memory: 160 * 1024 * 1024, // 160 Mo
   NanoCpus: 300_000_000, // 0.3 CPU
   PidsLimit: 128,
@@ -53,7 +53,7 @@ function buildDockerOptions(): Docker.DockerOptions {
     : { socketPath: "/var/run/docker.sock" };
 }
 
-const docker = new Docker(buildDockerOptions());
+export const docker = new Docker(buildDockerOptions());
 
 /**
  * Hostname the *browser* must hit to reach a published container port.
@@ -70,7 +70,7 @@ function resolvePublishHost(): string {
   return m ? m[1] : "localhost";
 }
 
-const PUBLISH_HOST = resolvePublishHost();
+export const PUBLISH_HOST = resolvePublishHost();
 
 function log(msg: string): void {
   console.log(`[sandbox] ${msg}`);
@@ -98,7 +98,7 @@ async function removeNetworkSafe(id: string): Promise<void> {
 }
 
 /** Remove every Docker resource carrying our session label (containers first, then network). */
-async function cleanupBySessionLabel(sessionId: string): Promise<void> {
+export async function cleanupBySessionLabel(sessionId: string): Promise<void> {
   const filter = { label: [`${SESSION_LABEL}=${sessionId}`] };
   try {
     const containers = await docker.listContainers({ all: true, filters: filter as never });
