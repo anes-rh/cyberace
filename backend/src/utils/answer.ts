@@ -56,7 +56,7 @@ export function codeFeedback(
   return { ok: ratio >= (spec.minRatio ?? 1), missing, matched, total: spec.keypoints.length };
 }
 
-function normalizeText(value: string, caseSensitive: boolean): string {
+export function normalizeText(value: string, caseSensitive: boolean): string {
   let s = String(value).trim().replace(/\s+/g, " ");
   if (!caseSensitive) s = s.toLowerCase();
   return s;

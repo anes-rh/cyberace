@@ -1,0 +1,7 @@
+[mysqld]
+# Empreinte mémoire réduite pour tenir sur une VM contrainte (~4 Go partagés
+# entre 5 conteneurs). Suffisant pour le volume de données de ce lab.
+innodb_buffer_pool_size = 64M
+innodb_log_file_size    = 32M
+performance_schema      = OFF
+max_connections         = 50

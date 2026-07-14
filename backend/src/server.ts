@@ -27,7 +27,7 @@ async function bootstrap() {
       console.log("[seed] Insertion / mise à jour du contenu CyberAce…");
       const summary = await runSeed({ reset: false });
       console.log(
-        `[seed] ${summary.checkpoints} checkpoints, ${summary.courses} courses, ${summary.challenges} challenges.`
+        `[seed] ${summary.checkpoints} checkpoints, ${summary.courses} courses, ${summary.challenges} challenges, ${summary.projects} projets (${summary.objectives} objectifs).`
       );
     }
   }

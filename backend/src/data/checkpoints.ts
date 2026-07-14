@@ -125,6 +125,19 @@ export const allCheckpoints: CheckpointSeed[] = [
       "Le prolongement pratique du parcours théorique : de vrais conteneurs isolés, un vrai terminal, de vraies commandes. Chaque module reprend des notions vues côté théorie et te met aux commandes — dans un ordre volontairement mélangé entre réseau, système et reconnaissance, pas un thème à la fois.",
     tagline: "Environnements réels, terminal en direct",
   },
+
+  // ── Checkpoint « Cybersécurité — Projets » (top-level, scénarios complets) ──
+  {
+    slug: "cybersecurite-projets",
+    title: "Cybersécurité — Projets",
+    order: 7,
+    status: "active",
+    icon: "ShieldAlert",
+    accent: "#D96BA0",
+    description:
+      "Des scénarios complets où tu construis ET attaques ta propre architecture : DMZ, firewall, WAF, MFA. La théorie devient réflexe. Chaque projet t'installe dans un rôle de consultant sécurité, d'un dashboard de topologie réseau en direct plutôt que d'un simple terminal.",
+    tagline: "Défense et attaque, dans le même scénario",
+  },
 ];
 
 /** Checkpoint every existing course is grouped under. */
