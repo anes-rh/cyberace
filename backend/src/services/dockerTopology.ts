@@ -146,13 +146,17 @@ export async function startProjectSession(
       }
 
       const { Memory, NanoCpus } = resources(node);
+      // Un nœud qui injecte des routes post-démarrage a besoin de NET_ADMIN
+      // (sinon `ip route add` → "Operation not permitted").
+      const capAdd = new Set(node.capAdd ?? []);
+      if ((node.postStartRoutes ?? []).length > 0) capAdd.add("NET_ADMIN");
       const hostConfig: Docker.HostConfig = {
         Memory,
         NanoCpus,
         PidsLimit: QUOTAS.PidsLimit,
         ReadonlyRootfs: false,
         NetworkMode: labNetName(primary.name),
-        CapAdd: node.capAdd ?? [],
+        CapAdd: [...capAdd],
         PortBindings: portBindings,
         ...(node.sysctls && Object.keys(node.sysctls).length ? { Sysctls: node.sysctls } : {}),
       };

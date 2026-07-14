@@ -70,7 +70,9 @@ export const operationSentinelle: ProjectSeed = {
         terminal: true,
         env: {
           BACKEND: "http://webapp:80",
-          PORT: "80",
+          // L'image CRS tourne nginx en non-root : impossible de binder < 1024.
+          // Le WAF écoute donc sur 8080 (le firewall autorise ce port).
+          PORT: "8080",
           MODSEC_RULE_ENGINE: "DetectionOnly",
           PARANOIA: "1",
         },
@@ -95,6 +97,8 @@ export const operationSentinelle: ProjectSeed = {
           DB_USER: "dvwa",
           DB_PASSWORD: "p@ssw0rd",
           DB_PORT: "3306",
+          // Sécurité applicative faible : la difficulté vient du firewall/WAF.
+          DEFAULT_SECURITY_LEVEL: "low",
         },
         networks: [{ name: "dmz", ip: "10.20.0.30" }],
         postStartRoutes: [{ network: "10.30.0.0/24", viaIp: "10.20.0.2" }],
@@ -125,13 +129,13 @@ export const operationSentinelle: ProjectSeed = {
       kind: "defense",
       title: "Durcir le firewall (DMZ)",
       description:
-        "Configure nftables sur le firewall : passe la policy forward à `drop`, puis n'autorise QUE external→dmz sur 80/443, et webapp (10.20.0.30) → internal sur 3306. Tout le reste doit être bloqué (y compris l'accès d'un autre hôte de la DMZ à la base).",
+        "Configure nftables sur le firewall : passe la policy forward à `drop`, puis n'autorise QUE external→dmz vers le port du WAF (8080), et webapp (10.20.0.30) → internal sur 3306. Ajoute une règle `ct state established,related accept` pour le retour. Tout le reste doit être bloqué (y compris l'accès d'un autre hôte de la DMZ à la base).",
       points: 150,
       validation: {
         strategy: "active_probe",
         spec: {
           checks: [
-            { from: "attacker", to: "waf", port: 80, expect: "open" },
+            { from: "attacker", to: "waf", port: 8080, expect: "open" },
             { from: "attacker", to: "waf", port: 7681, expect: "closed" },
             { from: "webapp", to: "db", port: 3306, expect: "open" },
             { from: "waf", to: "db", port: 3306, expect: "closed" },
@@ -155,6 +159,7 @@ export const operationSentinelle: ProjectSeed = {
           testParam: "id",
           testPayload: "1' OR '1'='1",
           expectedStatus: 403,
+          port: 8080,
         },
       },
     },

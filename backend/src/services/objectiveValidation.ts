@@ -61,6 +61,7 @@ interface WafProbeSpec {
   testParam: string;
   testPayload: string;
   expectedStatus: number;
+  port?: number;
 }
 
 async function validateWafProbe(spec: WafProbeSpec, ctx: ValidationContext): Promise<ValidationResult> {
@@ -69,7 +70,8 @@ async function validateWafProbe(spec: WafProbeSpec, ctx: ValidationContext): Pro
   if (!attackerId || !wafIp) return { ok: false, detail: "attaquant ou WAF introuvable" };
   // Requête envoyée par le backend DEPUIS l'attaquant (le vrai chemin, à travers
   // le firewall). CRS décode l'URL-encoding avant d'évaluer ses règles.
-  const url = `http://${wafIp}${spec.path}?${spec.testParam}=${encodeURIComponent(spec.testPayload)}`;
+  const host = `${wafIp}:${spec.port ?? 8080}`;
+  const url = `http://${host}${spec.path}?${spec.testParam}=${encodeURIComponent(spec.testPayload)}`;
   const cmd = ["bash", "-c", `curl -s -o /dev/null -w '%{http_code}' --max-time 8 "${url}"`];
   const { output } = await execWithRetry(attackerId, cmd);
   const status = parseInt(output.trim().match(/\d{3}/)?.[0] ?? "0", 10);
