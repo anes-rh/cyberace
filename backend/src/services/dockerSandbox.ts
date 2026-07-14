@@ -28,11 +28,49 @@ const QUOTAS = {
   ReadonlyRootfs: false,
 };
 
-const docker = new Docker(
-  process.platform === "win32"
+/**
+ * Build the dockerode connection options.
+ *
+ * Priority:
+ *  1. `DOCKER_HOST=tcp://host:port` — remote daemon over TCP (e.g. a Docker
+ *     engine running inside a VirtualBox VM when the Windows host cannot run
+ *     Docker Desktop). No TLS: only safe on a trusted LAN.
+ *  2. Platform default local socket (named pipe on Windows, unix socket else).
+ */
+function buildDockerOptions(): Docker.DockerOptions {
+  const host = process.env.DOCKER_HOST?.trim();
+  if (host) {
+    const m = /^tcp:\/\/([^:/]+):(\d+)$/.exec(host);
+    if (!m) {
+      throw new Error(
+        `DOCKER_HOST invalide: "${host}" (attendu tcp://host:port)`
+      );
+    }
+    return { host: m[1], port: Number(m[2]) };
+  }
+  return process.platform === "win32"
     ? { socketPath: "//./pipe/docker_engine" }
-    : { socketPath: "/var/run/docker.sock" }
-);
+    : { socketPath: "/var/run/docker.sock" };
+}
+
+const docker = new Docker(buildDockerOptions());
+
+/**
+ * Hostname the *browser* must hit to reach a published container port.
+ *
+ * When the daemon runs remotely (DOCKER_HOST=tcp://vm-ip:2375), published ports
+ * live on the VM's IP, not on localhost. `SANDBOX_PUBLIC_HOST` overrides it;
+ * otherwise we reuse the DOCKER_HOST address, falling back to localhost.
+ */
+function resolvePublishHost(): string {
+  const explicit = process.env.SANDBOX_PUBLIC_HOST?.trim();
+  if (explicit) return explicit;
+  const dockerHost = process.env.DOCKER_HOST?.trim();
+  const m = dockerHost && /^tcp:\/\/([^:/]+):\d+$/.exec(dockerHost);
+  return m ? m[1] : "localhost";
+}
+
+const PUBLISH_HOST = resolvePublishHost();
 
 function log(msg: string): void {
   console.log(`[sandbox] ${msg}`);
@@ -120,6 +158,19 @@ export async function startSession(
     });
     const networkId = (network as unknown as { id: string }).id;
 
+    // 1b) A second, NON-internal network carries only the attacker's published
+    //     web-terminal port. An internal network never assigns a host port
+    //     binding (verified: HostPort stays null), so ttyd would be unreachable.
+    //     The target keeps NO Internet access — it stays on the internal net above.
+    const pubNetworkName = `cyberace_pub_${sid}`;
+    const pubNetwork = await docker.createNetwork({
+      Name: pubNetworkName,
+      Driver: "bridge",
+      Internal: false,
+      Labels: labels,
+    });
+    void (pubNetwork as unknown as { id: string }).id;
+
     // 2) Target container (no added capability), resolvable as "target".
     //    Only in modules that declare a `targetImage`; single-container modules
     //    (e.g. privilege escalation) skip it — the attacker IS the environment.
@@ -162,19 +213,27 @@ export async function startSession(
       ExposedPorts: exposedPorts,
       HostConfig: {
         ...QUOTAS,
-        NetworkMode: networkName,
+        NetworkMode: pubNetworkName,
         CapAdd: sandbox.attackerCapAdd ?? [],
         PortBindings: portBindings,
       },
       NetworkingConfig: {
         EndpointsConfig: {
-          [networkName]: {
-            Aliases: ["attacker"],
-            ...(sandbox.attackerStaticIp ? { IPAMConfig: { IPv4Address: sandbox.attackerStaticIp } } : {}),
-          },
+          // Primary endpoint = publish network, so ttyd's port binds to a host port.
+          [pubNetworkName]: {},
         },
       },
     } as Docker.ContainerCreateOptions);
+
+    // Also attach the attacker to the isolated lab network as "attacker", so it
+    // reaches "target" by name (and carries a static IP where a module needs one).
+    await docker.getNetwork(networkId).connect({
+      Container: attacker.id,
+      EndpointConfig: {
+        Aliases: ["attacker"],
+        ...(sandbox.attackerStaticIp ? { IPAMConfig: { IPv4Address: sandbox.attackerStaticIp } } : {}),
+      },
+    });
     await attacker.start();
 
     // 4) Discover the published host port for the web terminal.
@@ -184,7 +243,7 @@ export async function startSession(
     if (!hostPort) {
       throw new Error(`Port ${portKey} non publié par le conteneur attaquant.`);
     }
-    const terminalUrl = `http://localhost:${hostPort}`;
+    const terminalUrl = `http://${PUBLISH_HOST}:${hostPort}`;
 
     // 5) Persist the running session (id pinned to the pre-generated one).
     const session = await SandboxSession.create({
