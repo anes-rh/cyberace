@@ -8,7 +8,8 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "seed": "ts-node --transpile-only src/data/seed.ts",
-    "sandbox:prune": "ts-node --transpile-only scripts/prune-sandboxes.ts"
+    "sandbox:prune": "ts-node --transpile-only scripts/prune-sandboxes.ts",
+    "sandbox:build": "ts-node --transpile-only scripts/build-images.ts"
   },
   "keywords": [
     "cybersecurity",
@@ -26,6 +27,7 @@
     "dockerode": "^5.0.1",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.3"
   },

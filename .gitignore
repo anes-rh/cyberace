@@ -39,3 +39,13 @@ graphify-out/
 .vscode/*
 !.vscode/extensions.json
 scripts/pka/__pycache__/
+
+# ── Fichiers créés par accident en terminal ───
+# Redirections shell/PowerShell mal interprétées (copier-coller contenant
+# > ( ) etc.) qui déposent des fichiers vides à des noms parasites. On ignore
+# les artefacts récurrents ; en cas de doute, stager avec des chemins explicites
+# (jamais `git add .` à l'aveugle) reste la vraie prévention.
+/Get-Service
+/mcpServers
+/redemarrage
+*.ps1.tmp
