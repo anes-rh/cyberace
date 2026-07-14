@@ -186,3 +186,89 @@ export const DIFFICULTY_POINTS: Record<Difficulty, number> = {
   hard: 350,
   insane: 550,
 };
+
+// ── Projets (checkpoint "cybersecurite-projets") ────────────────
+// Système distinct des Courses/Challenges : une session = topologie
+// multi-nœuds / multi-réseaux, avec des objectifs validés côté serveur.
+
+export type NodeRole = "attacker" | "firewall" | "waf" | "target" | "database";
+
+/** Un réseau Docker de la topologie (bridge isolé ou non). */
+export interface TopologyNetwork {
+  name: string; // ex. "external" | "dmz" | "internal"
+  cidr: string; // ex. "10.10.0.0/24"
+  internal: boolean; // Internal:true = pas d'accès Internet
+}
+
+/** Rattachement d'un nœud à un réseau, avec son IP statique. */
+export interface NodeNetworkAttachment {
+  name: string; // nom du réseau
+  ip: string; // IP statique du nœud sur ce réseau (jamais .1 = gateway Docker)
+}
+
+/**
+ * Route à injecter après démarrage (docker ne route pas entre bridges tout
+ * seul) : `ip route add <network> via <viaIp>` sur le conteneur.
+ */
+export interface PostStartRoute {
+  network: string; // CIDR destination, ex. "10.20.0.0/24"
+  viaIp: string; // passerelle intermédiaire (IP du firewall sur le réseau source)
+}
+
+/** Un port à publier côté hôte (terminal ttyd, HTTP du WAF pour les probes…). */
+export interface TopologyPort {
+  containerPort: number;
+  label: string;
+  /** Usage, pour retrouver l'URL par fonction (terminal vs http de probe). */
+  kind?: "terminal" | "http";
+}
+
+export interface TopologyNode {
+  id: string; // "attacker" | "firewall" | "waf" | "webapp" | "db"
+  image: string;
+  role: NodeRole;
+  capAdd?: string[];
+  sysctls?: Record<string, string>;
+  terminal: boolean; // expose un terminal web (ttyd)
+  networks: NodeNetworkAttachment[];
+  postStartRoutes?: PostStartRoute[];
+  ports?: TopologyPort[]; // ports publiés côté hôte
+}
+
+export interface ProjectTopology {
+  networks: TopologyNetwork[];
+  nodes: TopologyNode[];
+}
+
+export type ObjectiveKind = "defense" | "attack" | "analysis";
+export type ValidationStrategy = "active_probe" | "waf_probe" | "text_compare";
+
+/** Bloc de validation — JAMAIS exposé au client (select:false côté modèle). */
+export interface ProjectObjectiveValidation {
+  strategy: ValidationStrategy;
+  spec: Record<string, unknown>; // forme dépendante de la stratégie (voir objectiveValidation.ts)
+}
+
+export interface ProjectObjectiveSeed {
+  id: string; // slug court, ex. "firewall-dmz-policy"
+  projectSlug: string;
+  order: number;
+  kind: ObjectiveKind;
+  title: string;
+  description: string;
+  points: number;
+  dependsOn?: string[]; // ids d'objectifs requis avant déblocage
+  validation: ProjectObjectiveValidation;
+}
+
+export interface ProjectSeed {
+  slug: string; // unique
+  checkpoint: string; // "cybersecurite-projets"
+  title: string;
+  description: string;
+  difficulty: Difficulty;
+  estimatedMinutes: number;
+  topology: ProjectTopology;
+  ttlSec: number;
+  objectives: ProjectObjectiveSeed[];
+}
