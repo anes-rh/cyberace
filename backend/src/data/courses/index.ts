@@ -93,6 +93,19 @@ import { module13PortscanDetect } from "./cyber-pratique/module13PortscanDetect"
 import { module14PasswordCracking } from "./cyber-pratique/module14PasswordCracking";
 import { module15PasswdWritable } from "./cyber-pratique/module15PasswdWritable";
 import { module16TlsCertLeak } from "./cyber-pratique/module16TlsCertLeak";
+import { module17SyslogSniffing } from "./cyber-pratique/module17SyslogSniffing";
+import { module18BeaconDetect } from "./cyber-pratique/module18BeaconDetect";
+import { module19SshLateral } from "./cyber-pratique/module19SshLateral";
+import { module20ApiDisclosure } from "./cyber-pratique/module20ApiDisclosure";
+import { module21LdPreload } from "./cyber-pratique/module21LdPreload";
+import { module22TarWildcard } from "./cyber-pratique/module22TarWildcard";
+import { module23HttpVerbTampering } from "./cyber-pratique/module23HttpVerbTampering";
+import { module24TtlFingerprint } from "./cyber-pratique/module24TtlFingerprint";
+import { module25MdnsDisclosure } from "./cyber-pratique/module25MdnsDisclosure";
+import { module26JsSecretLeak } from "./cyber-pratique/module26JsSecretLeak";
+import { module27SuidAudit } from "./cyber-pratique/module27SuidAudit";
+import { module28BackupFileDiscovery } from "./cyber-pratique/module28BackupFileDiscovery";
+import { module29SymlinkLeak } from "./cyber-pratique/module29SymlinkLeak";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -222,6 +235,19 @@ export const cyberPratiqueCourses: CourseSeed[] = [
   ...module14PasswordCracking,
   ...module15PasswdWritable,
   ...module16TlsCertLeak,
+  ...module17SyslogSniffing,
+  ...module18BeaconDetect,
+  ...module19SshLateral,
+  ...module20ApiDisclosure,
+  ...module21LdPreload,
+  ...module22TarWildcard,
+  ...module23HttpVerbTampering,
+  ...module24TtlFingerprint,
+  ...module25MdnsDisclosure,
+  ...module26JsSecretLeak,
+  ...module27SuidAudit,
+  ...module28BackupFileDiscovery,
+  ...module29SymlinkLeak,
 ];
 
 /** Every course, in display order. */
