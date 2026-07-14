@@ -188,6 +188,10 @@ export const operationSentinelle: ProjectSeed = {
         "Consulte les logs du WAF et du firewall après l'attaque. Réponds aux questions sur l'incident.",
       points: 100,
       dependsOn: ["sqli-bypass-exfil"],
+      questions: [
+        { id: "q1", prompt: "Quel port, refusé par le firewall aux hôtes non autorisés de la DMZ, protège la base de données ?" },
+        { id: "q2", prompt: "Quel type d'attaque le WAF a-t-il journalisé puis bloqué ?" },
+      ],
       validation: {
         strategy: "text_compare",
         spec: {

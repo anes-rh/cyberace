@@ -128,6 +128,34 @@ export const api = {
         `/sandbox/${courseSlug}/status`
       ),
   },
+
+  projects: {
+    list: () =>
+      request<{ projects: import("./projectTypes").ProjectSummary[] }>("/projects"),
+    detail: (slug: string) => request<import("./projectTypes").ProjectDetail>(`/projects/${slug}`),
+    startSession: (slug: string) =>
+      request<{ session: import("./projectTypes").ProjectSessionView }>(
+        `/projects/${slug}/session/start`,
+        { method: "POST" }
+      ),
+    stopSession: (slug: string) =>
+      request<void>(`/projects/${slug}/session/stop`, { method: "POST" }),
+    session: (slug: string) =>
+      request<{ session: import("./projectTypes").ProjectSessionView | null }>(
+        `/projects/${slug}/session`
+      ),
+    logs: (slug: string, node: string) =>
+      request<{ node: string; logs: string }>(`/projects/${slug}/session/logs?node=${encodeURIComponent(node)}`),
+    objectives: (slug: string) =>
+      request<{ objectives: import("./projectTypes").ProjectObjectiveView[] }>(
+        `/projects/${slug}/objectives`
+      ),
+    validate: (slug: string, objectiveId: string, answer?: unknown) =>
+      request<import("./projectTypes").ValidateResult>(
+        `/projects/${slug}/objectives/${objectiveId}/validate`,
+        { method: "POST", body: JSON.stringify({ answer }) }
+      ),
+  },
 };
 
 export type { User, Challenge };

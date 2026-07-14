@@ -17,6 +17,7 @@ function serializeObjective(o: {
   description: string;
   points: number;
   dependsOn: string[];
+  questions?: { id: string; prompt: string }[];
 }) {
   return {
     id: o.id,
@@ -26,6 +27,7 @@ function serializeObjective(o: {
     description: o.description,
     points: o.points,
     dependsOn: o.dependsOn ?? [],
+    questions: o.questions ?? [],
   };
 }
 

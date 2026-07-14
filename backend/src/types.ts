@@ -267,6 +267,8 @@ export interface ProjectObjectiveSeed {
   description: string;
   points: number;
   dependsOn?: string[]; // ids d'objectifs requis avant déblocage
+  /** Intitulés PUBLICS des questions d'un objectif d'analyse (réponses dans `validation`). */
+  questions?: { id: string; prompt: string }[];
   validation: ProjectObjectiveValidation;
 }
 

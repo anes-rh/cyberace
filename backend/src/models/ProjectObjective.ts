@@ -11,6 +11,8 @@ export interface ProjectObjectiveDoc extends Document {
   description: string;
   points: number;
   dependsOn: string[];
+  /** Intitulés publics des questions (objectif d'analyse) — sans les réponses. */
+  questions: { id: string; prompt: string }[];
   /** JAMAIS sérialisé vers le client (select:false), comme Challenge.answer. */
   validation: ProjectObjectiveValidation;
 }
@@ -25,6 +27,7 @@ const objectiveSchema = new Schema<ProjectObjectiveDoc>(
     description: { type: String, required: true },
     points: { type: Number, required: true },
     dependsOn: { type: [String], default: [] },
+    questions: { type: [{ _id: false, id: String, prompt: String }], default: [] },
     // Bloc de vérification — non exposé : la validation se fait uniquement côté
     // serveur (sondes réseau réelles, requête WAF, comparaison de texte).
     validation: {
