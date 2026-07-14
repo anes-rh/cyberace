@@ -138,6 +138,8 @@ export interface SandboxConfig {
   ttlSec: number;
   /** Capabilities Linux additionnelles à donner au conteneur attaquant (jamais à la cible). */
   attackerCapAdd?: string[];
+  /** Capabilities Linux additionnelles pour le conteneur cible (miroir de attackerCapAdd, introduit au Module 24). */
+  targetCapAdd?: string[];
   /** Port(s) à publier côté attaquant (typiquement le terminal web). */
   ports: SandboxPort[];
   /** Sous-réseau dédié avec IP statiques. Absent = comportement Module 1 (IPAM auto). */

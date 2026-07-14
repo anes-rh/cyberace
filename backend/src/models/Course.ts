@@ -37,6 +37,7 @@ const sandboxSchema = new Schema<SandboxConfig>(
     targetImage: { type: String, required: false },
     ttlSec: { type: Number, required: true },
     attackerCapAdd: { type: [String], default: [] },
+    targetCapAdd: { type: [String], default: [] },
     ports: {
       type: [{ _id: false, containerPort: Number, label: String }],
       default: [],

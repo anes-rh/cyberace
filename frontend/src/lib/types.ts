@@ -143,6 +143,7 @@ export interface SandboxConfig {
   targetImage?: string;
   ttlSec: number;
   attackerCapAdd?: string[];
+  targetCapAdd?: string[];
   ports: SandboxPort[];
   network?: SandboxNetwork;
   targetStaticIp?: string;

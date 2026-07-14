@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     wget \
     openssl \
+    jq \
+    avahi-utils \
     && rm -rf /var/lib/apt/lists/*
 # ttyd : terminal web. Binaire précompilé (pas de paquet Debian officiel).
 # Version épinglée (1.7.7) pour la reproductibilité — le tag "latest" ferait

@@ -1,0 +1,3 @@
+# Clé de lab générée localement — jamais committée (déclencherait le secret scanning).
+deploy_key
+deploy_key.pub

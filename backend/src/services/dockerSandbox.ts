@@ -183,6 +183,7 @@ export async function startSession(
         HostConfig: {
           ...QUOTAS,
           NetworkMode: networkName,
+          CapAdd: sandbox.targetCapAdd ?? [],
         },
         NetworkingConfig: {
           EndpointsConfig: {
