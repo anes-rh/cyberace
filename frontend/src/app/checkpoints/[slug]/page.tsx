@@ -4,16 +4,59 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Clock, Trophy, Flag, Layers, ChevronRight } from "lucide-react";
+import { ArrowLeft, Clock, Trophy, Flag, Layers, ChevronRight, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { Progress } from "@/components/ui/Progress";
 import { CourseCard } from "@/components/CourseCard";
+import { DifficultyBadge } from "@/components/ui/DifficultyBadge";
 import { FullScreenLoader } from "@/components/ui/Spinner";
 import { buttonVariants } from "@/components/ui/Button";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { pct } from "@/lib/utils";
 import type { CheckpointDetail, CheckpointSummary } from "@/lib/types";
+import type { ProjectSummary } from "@/lib/projectTypes";
+
+const PROJECT_STATUS: Record<ProjectSummary["status"], { text: string; cls: string }> = {
+  not_started: { text: "À commencer", cls: "text-muted" },
+  in_progress: { text: "En cours", cls: "text-amber-400" },
+  completed: { text: "Terminé", cls: "text-emerald-400" },
+};
+
+/** Carte d'un projet, présenté comme un module du checkpoint « Projets ». */
+function ProjectModuleCard({ p, accent, index }: { p: ProjectSummary; accent: string; index: number }) {
+  const st = PROJECT_STATUS[p.status];
+  return (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 + index * 0.06 }}>
+      <Link
+        href={`/apprentissage/projets/${p.slug}`}
+        className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-surface/70 p-6 transition-all hover:-translate-y-0.5 hover:border-primary/40 soft-shadow"
+      >
+        <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full opacity-25 blur-3xl transition-opacity group-hover:opacity-40" style={{ background: accent }} />
+        <div className="relative flex items-start gap-4">
+          <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl" style={{ background: `${accent}1f`, color: accent, boxShadow: `inset 0 0 0 1px ${accent}55` }}>
+            <ShieldAlert className="h-7 w-7" />
+          </span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <DifficultyBadge difficulty={p.difficulty} />
+              <span className={`inline-flex items-center gap-1 text-xs ${st.cls}`}>
+                {p.status === "completed" && <CheckCircle2 className="h-3.5 w-3.5" />}{st.text}
+              </span>
+            </div>
+            <h3 className="mt-1.5 font-display text-lg font-semibold text-fg">{p.title}</h3>
+          </div>
+        </div>
+        <p className="relative mt-3 flex-1 text-sm text-muted">{p.description}</p>
+        <div className="relative mt-5 flex items-center gap-4 text-xs text-faint">
+          <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> ~{p.estimatedMinutes} min</span>
+          {p.totalPoints > 0 && <span className="inline-flex items-center gap-1.5 text-warning"><Trophy className="h-3.5 w-3.5" /> {p.totalPoints} pts</span>}
+        </div>
+        <span className="absolute right-5 top-6 text-faint transition-transform group-hover:translate-x-1"><ChevronRight className="h-5 w-5" /></span>
+      </Link>
+    </motion.div>
+  );
+}
 
 /** Card for a mini-checkpoint (sub-route). Mirrors the main roadmap station style. */
 function MiniCheckpointCard({ cp, index }: { cp: CheckpointSummary; index: number }) {
@@ -64,10 +107,17 @@ export default function CheckpointPage() {
   const { slug } = useParams<{ slug: string }>();
   const { user } = useAuth();
   const [data, setData] = useState<CheckpointDetail | null>(null);
+  const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [notFound, setNotFound] = useState(false);
 
   const load = useCallback(() => {
     api.checkpoint(slug).then(setData).catch(() => setNotFound(true));
+    // Les projets sont une collection distincte des cours : on récupère ceux
+    // rattachés à CE checkpoint pour les afficher comme ses modules.
+    api.projects
+      .list()
+      .then((r) => setProjects(r.projects.filter((p) => p.checkpoint === slug)))
+      .catch(() => setProjects([]));
   }, [slug]);
 
   useEffect(() => { load(); }, [load, user]);
@@ -85,6 +135,7 @@ export default function CheckpointPage() {
   const children = data.children ?? [];
   const hasChildren = children.length > 0;
   const hasCourses = courses.length > 0;
+  const hasProjects = projects.length > 0;
   const showProgress = progress.total > 0;
 
   // Back link: a mini-checkpoint returns to its parent; a top-level one to the roadmap.
@@ -138,6 +189,18 @@ export default function CheckpointPage() {
           <div className="grid gap-5 sm:grid-cols-2">
             {children.map((c, i) => (
               <MiniCheckpointCard key={c.slug} cp={c} index={i} />
+            ))}
+          </div>
+        </>
+      ) : hasProjects ? (
+        <>
+          <div className="mt-10 mb-5 flex items-center gap-3">
+            <Layers className="h-5 w-5 text-primary" />
+            <h2 className="font-display text-xl font-semibold">Modules ({projects.length})</h2>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            {projects.map((p, i) => (
+              <ProjectModuleCard key={p.slug} p={p} accent={cp.accent} index={i} />
             ))}
           </div>
         </>
