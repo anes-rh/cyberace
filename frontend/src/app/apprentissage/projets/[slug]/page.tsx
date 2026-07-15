@@ -173,7 +173,7 @@ export default function ProjectDashboardPage() {
 
       {/* Dashboard : topologie (grande, en premier) + objectifs, puis logs. */}
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <ProjectTopologyView
             topology={project.topology}
             objectives={objectives}
@@ -182,7 +182,7 @@ export default function ProjectDashboardPage() {
           />
           <ProjectLogsPanel slug={slug} running={running} nodes={nodeIds} />
         </div>
-        <div>
+        <div className="min-w-0">
           <h3 className="mb-3 font-display text-lg font-semibold">Objectifs</h3>
           <ProjectObjectivesChecklist slug={slug} objectives={objectives} running={running} onValidated={() => { loadObjectives(); loadDetail(); }} />
         </div>
