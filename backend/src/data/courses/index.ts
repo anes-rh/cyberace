@@ -107,6 +107,16 @@ import { module27SuidAudit } from "./cyber-pratique/module27SuidAudit";
 import { module28BackupFileDiscovery } from "./cyber-pratique/module28BackupFileDiscovery";
 import { module29SymlinkLeak } from "./cyber-pratique/module29SymlinkLeak";
 import { module30ArpFlapDetect } from "./cyber-pratique/module30ArpFlapDetect";
+import { module31CommandInjection } from "./cyber-pratique/module31CommandInjection";
+import { module32LfiTraversal } from "./cyber-pratique/module32LfiTraversal";
+import { module33IdorOrders } from "./cyber-pratique/module33IdorOrders";
+import { module34SsrfPreview } from "./cyber-pratique/module34SsrfPreview";
+import { module35RedisNoauth } from "./cyber-pratique/module35RedisNoauth";
+import { module36FtpWebrootOverlap } from "./cyber-pratique/module36FtpWebrootOverlap";
+import { module37XxeInjection } from "./cyber-pratique/module37XxeInjection";
+import { module38CorsMisconfig } from "./cyber-pratique/module38CorsMisconfig";
+import { module39MemcachedNoauth } from "./cyber-pratique/module39MemcachedNoauth";
+import { module40CapstoneSsrfChain } from "./cyber-pratique/module40CapstoneSsrfChain";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -250,6 +260,16 @@ export const cyberPratiqueCourses: CourseSeed[] = [
   ...module28BackupFileDiscovery,
   ...module29SymlinkLeak,
   ...module30ArpFlapDetect,
+  ...module31CommandInjection,
+  ...module32LfiTraversal,
+  ...module33IdorOrders,
+  ...module34SsrfPreview,
+  ...module35RedisNoauth,
+  ...module36FtpWebrootOverlap,
+  ...module37XxeInjection,
+  ...module38CorsMisconfig,
+  ...module39MemcachedNoauth,
+  ...module40CapstoneSsrfChain,
 ];
 
 /** Every course, in display order. */
