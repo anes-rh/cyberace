@@ -14,7 +14,7 @@ export const module36FtpWebrootOverlap: CourseSeed[] = [
     order: 36,
     difficulty: "medium",
     summary:
-      "Ce serveur accepte les dépôts FTP anonymes ET sert un site web. S'il s'agit du même dossier, tout fichier déposé par FTP devient immédiatement servi publiquement — une passerelle inattendue entre écriture et exécution.",
+      "Ce serveur accepte les dépôts FTP anonymes ET sert un site web. Le dossier FTP inscriptible (www/) EST la racine web : tout fichier déposé par FTP devient immédiatement servi publiquement — une passerelle inattendue entre écriture et exécution.",
     objectives: [
       "Déposer un fichier par FTP anonyme (curl -T)",
       "Vérifier qu'il est immédiatement servi par le serveur web",
@@ -41,6 +41,8 @@ Ce serveur accepte les **dépôts FTP anonymes** ET **sert un site web**. La que
 
 Tu es l'attaquant. \`curl\` gère FTP et HTTP. Ce module **démontre une chaîne** — aucun contenu malveillant à écrire, juste un texte de preuve fixe.
 
+En te connectant en FTP anonyme, tu vois un dossier **\`www/\`** ouvert en écriture. C'est là qu'on dépose.
+
 ---
 
 ## 1. Déposer par FTP anonyme ⬆️
@@ -49,10 +51,10 @@ L'option **\`-T\`** de curl **envoie** (upload) un fichier local vers FTP&nbsp;:
 
 \`\`\`bash
 echo "preuve-upload-ok" > test.txt
-curl -T test.txt ftp://target/test.txt
+curl -T test.txt ftp://target/www/test.txt
 \`\`\`
 
-L'écriture anonyme est activée&nbsp;: le fichier atterrit dans le dossier partagé FTP.
+L'écriture anonyme est activée sur **\`www/\`**&nbsp;: le fichier y atterrit.
 
 ---
 
@@ -63,7 +65,7 @@ curl http://target:8080/test.txt
 # → preuve-upload-ok
 \`\`\`
 
-Le fichier déposé par **FTP** est **immédiatement servi** par le serveur **web**&nbsp;: le dossier d'upload **EST** la racine web.
+Le fichier déposé dans **\`www/\`** par **FTP** est **immédiatement servi** par le serveur **web**&nbsp;: le dossier d'upload **EST** la racine web.
 
 ---
 
@@ -82,8 +84,8 @@ Ce n'est pas grave pour un texte anodin. Mais un attaquant pourrait déposer **n
 
 ## 🧠 À retenir
 
-- **\`curl -T fichier ftp://hôte/nom\`** dépose un fichier par FTP.
-- Si upload FTP **=** racine web, tout fichier déposé est **servi publiquement**.
+- **\`curl -T fichier ftp://hôte/www/nom\`** dépose un fichier par FTP dans \`www/\`.
+- Si le dossier d'upload FTP **=** racine web, tout fichier déposé est **servi publiquement**.
 - Le danger : publier du contenu arbitraire (page piégée, script) via un simple canal d'écriture.
 - Parade : **séparer** upload et racine web ; écriture anonyme **uniquement si indispensable**.
 - Prolonge le Module 1 : même FTP anonyme, mais côté **écriture**.`,
@@ -127,7 +129,7 @@ curl http://target:8080/
 
 \`\`\`bash
 echo "preuve-upload-ok" > test.txt
-curl -T test.txt ftp://target/test.txt
+curl -T test.txt ftp://target/www/test.txt
 \`\`\`
 
 **Question :** quelle **option curl** envoie (upload) un fichier local vers un serveur FTP ?`,

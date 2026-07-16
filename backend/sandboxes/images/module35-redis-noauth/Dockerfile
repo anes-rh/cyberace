@@ -15,4 +15,6 @@ RUN redis-server /etc/redis/redis.conf --daemonize yes && \
     redis-cli SHUTDOWN NOSAVE || true
 
 EXPOSE 6379
-CMD ["redis-server", "/etc/redis/redis.conf"]
+# --daemonize no : le redis.conf de Debian démonise/supervise redis, ce qui
+# fait sortir le PID 1 et arrête le conteneur. On force le premier plan.
+CMD ["redis-server", "/etc/redis/redis.conf", "--daemonize", "no", "--supervised", "no"]
