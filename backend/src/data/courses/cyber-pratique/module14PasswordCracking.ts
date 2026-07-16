@@ -5,7 +5,7 @@ export const module14PasswordCracking: CourseSeed[] = [
   {
     slug: "prat-password-cracking",
     title: "Cassage de mot de passe hors ligne",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-privesc-lateral",
     codename: "Silent Crack",
     domain: "Élévation de privilèges",
     theme: "grid",

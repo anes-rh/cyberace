@@ -5,7 +5,7 @@ export const module17SyslogSniffing: CourseSeed[] = [
   {
     slug: "prat-syslog-sniffing",
     title: "Interception de syslog en clair",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-interception-detect",
     codename: "Silent Log",
     domain: "Interception réseau",
     theme: "grid",

@@ -5,7 +5,7 @@ export const module5CronPrivesc: CourseSeed[] = [
   {
     slug: "prat-cron-privesc",
     title: "Élévation de privilèges via cron",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-privesc-lateral",
     codename: "Silent Wait",
     domain: "Élévation de privilèges",
     theme: "grid",

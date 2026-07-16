@@ -5,7 +5,7 @@ export const module20ApiDisclosure: CourseSeed[] = [
   {
     slug: "prat-api-json-disclosure",
     title: "API JSON exposée sans authentification",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-recon-web",
     codename: "Silent Roster",
     domain: "Reconnaissance web",
     theme: "grid",

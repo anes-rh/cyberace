@@ -5,7 +5,7 @@ export const module11VhostEnum: CourseSeed[] = [
   {
     slug: "prat-vhost-enum",
     title: "Virtual host caché : le site qui n'existe pour personne",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-recon-web",
     codename: "Silent Host",
     domain: "Reconnaissance web",
     theme: "grid",

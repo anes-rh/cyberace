@@ -5,7 +5,7 @@ export const module23HttpVerbTampering: CourseSeed[] = [
   {
     slug: "prat-http-verb-tampering",
     title: "Contournement par verbe HTTP",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-recon-web",
     codename: "Silent Verb",
     domain: "Reconnaissance web",
     theme: "grid",

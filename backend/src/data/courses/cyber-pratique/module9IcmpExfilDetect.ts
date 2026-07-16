@@ -5,7 +5,7 @@ export const module9IcmpExfilDetect: CourseSeed[] = [
   {
     slug: "prat-icmp-exfil-detect",
     title: "Canal caché ICMP : données cachées dans un ping",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-interception-detect",
     codename: "Silent Echo",
     domain: "Détection réseau",
     theme: "grid",

@@ -5,7 +5,7 @@ export const module39MemcachedNoauth: CourseSeed[] = [
   {
     slug: "prat-memcached-noauth",
     title: "Memcached sans authentification",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-services-exposes",
     codename: "Silent Memory",
     domain: "Services réseau exposés",
     theme: "grid",

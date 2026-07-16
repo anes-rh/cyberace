@@ -5,7 +5,7 @@ export const module35RedisNoauth: CourseSeed[] = [
   {
     slug: "prat-redis-noauth",
     title: "Redis sans authentification",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-services-exposes",
     codename: "Silent Cache",
     domain: "Services réseau exposés",
     theme: "grid",

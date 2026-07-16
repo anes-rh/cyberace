@@ -122,8 +122,82 @@ export const allCheckpoints: CheckpointSeed[] = [
     icon: "Terminal",
     accent: "#E0685E",
     description:
-      "Le prolongement pratique du parcours théorique : de vrais conteneurs isolés, un vrai terminal, de vraies commandes. Chaque module reprend des notions vues côté théorie et te met aux commandes — dans un ordre volontairement mélangé entre réseau, système et reconnaissance, pas un thème à la fois.",
+      "Le prolongement pratique du parcours théorique : de vrais conteneurs isolés, un vrai terminal, de vraies commandes. Les modules sont regroupés en mini-checkpoints thématiques — reconnaissance réseau et web, interception & détection, élévation de privilèges, sécurité applicative et services exposés — pour progresser un domaine à la fois.",
     tagline: "Environnements réels, terminal en direct",
+  },
+
+  // ── Mini-checkpoints de « Cybersécurité — Pratique » (parent = cybersecurite-pratique) ──
+  {
+    slug: "prat-recon-reseau",
+    title: "Reconnaissance réseau",
+    order: 1,
+    status: "active",
+    icon: "Radar",
+    accent: "#4FB3A7",
+    description:
+      "La première phase de toute intrusion : dresser la carte de la cible avant d'y toucher. Scan de ports avec Nmap, transferts de zone DNS, fingerprinting par TTL et fuites mDNS ou de certificats — tu découvres la surface d'attaque d'un réseau.",
+    tagline: "Cartographier avant d'agir",
+    parent: "cybersecurite-pratique",
+  },
+  {
+    slug: "prat-recon-web",
+    title: "Reconnaissance web",
+    order: 2,
+    status: "active",
+    icon: "Globe",
+    accent: "#5A93D6",
+    description:
+      "Le web laisse fuiter plus qu'on ne croit. Dépôts Git oubliés, hôtes virtuels cachés, API bavardes, verbes HTTP détournés, secrets dans le JavaScript et fichiers de sauvegarde accessibles — autant de portes que la reconnaissance web sait ouvrir.",
+    tagline: "Explorer la surface exposée",
+    parent: "cybersecurite-pratique",
+  },
+  {
+    slug: "prat-interception-detect",
+    title: "Interception & détection réseau",
+    order: 3,
+    status: "active",
+    icon: "Waves",
+    accent: "#8E7FD6",
+    description:
+      "Deux faces d'une même pièce : intercepter le trafic (ARP spoofing, sniffing SNMP et syslog, MAC flooding) et savoir le repérer côté défense (balises C2, exfiltration ICMP, flapping ARP, scans de ports). Tu passes tour à tour de l'attaquant à l'analyste.",
+    tagline: "Écouter et repérer",
+    parent: "cybersecurite-pratique",
+  },
+  {
+    slug: "prat-privesc-lateral",
+    title: "Élévation de privilèges & mouvement latéral",
+    order: 4,
+    status: "active",
+    icon: "ArrowUpCircle",
+    accent: "#E0A64F",
+    description:
+      "Une fois le pied dans la place, on grimpe et on se déplace. Capacités Linux, cron et SUID mal configurés, LD_PRELOAD, wildcards tar, fichier passwd inscriptible, rebond SSH — l'art de transformer un accès limité en contrôle total.",
+    tagline: "Monter en droits, rebondir",
+    parent: "cybersecurite-pratique",
+  },
+  {
+    slug: "prat-securite-app",
+    title: "Sécurité applicative",
+    order: 5,
+    status: "active",
+    icon: "Bug",
+    accent: "#E06E85",
+    description:
+      "Les failles applicatives classiques, dans du vrai code en conteneur : injection de commande, traversée de chemin (LFI), IDOR, SSRF, XXE et CORS mal configuré. Tu exploites la vulnérabilité, puis tu comprends comment la refermer.",
+    tagline: "Exploiter le code faillible",
+    parent: "cybersecurite-pratique",
+  },
+  {
+    slug: "prat-services-exposes",
+    title: "Services réseau exposés",
+    order: 6,
+    status: "active",
+    icon: "ServerCog",
+    accent: "#7DBB5A",
+    description:
+      "Des services de données laissés sans authentification, comme on les trouve trop souvent en production : Redis et Memcached ouverts, FTP anonyme recouvrant une racine web. Un simple client suffit alors à tout lire — ou à tout écrire.",
+    tagline: "Ports ouverts, données à nu",
+    parent: "cybersecurite-pratique",
   },
 
   // ── Checkpoint « Cybersécurité — Projets » (top-level, scénarios complets) ──

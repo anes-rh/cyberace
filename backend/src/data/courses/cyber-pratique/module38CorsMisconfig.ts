@@ -5,7 +5,7 @@ export const module38CorsMisconfig: CourseSeed[] = [
   {
     slug: "prat-cors-misconfig",
     title: "CORS mal configuré",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-securite-app",
     codename: "Silent Origin",
     domain: "Sécurité applicative",
     theme: "grid",

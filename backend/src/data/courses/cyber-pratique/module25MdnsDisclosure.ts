@@ -5,7 +5,7 @@ export const module25MdnsDisclosure: CourseSeed[] = [
   {
     slug: "prat-mdns-disclosure",
     title: "Fuite d'un service interne via mDNS",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-recon-reseau",
     codename: "Silent Broadcast",
     domain: "Découverte réseau",
     theme: "grid",

@@ -5,7 +5,7 @@ export const module8CapabilitiesPrivesc: CourseSeed[] = [
   {
     slug: "prat-capabilities-privesc",
     title: "Élévation de privilèges via capacités Linux",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-privesc-lateral",
     codename: "Silent Grant",
     domain: "Élévation de privilèges",
     theme: "grid",

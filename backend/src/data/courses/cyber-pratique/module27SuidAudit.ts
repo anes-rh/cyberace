@@ -5,7 +5,7 @@ export const module27SuidAudit: CourseSeed[] = [
   {
     slug: "prat-suid-audit",
     title: "Audit des binaires SUID",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-privesc-lateral",
     codename: "Silent Audit",
     domain: "Élévation de privilèges",
     theme: "grid",

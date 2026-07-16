@@ -5,7 +5,7 @@ export const module30ArpFlapDetect: CourseSeed[] = [
   {
     slug: "prat-arp-flap-detect",
     title: "Détection de flapping ARP",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-interception-detect",
     codename: "Silent Flicker",
     domain: "Détection réseau",
     theme: "grid",

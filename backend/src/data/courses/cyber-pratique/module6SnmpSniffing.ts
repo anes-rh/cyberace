@@ -5,7 +5,7 @@ export const module6SnmpSniffing: CourseSeed[] = [
   {
     slug: "prat-snmp-sniffing",
     title: "SNMP en clair : interception d'une communauté",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-interception-detect",
     codename: "Silent Probe",
     domain: "Interception réseau",
     theme: "grid",

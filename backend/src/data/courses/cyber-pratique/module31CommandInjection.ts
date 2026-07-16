@@ -5,7 +5,7 @@ export const module31CommandInjection: CourseSeed[] = [
   {
     slug: "prat-command-injection",
     title: "Injection de commande shell",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-securite-app",
     codename: "Silent Shell",
     domain: "Sécurité applicative",
     theme: "grid",

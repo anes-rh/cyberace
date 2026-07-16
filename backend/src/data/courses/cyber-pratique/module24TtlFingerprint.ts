@@ -5,7 +5,7 @@ export const module24TtlFingerprint: CourseSeed[] = [
   {
     slug: "prat-os-fingerprint-ttl",
     title: "Fingerprinting passif par TTL",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-recon-reseau",
     codename: "Silent Signature",
     domain: "Reconnaissance passive",
     theme: "grid",

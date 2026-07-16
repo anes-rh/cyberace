@@ -5,7 +5,7 @@ export const module4MacFloodingDetect: CourseSeed[] = [
   {
     slug: "prat-macflood-detect",
     title: "Détection d'une attaque MAC flooding",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-interception-detect",
     codename: "Silent Watch",
     domain: "Détection réseau",
     theme: "grid",

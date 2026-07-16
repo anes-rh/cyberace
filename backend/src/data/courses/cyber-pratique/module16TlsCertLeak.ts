@@ -5,7 +5,7 @@ export const module16TlsCertLeak: CourseSeed[] = [
   {
     slug: "prat-tls-cert-enum",
     title: "Fuite via certificat TLS : le SAN qui trahit",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-recon-reseau",
     codename: "Silent Cert",
     domain: "Reconnaissance TLS",
     theme: "grid",

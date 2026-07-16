@@ -5,7 +5,7 @@ export const module21LdPreload: CourseSeed[] = [
   {
     slug: "prat-ld-preload",
     title: "Élévation via LD_PRELOAD",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-privesc-lateral",
     codename: "Silent Inject",
     domain: "Élévation de privilèges",
     theme: "grid",

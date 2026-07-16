@@ -5,7 +5,7 @@ export const module3PrivescLinux: CourseSeed[] = [
   {
     slug: "prat-privesc-linux",
     title: "Élévation de privilèges Linux",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-privesc-lateral",
     codename: "Silent Ascent",
     domain: "Élévation de privilèges",
     theme: "grid",

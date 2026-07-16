@@ -5,7 +5,7 @@ export const module19SshLateral: CourseSeed[] = [
   {
     slug: "prat-ssh-lateral",
     title: "Mouvement latéral par clé SSH exposée",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-privesc-lateral",
     codename: "Silent Hop",
     domain: "Mouvement latéral",
     theme: "grid",

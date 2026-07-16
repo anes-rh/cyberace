@@ -5,7 +5,7 @@ export const module18BeaconDetect: CourseSeed[] = [
   {
     slug: "prat-beacon-detect",
     title: "Détection de beaconing (C2)",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-interception-detect",
     codename: "Silent Pulse",
     domain: "Détection réseau",
     theme: "grid",

@@ -5,13 +5,16 @@ export const module10CapstoneChain: CourseSeed[] = [
   {
     slug: "prat-capstone-chaine-recon",
     title: "Capstone : chaîne d'attaque complète",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-recon-reseau",
     codename: "Silent Chain",
     domain: "Synthèse pratique",
     theme: "grid",
     icon: "Trophy",
     accent: "#4FA65E",
-    order: 10,
+    // Placé après ses pairs (max order 25 du groupe) pour rester le dernier
+    // module affiché du mini-checkpoint « Reconnaissance réseau » — c'est un
+    // capstone de fin de groupe. `order` ne sert qu'au tri intra-checkpoint.
+    order: 26,
     difficulty: "hard",
     summary:
       "Dernier lab du parcours pratique : un capstone qui n'introduit rien de neuf, mais te demande d'enchaîner seul les réflexes acquis. Scan, énumération FTP anonyme, lecture attentive d'un indice, et exploitation d'identifiants par défaut jamais changés — du premier scan jusqu'au flag final.",

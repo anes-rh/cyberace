@@ -5,7 +5,7 @@ export const module34SsrfPreview: CourseSeed[] = [
   {
     slug: "prat-ssrf-preview",
     title: "SSRF — falsification de requête côté serveur",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-securite-app",
     codename: "Silent Proxy",
     domain: "Sécurité applicative",
     theme: "grid",

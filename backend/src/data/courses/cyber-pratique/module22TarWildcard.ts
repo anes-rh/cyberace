@@ -5,7 +5,7 @@ export const module22TarWildcard: CourseSeed[] = [
   {
     slug: "prat-tar-wildcard",
     title: "Injection par joker tar (cron root)",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-privesc-lateral",
     codename: "Silent Wildcard",
     domain: "Élévation de privilèges",
     theme: "grid",

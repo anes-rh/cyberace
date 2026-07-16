@@ -5,7 +5,7 @@ export const module1Recon: CourseSeed[] = [
   {
     slug: "prat-recon-nmap",
     title: "Reconnaissance réseau — Nmap & énumération",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-recon-reseau",
     codename: "Silent Scan",
     domain: "Reconnaissance",
     theme: "grid",

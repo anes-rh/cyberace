@@ -5,7 +5,7 @@ export const module37XxeInjection: CourseSeed[] = [
   {
     slug: "prat-xxe-injection",
     title: "XXE — entité externe XML",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-securite-app",
     codename: "Silent Entity",
     domain: "Sécurité applicative",
     theme: "grid",

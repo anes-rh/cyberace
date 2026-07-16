@@ -5,7 +5,7 @@ export const module2ArpSpoofing: CourseSeed[] = [
   {
     slug: "prat-arp-spoofing",
     title: "ARP Spoofing & interception passive",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-interception-detect",
     codename: "Silent Relay",
     domain: "Interception réseau",
     theme: "grid",

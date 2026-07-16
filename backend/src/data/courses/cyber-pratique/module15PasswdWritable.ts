@@ -5,7 +5,7 @@ export const module15PasswdWritable: CourseSeed[] = [
   {
     slug: "prat-passwd-writable",
     title: "Fichiers système inscriptibles : injecter un compte root",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-privesc-lateral",
     codename: "Silent Override",
     domain: "Élévation de privilèges",
     theme: "grid",

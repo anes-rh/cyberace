@@ -5,7 +5,7 @@ export const module29SymlinkLeak: CourseSeed[] = [
   {
     slug: "prat-symlink-leak",
     title: "Fuite via symlink prévisible",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-privesc-lateral",
     codename: "Silent Redirect",
     domain: "Élévation de privilèges",
     theme: "grid",

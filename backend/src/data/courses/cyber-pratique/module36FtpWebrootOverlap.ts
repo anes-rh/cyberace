@@ -5,7 +5,7 @@ export const module36FtpWebrootOverlap: CourseSeed[] = [
   {
     slug: "prat-ftp-webroot-overlap",
     title: "FTP en écriture recouvrant la racine web",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-services-exposes",
     codename: "Silent Overlap",
     domain: "Services réseau exposés",
     theme: "grid",

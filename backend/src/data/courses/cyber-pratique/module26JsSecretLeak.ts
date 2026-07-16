@@ -5,7 +5,7 @@ export const module26JsSecretLeak: CourseSeed[] = [
   {
     slug: "prat-js-secret-leak",
     title: "Secret d'API dans le JavaScript client",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-recon-web",
     codename: "Silent Script",
     domain: "Reconnaissance web",
     theme: "grid",

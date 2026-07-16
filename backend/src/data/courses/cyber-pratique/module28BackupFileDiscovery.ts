@@ -5,7 +5,7 @@ export const module28BackupFileDiscovery: CourseSeed[] = [
   {
     slug: "prat-backup-file-discovery",
     title: "Fichier de sauvegarde oublié",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-recon-web",
     codename: "Silent Backup",
     domain: "Reconnaissance web",
     theme: "grid",

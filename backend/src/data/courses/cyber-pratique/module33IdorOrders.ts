@@ -5,7 +5,7 @@ export const module33IdorOrders: CourseSeed[] = [
   {
     slug: "prat-idor-orders",
     title: "IDOR — référence directe à un objet",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-securite-app",
     codename: "Silent Swap",
     domain: "Sécurité applicative",
     theme: "grid",

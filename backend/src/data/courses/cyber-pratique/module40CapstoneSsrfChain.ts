@@ -5,7 +5,7 @@ export const module40CapstoneSsrfChain: CourseSeed[] = [
   {
     slug: "prat-capstone-ssrf-chain",
     title: "Capstone — SSRF + identifiants combinés",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-securite-app",
     codename: "Silent Convergence",
     domain: "Synthèse pratique",
     theme: "grid",

@@ -5,7 +5,7 @@ export const module12DnsZoneTransfer: CourseSeed[] = [
   {
     slug: "prat-dns-zone-transfer",
     title: "Transfert de zone DNS : copier tout l'annuaire interne",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-recon-reseau",
     codename: "Silent Transfer",
     domain: "Reconnaissance DNS",
     theme: "grid",

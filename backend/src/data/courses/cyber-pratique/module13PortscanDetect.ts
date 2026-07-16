@@ -5,7 +5,7 @@ export const module13PortscanDetect: CourseSeed[] = [
   {
     slug: "prat-portscan-detect",
     title: "Détecter un scan de ports (l'autre côté du Module 1)",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-interception-detect",
     codename: "Silent Radar",
     domain: "Détection réseau",
     theme: "grid",

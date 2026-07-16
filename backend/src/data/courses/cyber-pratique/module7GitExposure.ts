@@ -5,7 +5,7 @@ export const module7GitExposure: CourseSeed[] = [
   {
     slug: "prat-git-exposure",
     title: "Dépôt .git exposé : archéologie du code",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-recon-web",
     codename: "Silent Archive",
     domain: "Reconnaissance web",
     theme: "grid",

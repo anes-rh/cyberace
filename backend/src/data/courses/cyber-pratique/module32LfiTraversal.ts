@@ -5,7 +5,7 @@ export const module32LfiTraversal: CourseSeed[] = [
   {
     slug: "prat-lfi-traversal",
     title: "Inclusion de fichier local (traversée)",
-    checkpoint: "cybersecurite-pratique",
+    checkpoint: "prat-securite-app",
     codename: "Silent Path",
     domain: "Sécurité applicative",
     theme: "grid",
