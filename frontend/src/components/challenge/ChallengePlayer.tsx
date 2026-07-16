@@ -22,10 +22,13 @@ export function ChallengePlayer({
   challenge,
   nextHref,
   onSolved,
+  compact = false,
 }: {
   challenge: Challenge;
   nextHref?: string | null;
   onSolved?: () => void;
+  /** Single-column layout for the dedicated lab view (no separate hints/chrono sidebar). */
+  compact?: boolean;
 }) {
   const { user } = useAuth();
   const [hints, setHints] = useState<Hint[]>(challenge.hints);
@@ -135,7 +138,7 @@ export function ChallengePlayer({
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+    <div className={cn(compact ? "space-y-4" : "grid gap-6 lg:grid-cols-[1fr_340px]")}>
       <Celebration fireKey={celebrateKey} />
       {/* Main column */}
       <div className="space-y-6">

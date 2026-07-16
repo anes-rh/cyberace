@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Terminal, Play, Square, Clock, AlertTriangle, Loader2, Boxes } from "lucide-react";
+import { Terminal, Play, Square, Clock, AlertTriangle, Loader2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { api, ApiError } from "@/lib/api";
 import { formatTime } from "@/lib/utils";
@@ -15,6 +16,8 @@ type Session = { terminalUrl: string; expiresAt: string; status: string };
  * embeds the web terminal. Renders nothing for theory courses (no sandbox).
  */
 export function SandboxPanel({ course }: { course: CourseDetail["course"] }) {
+  const router = useRouter();
+  const labHref = `/courses/${course.slug}/lab`;
   const [session, setSession] = useState<Session | null>(null);
   const [busy, setBusy] = useState<"start" | "stop" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,12 +52,13 @@ export function SandboxPanel({ course }: { course: CourseDetail["course"] }) {
       const res = await api.sandbox.start(course.slug);
       setSession(res.session);
       setNow(Date.now());
+      // The terminal + challenges now live on the dedicated lab view.
+      router.push(labHref);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Impossible de démarrer le lab.");
-    } finally {
       setBusy(null);
     }
-  }, [course.slug]);
+  }, [course.slug, router, labHref]);
 
   const stopLab = useCallback(async () => {
     setBusy("stop");
@@ -111,10 +115,15 @@ export function SandboxPanel({ course }: { course: CourseDetail["course"] }) {
             </span>
           )}
           {running ? (
-            <Button variant="danger" onClick={stopLab} disabled={busy !== null}>
-              {busy === "stop" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Square className="h-4 w-4" />}
-              Arrêter le lab
-            </Button>
+            <>
+              <Button onClick={() => router.push(labHref)} style={{ background: accent }}>
+                <ArrowRight className="h-4 w-4" /> Reprendre le lab
+              </Button>
+              <Button variant="danger" onClick={stopLab} disabled={busy !== null}>
+                {busy === "stop" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Square className="h-4 w-4" />}
+                Arrêter le lab
+              </Button>
+            </>
           ) : (
             <Button onClick={startLab} disabled={busy !== null} style={{ background: accent }}>
               {busy === "start" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
@@ -139,17 +148,27 @@ export function SandboxPanel({ course }: { course: CourseDetail["course"] }) {
       )}
 
       {running && session && (
-        <div className="border-t border-line bg-bg/40 p-4">
-          <div className="mb-2 flex items-center gap-2 text-xs text-faint">
-            <Boxes className="h-3.5 w-3.5" />
-            <span>Terminal web — session active</span>
-          </div>
-          <iframe
-            src={session.terminalUrl}
-            title="Terminal du lab CyberAce"
-            className="h-[480px] w-full rounded-xl border border-line bg-black"
-          />
-        </div>
+        <button
+          type="button"
+          onClick={() => router.push(labHref)}
+          className="flex w-full items-center gap-3 border-t border-line bg-bg/40 p-4 text-left transition-colors hover:bg-bg/60"
+        >
+          <span
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl"
+            style={{ background: `${accent}1a`, color: accent }}
+          >
+            <Terminal className="h-5 w-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-medium text-fg">Lab en cours</span>
+            <span className="block text-xs text-muted">
+              Ton terminal et les défis t&apos;attendent dans la vue labo dédiée.
+            </span>
+          </span>
+          <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium" style={{ color: accent }}>
+            Reprendre <ArrowRight className="h-4 w-4" />
+          </span>
+        </button>
       )}
     </motion.section>
   );
