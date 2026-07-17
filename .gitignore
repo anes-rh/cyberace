@@ -49,3 +49,7 @@ scripts/pka/__pycache__/
 /mcpServers
 /redemarrage
 *.ps1.tmp
+
+# Clé privée SSH du lab Sentinelle (backup-svc) — jamais committée.
+# Régénérée par ssh-keygen au besoin ; la clé publique (fileserver) est suivie.
+backend/sandboxes/images/project-sentinelle-webapp/id_rsa

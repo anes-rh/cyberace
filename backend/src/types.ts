@@ -191,7 +191,7 @@ export const DIFFICULTY_POINTS: Record<Difficulty, number> = {
 // Système distinct des Courses/Challenges : une session = topologie
 // multi-nœuds / multi-réseaux, avec des objectifs validés côté serveur.
 
-export type NodeRole = "attacker" | "firewall" | "waf" | "target" | "database";
+export type NodeRole = "attacker" | "firewall" | "waf" | "target" | "database" | "log";
 
 /** Un réseau Docker de la topologie (bridge isolé ou non). */
 export interface TopologyNetwork {
@@ -250,7 +250,12 @@ export interface ProjectTopology {
 }
 
 export type ObjectiveKind = "defense" | "attack" | "analysis";
-export type ValidationStrategy = "active_probe" | "waf_probe" | "text_compare";
+export type ValidationStrategy =
+  | "active_probe"
+  | "waf_probe"
+  | "text_compare"
+  | "exec_check"
+  | "log_forensics";
 
 /** Bloc de validation — JAMAIS exposé au client (select:false côté modèle). */
 export interface ProjectObjectiveValidation {
@@ -269,7 +274,22 @@ export interface ProjectObjectiveSeed {
   dependsOn?: string[]; // ids d'objectifs requis avant déblocage
   /** Intitulés PUBLICS des questions d'un objectif d'analyse (réponses dans `validation`). */
   questions?: { id: string; prompt: string }[];
+  /** Indices progressifs, débloqués UN PAR UN toutes les 10 min de session
+   *  (déblocage temporel, pas payant : `cost: 0`). */
+  hints?: Hint[];
   validation: ProjectObjectiveValidation;
+}
+
+/** Une étape de la solution guidée (auto-révélée à la complétion ou à l'expiration). */
+export interface ProjectSolutionStep {
+  objectiveId: string;
+  explanation: string;
+  commands: string[];
+  expectedLogs?: string;
+}
+export interface ProjectSolution {
+  summary: string;
+  steps: ProjectSolutionStep[];
 }
 
 export interface ProjectSeed {
@@ -282,4 +302,7 @@ export interface ProjectSeed {
   topology: ProjectTopology;
   ttlSec: number;
   objectives: ProjectObjectiveSeed[];
+  /** Corrigé complet — JAMAIS exposé dans les listings ; servi seulement par
+   *  l'endpoint dédié, une fois le projet terminé OU le temps écoulé. */
+  solution: ProjectSolution;
 }

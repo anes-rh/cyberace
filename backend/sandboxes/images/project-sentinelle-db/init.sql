@@ -35,11 +35,11 @@ CREATE TABLE IF NOT EXISTS guestbook (
 );
 INSERT INTO guestbook (comment, name) VALUES ('This is a test comment.', 'test');
 
--- Table cible de l'exfiltration : le flag NovaBank.
+-- Table cible de l'exfiltration : le flag NovaBank. La VALEUR est insérée par
+-- 02-flag.sh au premier démarrage (NOVA{...}_${FLAG_SUFFIX}, suffixe de session)
+-- — jamais une constante figée dans l'image (anti write-up).
 CREATE TABLE IF NOT EXISTS secrets (
   id   INT NOT NULL PRIMARY KEY,
   name VARCHAR(64),
   flag VARCHAR(128)
 );
-INSERT INTO secrets (id, name, flag) VALUES
-  (1, 'novabank_master_key', 'NOVA{sqli_union_bypass_waf_exfil}');

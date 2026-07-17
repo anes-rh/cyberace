@@ -1,6 +1,6 @@
 FROM alpine:3.20
 
-RUN apk add --no-cache nftables iproute2 bash curl ca-certificates
+RUN apk add --no-cache nftables iproute2 bash curl ca-certificates tcpdump
 
 # ttyd : binaire statique (fonctionne sur alpine/musl). Épinglé 1.7.7.
 RUN curl -L -o /usr/local/bin/ttyd \

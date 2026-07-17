@@ -8,6 +8,9 @@ export interface ProjectProgressDoc extends Document {
   completedObjectives: { objectiveId: string; kind: ObjectiveKind; completedAt: Date; points: number }[];
   status: "in_progress" | "completed";
   totalPoints: number;
+  /** Passé à true par le reaper quand la session expire sans complétion : donne
+   *  accès au corrigé même si le projet n'a pas été terminé. */
+  solutionRevealed: boolean;
 }
 
 const projectProgressSchema = new Schema<ProjectProgressDoc>(
@@ -28,6 +31,7 @@ const projectProgressSchema = new Schema<ProjectProgressDoc>(
     },
     status: { type: String, enum: ["in_progress", "completed"], default: "in_progress" },
     totalPoints: { type: Number, default: 0 },
+    solutionRevealed: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

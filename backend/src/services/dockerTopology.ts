@@ -95,7 +95,7 @@ function resources(node: TopologyNode): { Memory: number; NanoCpus: number } {
  */
 export async function startProjectSession(
   userId: string,
-  project: { slug: string; topology: ProjectTopology; ttlSec: number }
+  project: { slug: string; topology: ProjectTopology; ttlSec: number; flagSuffix?: string }
 ): Promise<ProjectSessionDoc> {
   const existing = await getActiveProjectSession(userId);
   if (existing) {
@@ -160,7 +160,14 @@ export async function startProjectSession(
         PortBindings: portBindings,
         ...(node.sysctls && Object.keys(node.sysctls).length ? { Sysctls: node.sysctls } : {}),
       };
-      const env = node.env ? Object.entries(node.env).map(([k, v]) => `${k}=${v}`) : undefined;
+      // Le suffixe de flag par session est injecté dans TOUS les nœuds
+      // (inoffensif pour ceux qui ne l'utilisent pas). Les images à flag
+      // construisent leur flag comme NOVA{...}_${FLAG_SUFFIX} via entrypoint.
+      const envMap: Record<string, string> = {
+        ...(node.env ?? {}),
+        ...(project.flagSuffix ? { FLAG_SUFFIX: project.flagSuffix } : {}),
+      };
+      const env = Object.keys(envMap).length ? Object.entries(envMap).map(([k, v]) => `${k}=${v}`) : undefined;
 
       const container = await docker.createContainer({
         Image: node.image,
@@ -244,6 +251,7 @@ export async function startProjectSession(
       status: "running",
       startedAt: new Date(),
       expiresAt: new Date(Date.now() + project.ttlSec * 1000),
+      flagSuffix: project.flagSuffix,
     });
 
     log(`session projet ${sid} démarrée (${project.slug}) : ${containerIds.length} nœuds, ${networkIds.length} réseaux`);

@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { randomBytes } from "crypto";
 import { Project } from "../models/Project";
 import { ProjectObjective } from "../models/ProjectObjective";
 import { ProjectSession } from "../models/ProjectSession";
@@ -79,9 +80,31 @@ export async function getProject(req: Request, res: Response): Promise<void> {
     },
     objectives: objectives.map((o) => ({ ...serializeObjective(o), completed: completed.has(o.id) })),
     progress: progress
-      ? { status: progress.status, totalPoints: progress.totalPoints, completedObjectives: progress.completedObjectives }
+      ? {
+          status: progress.status,
+          totalPoints: progress.totalPoints,
+          completedObjectives: progress.completedObjectives,
+          solutionRevealed: progress.solutionRevealed ?? false,
+        }
       : null,
   });
+}
+
+/**
+ * GET /api/projects/:slug/solution
+ * Corrigé complet — 403 tant que le projet n'est pas terminé ET que le temps
+ * n'est pas écoulé (solutionRevealed). Jamais exposé par les listings.
+ */
+export async function getProjectSolution(req: Request, res: Response): Promise<void> {
+  const slug = String(req.params.slug);
+  const progress = await ProjectProgress.findOne({ user: req.userId, projectSlug: slug }).lean();
+  const available = !!progress && (progress.status === "completed" || progress.solutionRevealed === true);
+  if (!available) {
+    throw new HttpError(403, "Le corrigé se débloque une fois le projet terminé — ou automatiquement à l'expiration du temps.");
+  }
+  const project = await Project.findOne({ slug }).select("+solution").lean();
+  if (!project || !project.solution) throw new HttpError(404, "Corrigé indisponible pour ce projet.");
+  res.json({ solution: project.solution });
 }
 
 /** POST /api/projects/:slug/session/start */
@@ -90,10 +113,14 @@ export async function startProjectSessionCtrl(req: Request, res: Response): Prom
   const project = await Project.findOne({ slug }).lean();
   if (!project) throw new HttpError(404, "Projet introuvable.");
 
+  // Suffixe de flag aléatoire par session (anti write-up) : injecté en env dans
+  // les conteneurs à flag, lu à la validation. Jamais une constante recompilée.
+  const flagSuffix = randomBytes(4).toString("hex");
   const session = await startProjectSession(req.userId as string, {
     slug: project.slug,
     topology: project.topology,
     ttlSec: project.ttlSec,
+    flagSuffix,
   });
 
   res.status(201).json({
@@ -229,7 +256,7 @@ export async function validateProjectObjective(req: Request, res: Response): Pro
   const result = await validateObjective(
     objective.validation.strategy,
     objective.validation.spec as Record<string, unknown>,
-    { topology: project.topology, containerIdByNode },
+    { topology: project.topology, containerIdByNode, flagSuffix: session.flagSuffix },
     (req.body ?? {}).answer
   );
 

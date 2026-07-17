@@ -12,6 +12,14 @@ export interface ValidationContext {
   topology: ProjectTopology;
   /** nodeId -> id du conteneur docker de la session en cours. */
   containerIdByNode: Record<string, string>;
+  /** Suffixe de flag de la session (anti write-up) : substitué à `{{SUFFIX}}`
+   *  dans les valeurs attendues. Jamais une constante recompilée. */
+  flagSuffix?: string;
+}
+
+/** Remplace le marqueur `{{SUFFIX}}` par le suffixe de flag de la session. */
+function withSuffix(value: string, ctx: ValidationContext): string {
+  return value.replace(/\{\{SUFFIX\}\}/g, ctx.flagSuffix ?? "static");
 }
 
 export interface ValidationResult {

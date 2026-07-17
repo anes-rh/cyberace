@@ -1,5 +1,5 @@
 import { Schema, model, Document } from "mongoose";
-import type { Difficulty, ProjectTopology } from "../types";
+import type { Difficulty, ProjectTopology, ProjectSolution } from "../types";
 
 /** Un projet = un scénario complet (topologie multi-nœuds + objectifs). */
 export interface ProjectDoc extends Document {
@@ -11,6 +11,8 @@ export interface ProjectDoc extends Document {
   estimatedMinutes: number;
   topology: ProjectTopology;
   ttlSec: number;
+  /** Corrigé — non exposé par défaut (select:false), servi par l'endpoint dédié. */
+  solution: ProjectSolution;
 }
 
 const topologySchema = new Schema<ProjectTopology>(
@@ -25,7 +27,7 @@ const topologySchema = new Schema<ProjectTopology>(
           _id: false,
           id: String,
           image: String,
-          role: { type: String, enum: ["attacker", "firewall", "waf", "target", "database"] },
+          role: { type: String, enum: ["attacker", "firewall", "waf", "target", "database", "log"] },
           capAdd: { type: [String], default: [] },
           sysctls: { type: Schema.Types.Mixed, default: {} },
           env: { type: Schema.Types.Mixed, default: {} },
@@ -52,6 +54,27 @@ const projectSchema = new Schema<ProjectDoc>(
     estimatedMinutes: { type: Number, default: 60 },
     topology: { type: topologySchema, required: true },
     ttlSec: { type: Number, required: true },
+    // Corrigé complet : jamais renvoyé dans les listings (select:false) ; seul
+    // l'endpoint /solution le sert, et uniquement si terminé ou temps écoulé.
+    solution: {
+      type: new Schema(
+        {
+          summary: String,
+          steps: [
+            {
+              _id: false,
+              objectiveId: String,
+              explanation: String,
+              commands: [String],
+              expectedLogs: String,
+            },
+          ],
+        },
+        { _id: false }
+      ),
+      select: false,
+      default: undefined,
+    },
   },
   { timestamps: true }
 );

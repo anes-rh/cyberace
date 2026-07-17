@@ -21,4 +21,25 @@ SecRule ARGS "@rx (?i)(union\s+select|'[0-9]+'\s*=\s*'[0-9]+)" \
 EOF
 nginx -s reload 2>/dev/null || true
 
+# --- Journalisation vers le SIEM ---------------------------------------------
+# L'image CRS renvoie l'access log vers /dev/stdout (symlink) et pose
+# `access_log off` sur les locations proxifiées : rien à suivre. On rétablit un
+# VRAI fichier et on force le log sur toutes les locations, puis on émet chaque
+# ligne en syslog UDP vers le SIEM (tag « waf » → /var/log/waf.log). Les requêtes
+# bloquées portent le code 403 : l'analyste fait alors `grep 403` / lit l'IP.
+ACCESS_FILE=/var/log/nginx/access.log
+rm -f "$ACCESS_FILE"; : > "$ACCESS_FILE"
+# `combined` = format prédéfini de nginx (toujours disponible, contrairement à
+# `main` qui n'est pas visible dans le contexte des locations incluses).
+grep -rl "access_log off;" /etc/nginx/conf.d /etc/nginx/includes 2>/dev/null \
+  | xargs -r sed -i "s#access_log off;#access_log ${ACCESS_FILE} combined;#g"
+nginx -t 2>/dev/null && nginx -s reload 2>/dev/null || true
+
+SIEM_IP="${SIEM_IP:-10.40.0.50}"
+(
+  tail -n0 -F "$ACCESS_FILE" 2>/dev/null | while read -r line; do
+    echo "<134>$(date '+%b %e %H:%M:%S') waf waf: ${line}" > "/dev/udp/${SIEM_IP}/514" 2>/dev/null || true
+  done
+) &
+
 exec ttyd -p 7681 -W bash

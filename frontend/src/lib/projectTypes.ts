@@ -1,7 +1,7 @@
 // Types du système de Projets (distinct des Courses/Challenges).
 
 export type Difficulty = "easy" | "medium" | "hard" | "insane";
-export type NodeRole = "attacker" | "firewall" | "waf" | "target" | "database";
+export type NodeRole = "attacker" | "firewall" | "waf" | "target" | "database" | "log";
 export type ObjectiveKind = "defense" | "attack" | "analysis";
 export type ObjectiveStatus = "locked" | "available" | "completed";
 
@@ -49,6 +49,18 @@ export interface ProjectProgressView {
   status: "in_progress" | "completed";
   totalPoints: number;
   completedObjectives: { objectiveId: string; kind: ObjectiveKind; completedAt: string; points: number }[];
+  solutionRevealed?: boolean;
+}
+
+export interface ProjectSolutionStep {
+  objectiveId: string;
+  explanation: string;
+  commands: string[];
+  expectedLogs?: string;
+}
+export interface ProjectSolution {
+  summary: string;
+  steps: ProjectSolutionStep[];
 }
 
 export interface ProjectDetail {

@@ -12,5 +12,8 @@ RUN if command -v microdnf >/dev/null 2>&1; then \
 # fichier de config world-writable (la COPY depuis Windows le rend 0666).
 COPY tuning.cnf /etc/mysql/conf.d/tuning.cnf
 RUN chmod 644 /etc/mysql/conf.d/tuning.cnf
-# Schéma DVWA + table `secrets` contenant le flag.
-COPY init.sql /docker-entrypoint-initdb.d/init.sql
+# Schéma DVWA + table `secrets` (01), puis insertion du flag avec le suffixe de
+# session (02). L'ordre alphabétique garantit schéma avant insertion.
+COPY init.sql /docker-entrypoint-initdb.d/01-schema.sql
+COPY flag.sh /docker-entrypoint-initdb.d/02-flag.sh
+RUN chmod +x /docker-entrypoint-initdb.d/02-flag.sh

@@ -15,6 +15,10 @@ export interface ProjectSessionDoc extends Document {
   startedAt: Date;
   expiresAt: Date;
   errorMessage?: string;
+  /** Suffixe aléatoire par session (anti write-up) : injecté en env FLAG_SUFFIX
+   *  dans les conteneurs à flag, et lu à la validation pour connaître la valeur
+   *  attendue. Jamais une constante recompilée. */
+  flagSuffix?: string;
 }
 
 const projectSessionSchema = new Schema<ProjectSessionDoc>(
@@ -28,6 +32,7 @@ const projectSessionSchema = new Schema<ProjectSessionDoc>(
     startedAt: { type: Date, default: Date.now },
     expiresAt: { type: Date, required: true },
     errorMessage: { type: String },
+    flagSuffix: { type: String },
   },
   { timestamps: true }
 );

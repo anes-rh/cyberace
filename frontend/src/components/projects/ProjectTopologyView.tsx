@@ -6,6 +6,7 @@ import {
   ShieldAlert,
   Globe,
   Database,
+  FileSearch,
   TerminalSquare,
   Check,
   X,
@@ -20,6 +21,7 @@ const ROLE_ICON: Record<NodeRole, typeof Crosshair> = {
   waf: ShieldAlert,
   target: Globe,
   database: Database,
+  log: FileSearch,
 };
 const ROLE_LABEL: Record<NodeRole, string> = {
   attacker: "Attaquant",
@@ -27,13 +29,15 @@ const ROLE_LABEL: Record<NodeRole, string> = {
   waf: "WAF",
   target: "Serveur web",
   database: "Base de données",
+  log: "Journalisation",
 };
 
-// Palette par zone (external hostile / dmz tampon / internal protégé).
+// Palette par zone (external hostile / dmz tampon / internal protégé / mgmt admin).
 const ZONE_STYLE: Record<string, { ring: string; bg: string; text: string; label: string }> = {
   external: { ring: "#E06C5E", bg: "rgba(224,108,94,0.07)", text: "#E0937E", label: "External (hostile)" },
   dmz: { ring: "#E0A85E", bg: "rgba(224,168,94,0.07)", text: "#E0B87E", label: "DMZ (tampon)" },
   internal: { ring: "#5EB37E", bg: "rgba(94,179,126,0.07)", text: "#7EC49B", label: "Internal (protégé)" },
+  mgmt: { ring: "#5E8AB3", bg: "rgba(94,138,179,0.07)", text: "#7EA6C4", label: "Mgmt (administration)" },
 };
 
 function NodeCard({
@@ -134,8 +138,10 @@ export function ProjectTopologyView({
   const attacker = byRole("attacker")[0];
   const firewall = byRole("firewall")[0];
   const waf = byRole("waf")[0];
-  const webapp = byRole("target")[0];
+  const webapp = topology.nodes.find((n) => n.id === "webapp") ?? byRole("target")[0];
   const db = byRole("database")[0];
+  const fileserver = topology.nodes.find((n) => n.id === "fileserver");
+  const siem = byRole("log")[0];
 
   const linkState = (secured: boolean | undefined): "secured" | "permissive" =>
     secured ? "secured" : "permissive";
@@ -176,10 +182,19 @@ export function ProjectTopologyView({
           {webapp && <NodeCard node={webapp} onOpenTerminal={onOpenTerminal} />}
         </Zone>
         <Link state={linkState(firewallHardened)} />
-        {db && (
+        {(db || fileserver) && (
           <Zone name="internal">
-            <NodeCard node={db} onOpenTerminal={onOpenTerminal} />
+            {db && <NodeCard node={db} onOpenTerminal={onOpenTerminal} />}
+            {fileserver && <NodeCard node={fileserver} onOpenTerminal={onOpenTerminal} />}
           </Zone>
+        )}
+        {siem && (
+          <>
+            <Link state={firewallHardened ? "secured" : "permissive"} />
+            <Zone name="mgmt">
+              <NodeCard node={siem} terminalUrl={urlByNode[siem.id]} onOpenTerminal={onOpenTerminal} />
+            </Zone>
+          </>
         )}
       </div>
 
@@ -192,6 +207,7 @@ export function ProjectTopologyView({
         <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: ZONE_STYLE.external.ring }} /> external</span>
         <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: ZONE_STYLE.dmz.ring }} /> dmz</span>
         <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: ZONE_STYLE.internal.ring }} /> internal</span>
+        <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: ZONE_STYLE.mgmt.ring }} /> mgmt</span>
         <span className="inline-flex items-center gap-1 text-emerald-400"><Check className="h-3 w-3" /> durci</span>
         <span className="inline-flex items-center gap-1 text-amber-400"><ShieldAlert className="h-3 w-3" /> permissif</span>
         <span className="inline-flex items-center gap-1 text-danger"><X className="h-3 w-3" /> bloqué</span>
