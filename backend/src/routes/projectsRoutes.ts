@@ -8,7 +8,9 @@ import {
   getProjectSession,
   getProjectLogs,
   getProjectObjectives,
+  getObjectiveHints,
   validateProjectObjective,
+  getProjectSolution,
 } from "../controllers/projectsController";
 
 const router = Router();
@@ -25,6 +27,8 @@ router.get("/:slug/session/logs", authRequired, getProjectLogs);
 
 // Objectifs (auth requise).
 router.get("/:slug/objectives", authRequired, getProjectObjectives);
+router.get("/:slug/objectives/:objectiveId/hints", authRequired, getObjectiveHints);
 router.post("/:slug/objectives/:objectiveId/validate", authRequired, validateProjectObjective);
+router.get("/:slug/solution", authRequired, getProjectSolution);
 
 export default router;

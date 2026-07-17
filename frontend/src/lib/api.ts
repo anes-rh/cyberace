@@ -150,11 +150,17 @@ export const api = {
       request<{ objectives: import("./projectTypes").ProjectObjectiveView[] }>(
         `/projects/${slug}/objectives`
       ),
+    hints: (slug: string, objectiveId: string) =>
+      request<{ hints: string[]; unlockedCount: number; totalHints: number; nextUnlockInSec: number }>(
+        `/projects/${slug}/objectives/${objectiveId}/hints`
+      ),
     validate: (slug: string, objectiveId: string, answer?: unknown) =>
       request<import("./projectTypes").ValidateResult>(
         `/projects/${slug}/objectives/${objectiveId}/validate`,
         { method: "POST", body: JSON.stringify({ answer }) }
       ),
+    solution: (slug: string) =>
+      request<{ solution: import("./projectTypes").ProjectSolution }>(`/projects/${slug}/solution`),
   },
 };
 

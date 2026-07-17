@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, Lock, ShieldCheck, Swords, FileSearch, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { ProjectObjectiveHints } from "@/components/projects/ProjectObjectiveHints";
 import { api, ApiError } from "@/lib/api";
 import type { ProjectObjectiveView, ObjectiveKind } from "@/lib/projectTypes";
 
@@ -82,6 +83,8 @@ function ObjectiveCard({
           </div>
           <h4 className="mt-1 font-semibold text-fg">{obj.title}</h4>
           <p className="mt-1 text-sm text-muted">{obj.description}</p>
+
+          {running && !done && !locked && <ProjectObjectiveHints slug={slug} objectiveId={obj.id} />}
 
           {locked && (
             <p className="mt-2 text-xs text-faint">🔒 Termine d&apos;abord : {obj.dependsOn.join(", ")}</p>

@@ -212,6 +212,42 @@ export async function getProjectObjectives(req: Request, res: Response): Promise
   });
 }
 
+/**
+ * GET /api/projects/:slug/objectives/:objectiveId/hints
+ * Déblocage TEMPOREL : un indice de plus toutes les 10 min de session (jamais
+ * payant). Ne renvoie que les indices déjà débloqués + le compte à rebours.
+ */
+const HINT_INTERVAL_MIN = 10;
+export async function getObjectiveHints(req: Request, res: Response): Promise<void> {
+  const slug = String(req.params.slug);
+  const objectiveId = String(req.params.objectiveId);
+
+  const session = await ProjectSession.findOne({
+    user: req.userId,
+    projectSlug: slug,
+    status: { $in: ["starting", "running"] },
+  }).lean();
+  if (!session) throw new HttpError(409, "Démarre une session pour ce projet pour débloquer des indices.");
+
+  const objective = await ProjectObjective.findOne({ projectSlug: slug, id: objectiveId }).lean();
+  if (!objective) throw new HttpError(404, "Objectif introuvable.");
+
+  const hints = objective.hints ?? [];
+  const elapsedMin = (Date.now() - new Date(session.startedAt).getTime()) / 60000;
+  const unlockedCount = Math.min(hints.length, Math.floor(elapsedMin / HINT_INTERVAL_MIN));
+  const nextUnlockInSec =
+    unlockedCount < hints.length
+      ? Math.max(0, Math.ceil((HINT_INTERVAL_MIN * (unlockedCount + 1) - elapsedMin) * 60))
+      : 0;
+
+  res.json({
+    hints: hints.slice(0, unlockedCount).map((h) => h.text),
+    unlockedCount,
+    totalHints: hints.length,
+    nextUnlockInSec,
+  });
+}
+
 /** POST /api/projects/:slug/objectives/:objectiveId/validate */
 export async function validateProjectObjective(req: Request, res: Response): Promise<void> {
   const slug = String(req.params.slug);
