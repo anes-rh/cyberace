@@ -7,6 +7,7 @@ import {
   Globe,
   Database,
   FileSearch,
+  Fingerprint,
   TerminalSquare,
   Check,
   X,
@@ -22,6 +23,7 @@ const ROLE_ICON: Record<NodeRole, typeof Crosshair> = {
   target: Globe,
   database: Database,
   log: FileSearch,
+  directory: Fingerprint,
 };
 const ROLE_LABEL: Record<NodeRole, string> = {
   attacker: "Attaquant",
@@ -30,14 +32,17 @@ const ROLE_LABEL: Record<NodeRole, string> = {
   target: "Serveur web",
   database: "Base de données",
   log: "Journalisation",
+  directory: "Contrôleur de domaine",
 };
 
-// Palette par zone (external hostile / dmz tampon / internal protégé / mgmt admin).
+// Palette par zone (external hostile / dmz tampon / internal protégé / mgmt admin
+// / corp réseau plat).
 const ZONE_STYLE: Record<string, { ring: string; bg: string; text: string; label: string }> = {
   external: { ring: "#E06C5E", bg: "rgba(224,108,94,0.07)", text: "#E0937E", label: "External (hostile)" },
   dmz: { ring: "#E0A85E", bg: "rgba(224,168,94,0.07)", text: "#E0B87E", label: "DMZ (tampon)" },
   internal: { ring: "#5EB37E", bg: "rgba(94,179,126,0.07)", text: "#7EC49B", label: "Internal (protégé)" },
   mgmt: { ring: "#5E8AB3", bg: "rgba(94,138,179,0.07)", text: "#7EA6C4", label: "Mgmt (administration)" },
+  corp: { ring: "#8A82A6", bg: "rgba(138,130,166,0.07)", text: "#A79EC0", label: "Corp (réseau plat)" },
 };
 
 function NodeCard({
@@ -131,6 +136,44 @@ export function ProjectTopologyView({
 }) {
   const urlByNode = Object.fromEntries(terminalUrls.map((t) => [t.nodeId, t.url]));
   const done = (id: string) => objectives.find((o) => o.id === id)?.completed;
+
+  // Topologie NON segmentée (aucun firewall) → rendu GÉNÉRIQUE groupé par réseau :
+  // chaque réseau devient une zone colorée avec ses nœuds. Couvre les scénarios à
+  // réseau plat (ex. Shadowdomain / corp) sans logique firewall/WAF spécifique.
+  const isSegmented = topology.nodes.some((n) => n.role === "firewall");
+  if (!isSegmented) {
+    const zones = topology.networks
+      .map((net) => ({ name: net.name, nodes: topology.nodes.filter((n) => (n.networks[0]?.name ?? "") === net.name) }))
+      .filter((z) => z.nodes.length > 0);
+    return (
+      <div className="rounded-2xl border border-line bg-surface/40 p-4">
+        <div className="flex items-center gap-2 pb-3 text-sm font-semibold text-fg">
+          <ShieldCheck className="h-4 w-4 text-primary" /> Topologie réseau
+        </div>
+        <div className="flex items-center gap-2 overflow-x-auto pb-2">
+          {zones.map((z, i) => (
+            <div key={z.name} className="flex items-center gap-2">
+              {i > 0 && <Link state="idle" />}
+              <Zone name={z.name}>
+                {z.nodes.map((n) => (
+                  <NodeCard key={n.id} node={n} terminalUrl={urlByNode[n.id]} onOpenTerminal={onOpenTerminal} />
+                ))}
+              </Zone>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line pt-3 text-[11px] text-muted">
+          <span className="font-semibold text-faint">Légende :</span>
+          {zones.map((z) => (
+            <span key={z.name} className="inline-flex items-center gap-1">
+              <span className="h-2 w-2 rounded-full" style={{ background: (ZONE_STYLE[z.name] ?? { ring: "#6b7280" }).ring }} /> {z.name}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   const firewallHardened = done("firewall-dmz-policy");
   const wafActive = done("waf-crs-activation");
 

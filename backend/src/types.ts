@@ -191,7 +191,7 @@ export const DIFFICULTY_POINTS: Record<Difficulty, number> = {
 // Système distinct des Courses/Challenges : une session = topologie
 // multi-nœuds / multi-réseaux, avec des objectifs validés côté serveur.
 
-export type NodeRole = "attacker" | "firewall" | "waf" | "target" | "database" | "log";
+export type NodeRole = "attacker" | "firewall" | "waf" | "target" | "database" | "log" | "directory";
 
 /** Un réseau Docker de la topologie (bridge isolé ou non). */
 export interface TopologyNetwork {

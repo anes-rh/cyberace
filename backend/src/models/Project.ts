@@ -27,7 +27,7 @@ const topologySchema = new Schema<ProjectTopology>(
           _id: false,
           id: String,
           image: String,
-          role: { type: String, enum: ["attacker", "firewall", "waf", "target", "database", "log"] },
+          role: { type: String, enum: ["attacker", "firewall", "waf", "target", "database", "log", "directory"] },
           capAdd: { type: [String], default: [] },
           sysctls: { type: Schema.Types.Mixed, default: {} },
           env: { type: Schema.Types.Mixed, default: {} },
