@@ -43,9 +43,10 @@ function ObjectiveCard({
     setBusy(true);
     setFeedback(null);
     try {
-      let answer: unknown;
-      if (obj.kind === "attack") answer = { flag };
-      else if (obj.kind === "analysis") answer = qa;
+      // Objectifs à champs multiples (ex. cred_check → username/password, ou une
+      // question calculée) : on envoie l'objet `qa`. Sinon, saisie unique = flag.
+      const hasFields = (obj.questions ?? []).length > 0;
+      const answer: unknown = hasFields ? qa : { flag };
       const res = await api.projects.validate(slug, obj.id, answer);
       if (res.ok) {
         setFeedback({ ok: true, msg: res.alreadyCompleted ? "Déjà validé." : `Validé ! +${res.points ?? 0} pts` });
@@ -92,25 +93,25 @@ function ObjectiveCard({
 
           {!done && !locked && running && (
             <div className="mt-3 space-y-2">
-              {obj.kind === "attack" && (
-                <input
-                  value={flag}
-                  onChange={(e) => setFlag(e.target.value)}
-                  placeholder="NOVA{...}"
-                  className="w-full rounded-lg border border-line bg-surface-2 px-3 py-2 font-mono text-sm text-fg placeholder:text-faint"
-                />
-              )}
-              {obj.kind === "analysis" &&
-                (obj.questions ?? []).map((q) => (
-                  <div key={q.id}>
-                    <label className="text-xs text-muted">{q.prompt}</label>
-                    <input
-                      value={qa[q.id] ?? ""}
-                      onChange={(e) => setQa((s) => ({ ...s, [q.id]: e.target.value }))}
-                      className="mt-1 w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-fg"
-                    />
-                  </div>
-                ))}
+              {(obj.questions ?? []).length > 0
+                ? (obj.questions ?? []).map((q) => (
+                    <div key={q.id}>
+                      <label className="text-xs text-muted">{q.prompt}</label>
+                      <input
+                        value={qa[q.id] ?? ""}
+                        onChange={(e) => setQa((s) => ({ ...s, [q.id]: e.target.value }))}
+                        className="mt-1 w-full rounded-lg border border-line bg-surface-2 px-3 py-2 font-mono text-sm text-fg"
+                      />
+                    </div>
+                  ))
+                : (
+                  <input
+                    value={flag}
+                    onChange={(e) => setFlag(e.target.value)}
+                    placeholder="Réponse / flag…"
+                    className="w-full rounded-lg border border-line bg-surface-2 px-3 py-2 font-mono text-sm text-fg placeholder:text-faint"
+                  />
+                )}
               <Button onClick={submit} disabled={busy} className="w-full sm:w-auto">
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                 Valider

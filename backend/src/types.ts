@@ -255,7 +255,8 @@ export type ValidationStrategy =
   | "waf_probe"
   | "text_compare"
   | "exec_check"
-  | "log_forensics";
+  | "log_forensics"
+  | "cred_check";
 
 /** Bloc de validation — JAMAIS exposé au client (select:false côté modèle). */
 export interface ProjectObjectiveValidation {

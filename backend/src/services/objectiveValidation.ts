@@ -217,6 +217,59 @@ async function validateLogForensics(
   return { ok: true, detail: "Analyse d'incident correcte — tes réponses concordent avec les journaux du SIEM." };
 }
 
+interface CredCheckSpec {
+  /** Nœud d'où lancer la tentative d'authentification (ex. "attacker"). */
+  execNode: string;
+  /**
+   * Gabarit de commande en forme ARGV (jamais `bash -c`) : les marqueurs
+   * `{champ}` sont remplacés par les valeurs de `answer` DANS DES ÉLÉMENTS
+   * SÉPARÉS → aucune interprétation shell, donc pas d'injection possible même
+   * si l'étudiant soumet un mot de passe piégé. Ex. :
+   *   ["crackmapexec","smb","10.50.0.30","-u","{username}","-p","{password}"]
+   * (Une fonction `buildCommand` ne serait pas sérialisable en base : on passe
+   * donc par un gabarit + substitution.)
+   */
+  commandTemplate: string[];
+  /** Sous-chaîne indiquant le succès dans la sortie (ex. "[+]", "Pwn3d!"). */
+  successPattern: string;
+  /** Champs requis dans `answer` (pour un message clair s'ils manquent). */
+  requiredFields?: string[];
+}
+
+/**
+ * Valide un objectif par une TENTATIVE D'AUTHENTIFICATION réelle avec les
+ * identifiants soumis (AS-REP / Kerberoasting / abus d'ACL) — jamais sur
+ * confiance dans le mot de passe envoyé. Le gabarit de commande est fixé côté
+ * serveur ; seules les VALEURS de `answer` y sont injectées (en argv → sûr).
+ */
+async function validateCredCheck(
+  spec: CredCheckSpec,
+  answer: unknown,
+  ctx: ValidationContext
+): Promise<ValidationResult> {
+  const dockerId = ctx.containerIdByNode[spec.execNode];
+  if (!dockerId) {
+    return { ok: false, detail: `Nœud « ${spec.execNode} » introuvable — la topologie est-elle démarrée ?` };
+  }
+  const a = (answer && typeof answer === "object" ? answer : {}) as Record<string, unknown>;
+  const missing = (spec.requiredFields ?? []).filter((f) => !a[f]);
+  if (missing.length) {
+    return { ok: false, detail: `Identifiants incomplets — renseigne : ${missing.join(", ")}.` };
+  }
+  // Substitution en argv (chaque élément reste un argument distinct → pas de shell).
+  const command = spec.commandTemplate.map((part) =>
+    part.replace(/\{(\w+)\}/g, (_m, k: string) => String(a[k] ?? ""))
+  );
+  const { output } = await execWithRetry(dockerId, command);
+  const ok = output.includes(spec.successPattern);
+  return {
+    ok,
+    detail: ok
+      ? `Authentification réussie : ${output.trim().slice(0, 150)}`
+      : "Échec d'authentification avec ces identifiants — vérifie ton craquage (bon compte, bon mot de passe ?).",
+  };
+}
+
 /** Point d'entrée : valide un objectif selon sa stratégie. */
 export async function validateObjective(
   strategy: string,
@@ -235,6 +288,8 @@ export async function validateObjective(
       return validateExecCheck(spec as unknown as ExecCheckSpec, ctx);
     case "log_forensics":
       return validateLogForensics(spec as unknown as LogForensicsSpec, ctx, submitted);
+    case "cred_check":
+      return validateCredCheck(spec as unknown as CredCheckSpec, submitted, ctx);
     default:
       return { ok: false, detail: `stratégie inconnue: ${strategy}` };
   }
