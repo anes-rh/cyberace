@@ -58,10 +58,14 @@ async function validateActiveProbe(spec: ActiveProbeSpec, ctx: ValidationContext
     if (!fromId || !toIp) return { ok: false, detail: `nœud introuvable (${c.from}→${c.to})` };
     const state = await tcpProbe(fromId, toIp, c.port);
     if (state !== c.expect) {
-      return { ok: false, detail: `${c.from}→${c.to}:${c.port} = ${state}, attendu ${c.expect}` };
+      const detail =
+        c.expect === "open"
+          ? `Le flux ${c.from}→${c.to}:${c.port} devrait être AUTORISÉ mais il est bloqué : vérifie que ta règle nftables accepte bien ce chemin (et que le service écoute).`
+          : `Le flux ${c.from}→${c.to}:${c.port} devrait être BLOQUÉ mais il passe : mets la policy forward à drop et n'autorise que les chemins nécessaires — celui-ci n'en fait pas partie.`;
+      return { ok: false, detail };
     }
   }
-  return { ok: true };
+  return { ok: true, detail: "Tous les flux réseau attendus sont conformes (les chemins autorisés passent, les interdits sont bloqués)." };
 }
 
 interface WafProbeSpec {
@@ -83,7 +87,17 @@ async function validateWafProbe(spec: WafProbeSpec, ctx: ValidationContext): Pro
   const cmd = ["bash", "-c", `curl -s -o /dev/null -w '%{http_code}' --max-time 8 "${url}"`];
   const { output } = await execWithRetry(attackerId, cmd);
   const status = parseInt(output.trim().match(/\d{3}/)?.[0] ?? "0", 10);
-  return { ok: status === spec.expectedStatus, detail: `code ${status}, attendu ${spec.expectedStatus}` };
+  const payloadShort = spec.testPayload.length > 24 ? spec.testPayload.slice(0, 24) + "…" : spec.testPayload;
+  if (status === spec.expectedStatus) {
+    return { ok: true, detail: `Le WAF bloque bien l'injection (payload « ${payloadShort} » → HTTP ${status}).` };
+  }
+  return {
+    ok: false,
+    detail:
+      status === 0
+        ? `Aucune réponse du WAF sur le port ${spec.port ?? 8080} — vérifie qu'il tourne et que le firewall autorise external→dmz.`
+        : `Le WAF n'a pas bloqué l'injection (payload « ${payloadShort} » → HTTP ${status}, attendu ${spec.expectedStatus}). As-tu bien mis SecRuleEngine On puis rechargé nginx ?`,
+  };
 }
 
 interface TextFlagSpec {
@@ -97,26 +111,110 @@ interface TextQaSpec {
 }
 type TextCompareSpec = TextFlagSpec | TextQaSpec;
 
-function validateTextCompare(spec: TextCompareSpec, submitted: unknown): ValidationResult {
+function validateTextCompare(spec: TextCompareSpec, submitted: unknown, ctx: ValidationContext): ValidationResult {
   if (spec.kind === "flag") {
     const cs = Boolean(spec.caseSensitive);
     const raw = submitted && typeof submitted === "object" ? (submitted as { flag?: unknown }).flag : submitted;
     const candidate = normalizeText(String(raw ?? ""), cs);
-    if (!candidate) return { ok: false, detail: "réponse vide" };
-    return { ok: candidate === normalizeText(spec.value, cs) };
+    if (!candidate) return { ok: false, detail: "Aucun flag soumis — colle la valeur NOVA{…} exfiltrée." };
+    // La valeur attendue intègre le suffixe de session (jamais une constante figée).
+    const expected = normalizeText(withSuffix(spec.value, ctx), cs);
+    if (candidate === expected) return { ok: true, detail: "Flag correct — exfiltration confirmée." };
+    return { ok: false, detail: "Ce flag ne correspond pas à cette session — vérifie que tu l'as bien exfiltré depuis CETTE base (il change à chaque session)." };
   }
   if (spec.kind === "qa") {
     const answers = (submitted && typeof submitted === "object" ? submitted : {}) as Record<string, unknown>;
     for (const q of spec.questions) {
       const candidate = normalizeText(String(answers[q.id] ?? ""), false);
-      const accepted = [q.value, ...(q.accept ?? [])].map((a) => normalizeText(String(a), false));
+      const accepted = [q.value, ...(q.accept ?? [])].map((a) => normalizeText(withSuffix(String(a), ctx), false));
       if (!candidate || !accepted.includes(candidate)) {
-        return { ok: false, detail: `réponse « ${q.id} » incorrecte` };
+        return { ok: false, detail: `Réponse « ${q.id} » incorrecte — relis les journaux avant de conclure.` };
       }
     }
-    return { ok: true };
+    return { ok: true, detail: "Analyse correcte." };
   }
   return { ok: false, detail: "spec text_compare invalide" };
+}
+
+interface ExecCheckSpec {
+  node: string;
+  command: string[];
+  expectedContains: string;
+}
+
+/**
+ * Exécute une commande dans un nœud et vérifie que sa sortie contient une preuve
+ * attendue. Sert à valider les objectifs d'attaque par leur EFFET de bord réel
+ * (fichier de preuve écrit via la RCE, root_proof créé par le cron, connexion
+ * SSH acceptée journalisée) — jamais sur simple affirmation du client.
+ */
+async function validateExecCheck(spec: ExecCheckSpec, ctx: ValidationContext): Promise<ValidationResult> {
+  const dockerId = ctx.containerIdByNode[spec.node];
+  if (!dockerId) {
+    return { ok: false, detail: `Nœud « ${spec.node} » introuvable — vérifie que la topologie est bien démarrée.` };
+  }
+  const expected = withSuffix(spec.expectedContains, ctx);
+  const { output } = await execWithRetry(dockerId, spec.command);
+  const ok = output.includes(expected);
+  return {
+    ok,
+    detail: ok
+      ? `Preuve trouvée sur ${spec.node} : ${output.trim().slice(0, 180)}`
+      : `Aucune preuve sur ${spec.node} — l'action attendue n'a pas laissé sa trace. Vérifie que tu l'as bien exécutée (bon nœud, bon chemin) puis reteste ; le contenu exact de la commande de résolution n'est pas divulgué.`,
+  };
+}
+
+interface ForensicsQuestion {
+  id: string;
+  node: string;
+  command: string[];
+  /** Regex : le 1er groupe capturant (sinon le match complet) est la vérité attendue. */
+  extract?: string;
+}
+interface LogForensicsSpec {
+  questions: ForensicsQuestion[];
+}
+
+/**
+ * Valide un objectif d'analyse d'incident : pour chaque question, la vérité est
+ * CALCULÉE au moment de la validation en lisant les journaux réels du SIEM
+ * (grep/wc côté serveur), jamais codée en dur. La réponse de l'étudiant est
+ * comparée à cette vérité.
+ */
+async function validateLogForensics(
+  spec: LogForensicsSpec,
+  ctx: ValidationContext,
+  submitted: unknown
+): Promise<ValidationResult> {
+  if (!Array.isArray(spec.questions) || spec.questions.length === 0) {
+    return { ok: false, detail: "aucune question définie" };
+  }
+  const answers = (submitted && typeof submitted === "object" ? submitted : {}) as Record<string, unknown>;
+  for (const q of spec.questions) {
+    const dockerId = ctx.containerIdByNode[q.node];
+    if (!dockerId) return { ok: false, detail: `Nœud « ${q.node} » introuvable — la session est-elle active ?` };
+    const { output } = await execWithRetry(dockerId, q.command);
+    let truth = output.trim();
+    if (q.extract) {
+      const m = truth.match(new RegExp(q.extract));
+      truth = m ? (m[1] ?? m[0]) : "";
+    }
+    const expected = normalizeText(truth, false);
+    const candidate = normalizeText(String(answers[q.id] ?? ""), false);
+    if (!expected) {
+      return {
+        ok: false,
+        detail: `Le journal ne contient pas encore de quoi répondre à « ${q.id} » — l'attaque a-t-elle bien eu lieu ? Rejoue la chaîne, puis relis le SIEM.`,
+      };
+    }
+    if (candidate !== expected) {
+      return {
+        ok: false,
+        detail: `Réponse « ${q.id} » incorrecte — la vérité est dans les journaux du SIEM (grep/wc -l). Recompte ou relis précisément.`,
+      };
+    }
+  }
+  return { ok: true, detail: "Analyse d'incident correcte — tes réponses concordent avec les journaux du SIEM." };
 }
 
 /** Point d'entrée : valide un objectif selon sa stratégie. */
@@ -132,7 +230,11 @@ export async function validateObjective(
     case "waf_probe":
       return validateWafProbe(spec as unknown as WafProbeSpec, ctx);
     case "text_compare":
-      return validateTextCompare(spec as unknown as TextCompareSpec, submitted);
+      return validateTextCompare(spec as unknown as TextCompareSpec, submitted, ctx);
+    case "exec_check":
+      return validateExecCheck(spec as unknown as ExecCheckSpec, ctx);
+    case "log_forensics":
+      return validateLogForensics(spec as unknown as LogForensicsSpec, ctx, submitted);
     default:
       return { ok: false, detail: `stratégie inconnue: ${strategy}` };
   }
