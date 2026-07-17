@@ -12,6 +12,7 @@ import { ProjectObjectivesChecklist } from "@/components/projects/ProjectObjecti
 import { ProjectLogsPanel } from "@/components/projects/ProjectLogsPanel";
 import { ProjectSessionControls } from "@/components/projects/ProjectSessionControls";
 import { ProjectTerminalModal } from "@/components/projects/ProjectTerminalModal";
+import { ProjectSolutionView } from "@/components/projects/ProjectSolutionView";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import type { ProjectDetail, ProjectObjectiveView, ProjectSessionView } from "@/lib/projectTypes";
@@ -72,6 +73,15 @@ export default function ProjectDashboardPage() {
     }, 1000);
     return () => clearInterval(id);
   }, [session]);
+
+  // Tant que le corrigé n'est pas disponible, on rafraîchit le détail : à
+  // l'expiration, le reaper marque `solutionRevealed` côté serveur (≤ 30 s).
+  useEffect(() => {
+    if (!user || !detail) return;
+    if (detail.progress?.status === "completed" || detail.progress?.solutionRevealed) return;
+    const id = setInterval(loadDetail, 15000);
+    return () => clearInterval(id);
+  }, [user, detail, loadDetail]);
 
   const start = useCallback(async () => {
     setBusy("start");
@@ -187,6 +197,13 @@ export default function ProjectDashboardPage() {
           <ProjectObjectivesChecklist slug={slug} objectives={objectives} running={running} onValidated={() => { loadObjectives(); loadDetail(); }} />
         </div>
       </div>
+
+      {/* Corrigé auto-révélé (terminé OU temps écoulé). */}
+      <ProjectSolutionView
+        slug={slug}
+        objectives={objectives}
+        available={progress?.status === "completed" || progress?.solutionRevealed === true}
+      />
 
       {terminal && <ProjectTerminalModal nodeId={terminal.nodeId} url={terminal.url} onClose={() => setTerminal(null)} />}
     </div>

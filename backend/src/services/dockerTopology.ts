@@ -3,6 +3,7 @@ import { Types } from "mongoose";
 import { HttpError } from "../middleware/error";
 import type { ProjectTopology, TopologyNode } from "../types";
 import { ProjectSession, ProjectSessionDoc } from "../models/ProjectSession";
+import { ProjectProgress } from "../models/ProjectProgress";
 import {
   docker,
   QUOTAS,
@@ -302,6 +303,20 @@ export async function reapExpiredProjects(): Promise<void> {
   });
   for (const s of expired) {
     log(`session projet ${s._id} expirée → nettoyage`);
+    // Temps écoulé sans complétion → débloque le corrigé (comportement du reaper
+    // inchangé par ailleurs : on ajoute juste la marque). Upsert pour couvrir un
+    // joueur qui a démarré sans rien valider.
+    try {
+      const prog = await ProjectProgress.findOne({ user: s.user, projectSlug: s.projectSlug });
+      if (!prog) {
+        await ProjectProgress.create({ user: s.user, projectSlug: s.projectSlug, completedObjectives: [], totalPoints: 0, solutionRevealed: true });
+      } else if (prog.status !== "completed" && !prog.solutionRevealed) {
+        prog.solutionRevealed = true;
+        await prog.save();
+      }
+    } catch (err) {
+      warn(`marque solutionRevealed ignorée pour ${s._id}`, err);
+    }
     await stopProjectSession(String(s._id));
   }
 }
