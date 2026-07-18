@@ -15,6 +15,10 @@ export interface ValidationContext {
   /** Suffixe de flag de la session (anti write-up) : substitué à `{{SUFFIX}}`
    *  dans les valeurs attendues. Jamais une constante recompilée. */
   flagSuffix?: string;
+  /** Variables d'environnement injectées à la création de session (au moins
+   *  `FLAG_SUFFIX`). Sert aux stratégies qui comparent une valeur attendue
+   *  DYNAMIQUE par session (ex. `registry_probe`). Server-side uniquement. */
+  sessionEnv?: Record<string, string>;
 }
 
 /** Remplace le marqueur `{{SUFFIX}}` par le suffixe de flag de la session. */
@@ -274,6 +278,95 @@ async function validateCredCheck(
   };
 }
 
+interface RegistryProbeSpec {
+  /** Nœud d'où sonder le registre (a `curl` et atteint le registre ; ex.
+   *  "ci-runner"). registry:2 étant sans shell, on ne sonde pas depuis lui. */
+  probeFromNode: string;
+  /** Hôte:port du registre v2 depuis `probeFromNode` (ex. "registry:5000"). */
+  registryHost: string;
+  repository: string; // ex. "prod/webapp"
+  tag: string; // ex. "latest"
+  /** Label que l'image poussée DOIT porter pour prouver qu'elle est bien celle
+   *  du joueur (et pas l'image légitime ni une image quelconque). */
+  markerLabel: string; // ex. "ghost.session"
+  /** Clé de `ctx.sessionEnv` portant la valeur attendue de ce label pour CETTE
+   *  session (ex. "FLAG_SUFFIX") → dynamique, anti write-up. */
+  expectedEnvVar: string;
+}
+
+/** Extrait le premier objet JSON d'une sortie curl (tolère un bruit résiduel). */
+function parseJsonLoose(text: string): unknown | null {
+  const s = text.indexOf("{");
+  const e = text.lastIndexOf("}");
+  if (s < 0 || e <= s) return null;
+  try {
+    return JSON.parse(text.slice(s, e + 1));
+  } catch {
+    return null;
+  }
+}
+
+async function curlJson(dockerId: string, url: string): Promise<unknown | null> {
+  const accept =
+    "Accept: application/vnd.docker.distribution.manifest.v2+json," +
+    "application/vnd.oci.image.manifest.v1+json," +
+    "application/vnd.docker.distribution.manifest.list.v2+json," +
+    "application/vnd.oci.image.index.v1+json";
+  const { output } = await execWithRetry(dockerId, ["curl", "-s", "-H", accept, url]);
+  return parseJsonLoose(output);
+}
+
+/**
+ * Valide une attaque supply-chain : le joueur a-t-il bien poussé SON image sous
+ * `repository:tag` ? On lit le manifeste PUIS le blob de config depuis le
+ * registre (server-side, via `curl` depuis un nœud interne) et on vérifie que
+ * la config porte un LABEL de session attendu.
+ *
+ * ADAPTATION ASSUMÉE (documentée) : la spec initiale comparait un « digest de
+ * couche » attendu. Or le digest d'une couche construite par le joueur n'est
+ * pas prédictible côté serveur (horodatages/ordre du tar non reproductibles).
+ * On vérifie donc un MARQUEUR de session que le joueur doit incruster comme
+ * label — ce qui prouve à la fois la PATERNITÉ de l'image ET empêche tout faux
+ * positif (repousser une image quelconque, ou l'image légitime, échoue car le
+ * label de session est absent). Entièrement server-side, dynamique par session.
+ */
+async function validateRegistryProbe(spec: RegistryProbeSpec, ctx: ValidationContext): Promise<ValidationResult> {
+  const dockerId = ctx.containerIdByNode[spec.probeFromNode];
+  if (!dockerId) return { ok: false, detail: `Nœud « ${spec.probeFromNode} » introuvable — la topologie est-elle démarrée ?` };
+  const expected = ctx.sessionEnv?.[spec.expectedEnvVar];
+  if (!expected) return { ok: false, detail: "Contexte de session incomplet (valeur attendue absente)." };
+
+  const base = `http://${spec.registryHost}/v2/${spec.repository}`;
+  const manifest = (await curlJson(dockerId, `${base}/manifests/${spec.tag}`)) as
+    | { config?: { digest?: string }; manifests?: { digest?: string }[]; errors?: unknown[] }
+    | null;
+  if (!manifest || manifest.errors) {
+    return { ok: false, detail: `Aucun manifeste pour ${spec.repository}:${spec.tag} — as-tu bien poussé ton image sur le registre ?` };
+  }
+  // Manifest list / index OCI → descendre d'un niveau vers un manifeste d'image.
+  let configDigest = manifest.config?.digest;
+  if (!configDigest && Array.isArray(manifest.manifests) && manifest.manifests[0]?.digest) {
+    const sub = (await curlJson(dockerId, `${base}/manifests/${manifest.manifests[0].digest}`)) as
+      | { config?: { digest?: string } }
+      | null;
+    configDigest = sub?.config?.digest;
+  }
+  if (!configDigest) return { ok: false, detail: "Manifeste illisible (pas de blob de config) — ton image est-elle bien un format Docker/OCI standard ?" };
+
+  const cfg = (await curlJson(dockerId, `${base}/blobs/${configDigest}`)) as
+    | { config?: { Labels?: Record<string, string> }; container_config?: { Labels?: Record<string, string> } }
+    | null;
+  const labels = cfg?.config?.Labels ?? cfg?.container_config?.Labels ?? {};
+  const got = labels[spec.markerLabel];
+  const ok = got === expected;
+  return {
+    ok,
+    detail: ok
+      ? `Manifeste ${spec.repository}:${spec.tag} : ta couche est bien en place (label de session ${spec.markerLabel} conforme).`
+      : `Le tag ${spec.repository}:${spec.tag} existe mais ce n'est pas TON image — incruste le label ${spec.markerLabel} = jeton de build de la session (celui fuité dans l'historique Git) et repousse.`,
+  };
+}
+
 /** Point d'entrée : valide un objectif selon sa stratégie. */
 export async function validateObjective(
   strategy: string,
@@ -291,9 +384,15 @@ export async function validateObjective(
     case "exec_check":
       return validateExecCheck(spec as unknown as ExecCheckSpec, ctx);
     case "log_forensics":
+    // `dynamic_text_compare` = même mécanique que log_forensics (vérité CALCULÉE
+    // en direct depuis l'état/les journaux réels des conteneurs, comparée à la
+    // réponse). Alias plutôt que duplication d'un mécanisme générique.
+    case "dynamic_text_compare":
       return validateLogForensics(spec as unknown as LogForensicsSpec, ctx, submitted);
     case "cred_check":
       return validateCredCheck(spec as unknown as CredCheckSpec, submitted, ctx);
+    case "registry_probe":
+      return validateRegistryProbe(spec as unknown as RegistryProbeSpec, ctx);
     default:
       return { ok: false, detail: `stratégie inconnue: ${strategy}` };
   }

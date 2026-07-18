@@ -292,7 +292,14 @@ export async function validateProjectObjective(req: Request, res: Response): Pro
   const result = await validateObjective(
     objective.validation.strategy,
     objective.validation.spec as Record<string, unknown>,
-    { topology: project.topology, containerIdByNode, flagSuffix: session.flagSuffix },
+    {
+      topology: project.topology,
+      containerIdByNode,
+      flagSuffix: session.flagSuffix,
+      // Env injecté à la création de session, exposé aux stratégies dynamiques
+      // (ex. registry_probe compare un label au FLAG_SUFFIX de la session).
+      sessionEnv: { FLAG_SUFFIX: session.flagSuffix ?? "" },
+    },
     (req.body ?? {}).answer
   );
 

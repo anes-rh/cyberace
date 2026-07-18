@@ -191,7 +191,17 @@ export const DIFFICULTY_POINTS: Record<Difficulty, number> = {
 // Système distinct des Courses/Challenges : une session = topologie
 // multi-nœuds / multi-réseaux, avec des objectifs validés côté serveur.
 
-export type NodeRole = "attacker" | "firewall" | "waf" | "target" | "database" | "log" | "directory";
+export type NodeRole =
+  | "attacker"
+  | "firewall"
+  | "waf"
+  | "target"
+  | "database"
+  | "log"
+  | "directory"
+  | "pipeline"
+  | "registry"
+  | "cloud";
 
 /** Un réseau Docker de la topologie (bridge isolé ou non). */
 export interface TopologyNetwork {
@@ -235,6 +245,10 @@ export interface TopologyNode {
   image: string;
   role: NodeRole;
   capAdd?: string[];
+  /** Conteneur privilégié (nécessaire pour un Docker-in-Docker imbriqué et
+   *  jetable, ex. l'hôte d'évasion de « Pipeline Fantôme »). Isolé par session,
+   *  détruit à l'expiration : l'évasion n'atteint jamais la VM hôte réelle. */
+  privileged?: boolean;
   sysctls?: Record<string, string>;
   env?: Record<string, string>; // variables d'environnement (creds DVWA→db, etc.)
   terminal: boolean; // expose un terminal web (ttyd)
@@ -256,7 +270,9 @@ export type ValidationStrategy =
   | "text_compare"
   | "exec_check"
   | "log_forensics"
-  | "cred_check";
+  | "cred_check"
+  | "registry_probe"
+  | "dynamic_text_compare";
 
 /** Bloc de validation — JAMAIS exposé au client (select:false côté modèle). */
 export interface ProjectObjectiveValidation {

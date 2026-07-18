@@ -159,6 +159,10 @@ export async function startProjectSession(
         NetworkMode: labNetName(primary.name),
         CapAdd: [...capAdd],
         PortBindings: portBindings,
+        // Conteneur privilégié : réservé aux nœuds Docker-in-Docker JETABLES et
+        // isolés par session (ex. l'hôte d'évasion imbriqué). L'évasion s'y
+        // confine ; elle n'atteint jamais le démon/FS de la VM hôte partagée.
+        ...(node.privileged ? { Privileged: true } : {}),
         ...(node.sysctls && Object.keys(node.sysctls).length ? { Sysctls: node.sysctls } : {}),
       };
       // Le suffixe de flag par session est injecté dans TOUS les nœuds
