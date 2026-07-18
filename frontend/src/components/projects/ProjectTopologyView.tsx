@@ -8,6 +8,9 @@ import {
   Database,
   FileSearch,
   Fingerprint,
+  GitBranch,
+  Package,
+  Cloud,
   TerminalSquare,
   Check,
   X,
@@ -24,6 +27,9 @@ const ROLE_ICON: Record<NodeRole, typeof Crosshair> = {
   database: Database,
   log: FileSearch,
   directory: Fingerprint,
+  pipeline: GitBranch,
+  registry: Package,
+  cloud: Cloud,
 };
 const ROLE_LABEL: Record<NodeRole, string> = {
   attacker: "Attaquant",
@@ -33,16 +39,20 @@ const ROLE_LABEL: Record<NodeRole, string> = {
   database: "Base de données",
   log: "Journalisation",
   directory: "Contrôleur de domaine",
+  pipeline: "Pipeline CI/CD",
+  registry: "Registre",
+  cloud: "Service cloud",
 };
 
 // Palette par zone (external hostile / dmz tampon / internal protégé / mgmt admin
-// / corp réseau plat).
+// / corp réseau plat / cloud isolé).
 const ZONE_STYLE: Record<string, { ring: string; bg: string; text: string; label: string }> = {
   external: { ring: "#E06C5E", bg: "rgba(224,108,94,0.07)", text: "#E0937E", label: "External (hostile)" },
   dmz: { ring: "#E0A85E", bg: "rgba(224,168,94,0.07)", text: "#E0B87E", label: "DMZ (tampon)" },
   internal: { ring: "#5EB37E", bg: "rgba(94,179,126,0.07)", text: "#7EC49B", label: "Internal (protégé)" },
   mgmt: { ring: "#5E8AB3", bg: "rgba(94,138,179,0.07)", text: "#7EA6C4", label: "Mgmt (administration)" },
   corp: { ring: "#8A82A6", bg: "rgba(138,130,166,0.07)", text: "#A79EC0", label: "Corp (réseau plat)" },
+  cloud: { ring: "#8B6FC7", bg: "rgba(139,111,199,0.07)", text: "#A78BD6", label: "Cloud (isolé)" },
 };
 
 function NodeCard({

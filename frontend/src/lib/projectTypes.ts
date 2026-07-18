@@ -1,7 +1,17 @@
 // Types du système de Projets (distinct des Courses/Challenges).
 
 export type Difficulty = "easy" | "medium" | "hard" | "insane";
-export type NodeRole = "attacker" | "firewall" | "waf" | "target" | "database" | "log" | "directory";
+export type NodeRole =
+  | "attacker"
+  | "firewall"
+  | "waf"
+  | "target"
+  | "database"
+  | "log"
+  | "directory"
+  | "pipeline"
+  | "registry"
+  | "cloud";
 export type ObjectiveKind = "defense" | "attack" | "analysis";
 export type ObjectiveStatus = "locked" | "available" | "completed";
 
