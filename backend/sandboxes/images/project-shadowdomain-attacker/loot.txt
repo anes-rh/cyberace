@@ -1,0 +1,7 @@
+# Empreintes NTLM récupérées depuis le poste compromis (dump type mimikatz lors
+# de l'accès initial « assumed breach »). Deux comptes de service au mot de passe
+# faible s'y trouvent : svc-backup (compte AS-REP roastable, sans pré-auth
+# Kerberos) et svc-sql (compte de service Kerberoastable, porteur d'un SPN).
+# À CRAQUER hors-ligne avec hashcat -m 1000 et la wordlist /opt/wordlist.txt.
+svc-backup:72f0eefcc213ea8f350773b831cf2c9c
+svc-sql:64f12cddaa88057e06a81b54e73b949b

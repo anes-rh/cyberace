@@ -1,0 +1,15 @@
+Administrator
+Guest
+krbtgt
+alice.dupont
+bob.martin
+carol.durand
+dave.lefevre
+svc-backup
+svc-sql
+svc-web
+backup
+sqladmin
+helpdesk
+jdoe
+mwilson

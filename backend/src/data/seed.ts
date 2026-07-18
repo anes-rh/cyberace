@@ -6,7 +6,7 @@ import { Project } from "../models/Project";
 import { ProjectObjective } from "../models/ProjectObjective";
 import { allCourses } from "./courses";
 import { allCheckpoints, CYBER_CHECKPOINT } from "./checkpoints";
-import { allProjects } from "./projects/operationSentinelle";
+import { allProjects } from "./projects";
 
 export interface SeedSummary {
   checkpoints: number;

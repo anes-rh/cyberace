@@ -29,12 +29,16 @@ export interface ValidationResult {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/** Exec avec un retry (le conteneur peut ne pas être prêt — spec §7). */
+/**
+ * Exec avec un retry (le conteneur peut ne pas être prêt). Timeout généreux :
+ * certains outils AD/annuaire (samba-tool charge tout le stack Python) dépassent
+ * plusieurs secondes, surtout quand la VM provisionne encore d'autres nœuds.
+ */
 async function execWithRetry(dockerId: string, cmd: string[]): Promise<{ exitCode: number; output: string }> {
-  let r = await execInNode(dockerId, cmd, 7000);
+  let r = await execInNode(dockerId, cmd, 20000);
   if (r.exitCode === -1) {
-    await sleep(1000);
-    r = await execInNode(dockerId, cmd, 7000);
+    await sleep(1500);
+    r = await execInNode(dockerId, cmd, 20000);
   }
   return r;
 }

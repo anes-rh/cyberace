@@ -1,0 +1,12 @@
+
+  ███ OPÉRATION SHADOWDOMAIN — poste compromis (assumed breach) ███
+
+  Cible : contrôleur de domaine  dc01.corp.local  (10.50.0.20)
+  Réseau : corp  10.50.0.0/24  (plat, sans segmentation)
+
+  Boîte à outils : impacket (GetNPUsers/GetUserSPNs/secretsdump),
+  netexec (nxc), hashcat, kerbrute, ldapsearch, smbclient.
+  Wordlist : /opt/wordlist.txt   ·   Utilisateurs : /opt/users.txt
+
+  Objectif final : compromission totale du domaine (Domain Admin → DCSync).
+
