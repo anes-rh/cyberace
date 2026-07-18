@@ -1,0 +1,7 @@
+================ Opération Pipeline Fantôme — poste d'attaque ================
+ Reconnaissance : un dépôt Git public traîne sur gitserver (10.60.0.20).
+   git clone http://gitserver/webapp.git
+
+ Le réseau interne (registre, CI, prod) n'est PAS routable directement d'ici.
+ Trouve de quoi pivoter dans l'historique du dépôt.
+=============================================================================
