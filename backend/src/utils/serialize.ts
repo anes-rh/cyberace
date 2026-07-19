@@ -60,5 +60,8 @@ export function serializeUser(user: UserDoc) {
     solvedCount: user.solved.length,
     streak: user.streak,
     createdAt: user.createdAt,
+    // Rôle exposé pour l'utilisateur COURANT uniquement (nav/garde admin côté
+    // client). La vraie protection reste le middleware adminRequired.
+    role: user.role,
   };
 }
