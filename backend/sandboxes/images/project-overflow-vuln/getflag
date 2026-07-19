@@ -1,0 +1,21 @@
+#!/bin/bash
+# Délivre le flag du niveau au shell obtenu par l'exploit ET journalise l'accès
+# auprès du collecteur `monitor` (signal de « succès » réutilisé par les
+# objectifs forensiques 6 et 7). Lit LEVEL/FLAG_SUFFIX/SERVICE depuis un fichier
+# de session (et non l'environnement) : un shellcode execve() met l'environnement
+# à NULL, donc l'env n'est pas fiable — le fichier l'est. Le flag intègre le
+# suffixe de session (anti write-up). Chemin volontaire/hinté ; sans exploit
+# réussi on n'a pas de shell pour l'exécuter.
+LEVEL=0; FLAG_SUFFIX=static0; SERVICE=vuln
+[ -r /run/overflow/session ] && . /run/overflow/session
+
+# Rapport best-effort au monitor (bash /dev/tcp), sans jamais bloquer le flag.
+( exec 3<>/dev/tcp/monitor/9000 && printf '%s FLAG-READ\n' "$SERVICE" >&3 ) 2>/dev/null || true
+
+case "${LEVEL:-0}" in
+  1) printf 'NOVA{stack0_smashed}_%s\n' "$FLAG_SUFFIX" ;;
+  2) printf 'NOVA{ret2libc_nx}_%s\n' "$FLAG_SUFFIX" ;;
+  3) printf 'NOVA{aslr_info_leak}_%s\n' "$FLAG_SUFFIX" ;;
+  4) printf 'NOVA{canary_and_rop}_%s\n' "$FLAG_SUFFIX" ;;
+  *) printf 'NOVA{unknown_level}_%s\n' "$FLAG_SUFFIX" ;;
+esac

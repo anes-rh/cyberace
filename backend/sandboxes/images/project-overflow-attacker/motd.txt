@@ -1,0 +1,22 @@
+
+  ██  OPÉRATION OVERFLOW — poste d'attaque  ██
+
+  Un service réseau interne tourne en 4 versions, chacune ajoutant une
+  protection mémoire. Exploite-les l'une après l'autre.
+
+  CIBLES (réseau internal) :
+    vuln-lvl1:9001   aucune protection      → shellcode sur la pile
+    vuln-lvl2:9002   NX                     → ret2libc (ASLR désactivé)
+    vuln-lvl3:9003   NX + ASLR              → fuite libc (cmd DEBUG) → ret2libc
+    vuln-lvl4:9004   NX + ASLR + canari     → format string → fuite → ROP
+    monitor          journal des crashs / accès flags (terminal dédié)
+
+  OUTILS :
+    checksec --file=/challenge/vuln1        # confirme les protections
+    gdb /challenge/vuln1                     # GEF chargé (équiv. pwndbg)
+    ROPgadget --binary /challenge/libc.so.6 --only "pop|ret"
+    python3  (pwntools installé : from pwn import *)
+    nc vuln-lvl1 9001
+
+  BINAIRES + libc de la cible : /challenge/  (non strippés, -g)
+  Récupère chaque flag avec `getflag` une fois le shell obtenu.
