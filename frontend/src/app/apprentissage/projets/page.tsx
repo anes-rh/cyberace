@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ShieldAlert, Clock, ArrowRight, Trophy, CheckCircle2 } from "lucide-react";
+import { ShieldAlert, Clock, ArrowRight, ArrowLeft, Trophy, CheckCircle2 } from "lucide-react";
 import { DifficultyBadge } from "@/components/ui/DifficultyBadge";
 import { FullScreenLoader } from "@/components/ui/Spinner";
 import { api } from "@/lib/api";
@@ -27,6 +27,9 @@ export default function ProjectsListPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-12">
+      <Link href="/apprentissage" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg">
+        <ArrowLeft className="h-4 w-4" /> La route d&apos;apprentissage
+      </Link>
       <div className="flex items-start gap-4">
         <div className="grid h-14 w-14 place-items-center rounded-2xl bg-[#D96BA0]/10 text-[#D96BA0]" style={{ boxShadow: "inset 0 0 0 1px #D96BA055" }}>
           <ShieldAlert className="h-7 w-7" />
