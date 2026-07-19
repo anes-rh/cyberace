@@ -163,6 +163,10 @@ export async function startProjectSession(
         // isolés par session (ex. l'hôte d'évasion imbriqué). L'évasion s'y
         // confine ; elle n'atteint jamais le démon/FS de la VM hôte partagée.
         ...(node.privileged ? { Privileged: true } : {}),
+        // Options seccomp/AppArmor par nœud (ex. seccomp=unconfined pour
+        // autoriser personality(ADDR_NO_RANDOMIZE)/setarch -R → ASLR désactivé
+        // sur un service d'exploitation mémoire). Confiné au conteneur de session.
+        ...(node.securityOpt && node.securityOpt.length ? { SecurityOpt: node.securityOpt } : {}),
         ...(node.sysctls && Object.keys(node.sysctls).length ? { Sysctls: node.sysctls } : {}),
       };
       // Le suffixe de flag par session est injecté dans TOUS les nœuds

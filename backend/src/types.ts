@@ -249,6 +249,13 @@ export interface TopologyNode {
    *  jetable, ex. l'hôte d'évasion de « Pipeline Fantôme »). Isolé par session,
    *  détruit à l'expiration : l'évasion n'atteint jamais la VM hôte réelle. */
   privileged?: boolean;
+  /** Options de sécurité Docker (`HostConfig.SecurityOpt`), ex.
+   *  `["seccomp=unconfined"]`. Nécessaire pour autoriser des appels système que
+   *  le profil seccomp par défaut bloque — typiquement `personality(ADDR_NO_RANDOMIZE)`
+   *  (via `setarch -R`) pour DÉSACTIVER l'ASLR sur un service d'exploitation
+   *  mémoire (« Opération Overflow », niveaux 1-2). Effet confiné au conteneur
+   *  jetable de la session ; n'affecte jamais la VM hôte. */
+  securityOpt?: string[];
   sysctls?: Record<string, string>;
   env?: Record<string, string>; // variables d'environnement (creds DVWA→db, etc.)
   terminal: boolean; // expose un terminal web (ttyd)
