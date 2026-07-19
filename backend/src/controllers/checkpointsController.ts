@@ -55,6 +55,45 @@ function solvedPerCheckpoint(user: { solved: { courseSlug: string }[] } | null, 
   return solved;
 }
 
+/** Map complète parent → enfants directs, pour tous les checkpoints. */
+function buildChildrenMap(checkpoints: { slug: string; parent?: string | null }[]): Map<string, string[]> {
+  const m = new Map<string, string[]>();
+  for (const cp of checkpoints) {
+    if (cp.parent) m.set(cp.parent, [...(m.get(cp.parent) ?? []), cp.slug]);
+  }
+  return m;
+}
+
+/** Tous les descendants (enfants, petits-enfants, etc.) d'un slug, à plat.
+ *  Rend l'agrégation valable à profondeur ARBITRAIRE (≥ 3 niveaux). */
+function allDescendants(slug: string, childrenOf: Map<string, string[]>): string[] {
+  const result: string[] = [];
+  const stack = [...(childrenOf.get(slug) ?? [])];
+  while (stack.length) {
+    const s = stack.pop()!;
+    result.push(s);
+    stack.push(...(childrenOf.get(s) ?? []));
+  }
+  return result;
+}
+
+/** Agrégat effectif = propre + TOUS les descendants (profondeur arbitraire). */
+function aggregateFor(slug: string, childrenOf: Map<string, string[]>, byCheckpoint: Map<string, Aggregates>): Aggregates {
+  const agg: Aggregates = { ...ZERO };
+  for (const s of [slug, ...allDescendants(slug, childrenOf)]) {
+    const c = byCheckpoint.get(s) ?? ZERO;
+    agg.courseCount += c.courseCount;
+    agg.challengeCount += c.challengeCount;
+    agg.totalPoints += c.totalPoints;
+  }
+  return agg;
+}
+
+/** Défis résolus effectifs = propres + ceux de TOUS les descendants. */
+function solvedFor(slug: string, childrenOf: Map<string, string[]>, solvedByCp: Map<string, number>): number {
+  return [slug, ...allDescendants(slug, childrenOf)].reduce((n, s) => n + (solvedByCp.get(s) ?? 0), 0);
+}
+
 /** GET /api/checkpoints — only TOP-LEVEL checkpoints; a parent aggregates its children. */
 export async function listCheckpoints(req: Request, res: Response): Promise<void> {
   const [checkpoints, { byCheckpoint, courseToCheckpoint }, user] = await Promise.all([
@@ -64,28 +103,11 @@ export async function listCheckpoints(req: Request, res: Response): Promise<void
   ]);
 
   const solvedByCp = solvedPerCheckpoint(user, courseToCheckpoint);
-  const childrenOf = new Map<string, string[]>();
-  for (const cp of checkpoints) {
-    if (cp.parent) childrenOf.set(cp.parent, [...(childrenOf.get(cp.parent) ?? []), cp.slug]);
-  }
+  const childrenOf = buildChildrenMap(checkpoints);
 
-  /** Effective aggregate = own + every child (2-level hierarchy). */
-  const effectiveAgg = (slug: string): Aggregates => {
-    const own = byCheckpoint.get(slug) ?? ZERO;
-    const agg: Aggregates = { ...own };
-    for (const child of childrenOf.get(slug) ?? []) {
-      const c = byCheckpoint.get(child) ?? ZERO;
-      agg.courseCount += c.courseCount;
-      agg.challengeCount += c.challengeCount;
-      agg.totalPoints += c.totalPoints;
-    }
-    return agg;
-  };
-  const effectiveSolved = (slug: string): number => {
-    let s = solvedByCp.get(slug) ?? 0;
-    for (const child of childrenOf.get(slug) ?? []) s += solvedByCp.get(child) ?? 0;
-    return s;
-  };
+  /** Agrégat effectif = propre + tous les descendants (profondeur arbitraire). */
+  const effectiveAgg = (slug: string): Aggregates => aggregateFor(slug, childrenOf, byCheckpoint);
+  const effectiveSolved = (slug: string): number => solvedFor(slug, childrenOf, solvedByCp);
 
   const payload = checkpoints
     .filter((cp) => !cp.parent) // main roadmap = top-level only
@@ -145,12 +167,15 @@ export async function getCheckpoint(req: Request, res: Response): Promise<void> 
   const checkpoint = await Checkpoint.findOne({ slug }).lean();
   if (!checkpoint) throw new HttpError(404, "Checkpoint introuvable.");
 
-  const [children, courses, challenges, user] = await Promise.all([
-    Checkpoint.find({ parent: slug }).sort({ order: 1 }).lean(),
+  const [allCheckpoints, courses, challenges, user] = await Promise.all([
+    Checkpoint.find().sort({ order: 1 }).lean(),
     Course.find({ checkpoint: slug }).sort({ order: 1 }).lean(),
     Challenge.find({}, "challengeId courseSlug points").lean(),
     req.userId ? User.findById(req.userId) : Promise.resolve(null),
   ]);
+  // Enfants DIRECTS (déjà triés par order) + hiérarchie complète pour l'agrégat récursif.
+  const children = allCheckpoints.filter((c) => c.parent === slug);
+  const childrenOf = buildChildrenMap(allCheckpoints);
 
   const countByCourse = new Map<string, { count: number; points: number }>();
   for (const ch of challenges) {
@@ -195,8 +220,11 @@ export async function getCheckpoint(req: Request, res: Response): Promise<void> 
     const { byCheckpoint, courseToCheckpoint } = await buildAggregates();
     const solvedByCp = solvedPerCheckpoint(user, courseToCheckpoint);
     childrenPayload = children.map((ch) => {
-      const agg = byCheckpoint.get(ch.slug) ?? ZERO;
-      const solved = solvedByCp.get(ch.slug) ?? 0;
+      // Agrégat de l'enfant = son propre total + TOUS ses descendants (profondeur
+      // arbitraire) — sinon un checkpoint intermédiaire comme « Attaque », sans
+      // cours directement rattaché, afficherait 0.
+      const agg = aggregateFor(ch.slug, childrenOf, byCheckpoint);
+      const solved = solvedFor(ch.slug, childrenOf, solvedByCp);
       childSolved += solved;
       childTotal += agg.challengeCount;
       return checkpointSummary(ch, agg, solved);

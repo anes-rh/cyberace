@@ -126,7 +126,32 @@ export const allCheckpoints: CheckpointSeed[] = [
     tagline: "Environnements réels, terminal en direct",
   },
 
-  // ── Mini-checkpoints de « Cybersécurité — Pratique » (parent = cybersecurite-pratique) ──
+  // ── Regroupements Attaque / Défense (parent = cybersecurite-pratique) ──
+  {
+    slug: "attaque",
+    title: "Attaque",
+    order: 1,
+    status: "active",
+    parent: "cybersecurite-pratique",
+    icon: "Swords",
+    accent: "#d97b7b",
+    description:
+      "Toutes les techniques offensives du parcours pratique, regroupées : reconnaissance, interception, élévation de privilèges, sécurité applicative, services exposés.",
+    tagline: "Offensif",
+  },
+  {
+    slug: "defense",
+    title: "Défense",
+    order: 2,
+    status: "empty",
+    parent: "cybersecurite-pratique",
+    icon: "ShieldCheck",
+    accent: "#6fae8b",
+    description: "Le volet défensif du parcours pratique — à venir.",
+    tagline: "Défensif",
+  },
+
+  // ── Mini-checkpoints (parent = attaque, feuilles avec les vrais modules) ──
   {
     slug: "prat-recon-reseau",
     title: "Reconnaissance réseau",
@@ -137,7 +162,7 @@ export const allCheckpoints: CheckpointSeed[] = [
     description:
       "La première phase de toute intrusion : dresser la carte de la cible avant d'y toucher. Scan de ports avec Nmap, transferts de zone DNS, fingerprinting par TTL et fuites mDNS ou de certificats — tu découvres la surface d'attaque d'un réseau.",
     tagline: "Cartographier avant d'agir",
-    parent: "cybersecurite-pratique",
+    parent: "attaque",
   },
   {
     slug: "prat-recon-web",
@@ -149,7 +174,7 @@ export const allCheckpoints: CheckpointSeed[] = [
     description:
       "Le web laisse fuiter plus qu'on ne croit. Dépôts Git oubliés, hôtes virtuels cachés, API bavardes, verbes HTTP détournés, secrets dans le JavaScript et fichiers de sauvegarde accessibles — autant de portes que la reconnaissance web sait ouvrir.",
     tagline: "Explorer la surface exposée",
-    parent: "cybersecurite-pratique",
+    parent: "attaque",
   },
   {
     slug: "prat-interception-detect",
@@ -161,7 +186,7 @@ export const allCheckpoints: CheckpointSeed[] = [
     description:
       "Deux faces d'une même pièce : intercepter le trafic (ARP spoofing, sniffing SNMP et syslog, MAC flooding) et savoir le repérer côté défense (balises C2, exfiltration ICMP, flapping ARP, scans de ports). Tu passes tour à tour de l'attaquant à l'analyste.",
     tagline: "Écouter et repérer",
-    parent: "cybersecurite-pratique",
+    parent: "attaque",
   },
   {
     slug: "prat-privesc-lateral",
@@ -173,7 +198,7 @@ export const allCheckpoints: CheckpointSeed[] = [
     description:
       "Une fois le pied dans la place, on grimpe et on se déplace. Capacités Linux, cron et SUID mal configurés, LD_PRELOAD, wildcards tar, fichier passwd inscriptible, rebond SSH — l'art de transformer un accès limité en contrôle total.",
     tagline: "Monter en droits, rebondir",
-    parent: "cybersecurite-pratique",
+    parent: "attaque",
   },
   {
     slug: "prat-securite-app",
@@ -185,7 +210,7 @@ export const allCheckpoints: CheckpointSeed[] = [
     description:
       "Les failles applicatives classiques, dans du vrai code en conteneur : injection de commande, traversée de chemin (LFI), IDOR, SSRF, XXE et CORS mal configuré. Tu exploites la vulnérabilité, puis tu comprends comment la refermer.",
     tagline: "Exploiter le code faillible",
-    parent: "cybersecurite-pratique",
+    parent: "attaque",
   },
   {
     slug: "prat-services-exposes",
@@ -197,7 +222,7 @@ export const allCheckpoints: CheckpointSeed[] = [
     description:
       "Des services de données laissés sans authentification, comme on les trouve trop souvent en production : Redis et Memcached ouverts, FTP anonyme recouvrant une racine web. Un simple client suffit alors à tout lire — ou à tout écrire.",
     tagline: "Ports ouverts, données à nu",
-    parent: "cybersecurite-pratique",
+    parent: "attaque",
   },
 
   // ── Checkpoint « Cybersécurité — Projets » (top-level, scénarios complets) ──
