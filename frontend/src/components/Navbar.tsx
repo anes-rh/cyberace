@@ -15,11 +15,14 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   // Order: Accueil · Apprentissage · Dashboard (logged-in only) · Classement.
+  // Le lien Administration n'apparaît que pour un rôle admin (source unique :
+  // useAuth().user.role, alimenté par /auth/me — pas de 2e source de vérité).
   const allLinks = [
     { href: "/", label: "Accueil" },
     { href: "/apprentissage", label: "Apprentissage" },
     ...(user ? [{ href: "/dashboard", label: "Dashboard" }] : []),
     { href: "/leaderboard", label: "Classement" },
+    ...(user?.role === "admin" ? [{ href: "/admin", label: "Administration" }] : []),
   ];
 
   return (

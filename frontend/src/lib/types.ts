@@ -72,6 +72,7 @@ export interface User {
   solvedCount: number;
   streak: number;
   createdAt: string;
+  role: "user" | "admin";
 }
 
 export interface CourseSummary {

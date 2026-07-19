@@ -162,6 +162,35 @@ export const api = {
     solution: (slug: string) =>
       request<{ solution: import("./projectTypes").ProjectSolution }>(`/projects/${slug}/solution`),
   },
+
+  admin: {
+    stats: () => request<import("./adminTypes").AdminStats>("/admin/stats"),
+    users: (params?: { page?: number; limit?: number; q?: string; sort?: string; order?: "asc" | "desc" }) => {
+      const qs = new URLSearchParams(
+        Object.entries(params ?? {}).reduce((acc, [k, v]) => {
+          if (v !== undefined && v !== "") acc[k] = String(v);
+          return acc;
+        }, {} as Record<string, string>)
+      ).toString();
+      return request<import("./adminTypes").AdminUsersPage>(`/admin/users${qs ? `?${qs}` : ""}`);
+    },
+    user: (id: string) => request<import("./adminTypes").AdminUserDetail>(`/admin/users/${id}`),
+    setRole: (id: string, role: "user" | "admin") =>
+      request<{ id: string; username: string; role: "user" | "admin" }>(`/admin/users/${id}/role`, {
+        method: "PATCH",
+        body: JSON.stringify({ role }),
+      }),
+    resetProgress: (id: string) =>
+      request<{ ok: true; id: string; username: string }>(`/admin/users/${id}/progress`, {
+        method: "DELETE",
+        body: JSON.stringify({ confirm: true }),
+      }),
+    sessions: () => request<{ sessions: import("./adminTypes").AdminSession[] }>("/admin/sessions"),
+    stopSession: (type: "module" | "project", id: string) =>
+      request<{ ok: true }>(`/admin/sessions/${type}/${id}`, { method: "DELETE" }),
+    leaderboard: (limit = 200) =>
+      request<{ leaderboard: import("./adminTypes").AdminLeaderboardEntry[] }>(`/admin/leaderboard?limit=${limit}`),
+  },
 };
 
 export type { User, Challenge };
