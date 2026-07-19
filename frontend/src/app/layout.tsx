@@ -22,7 +22,16 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fr" className={`${display.variable} ${manrope.variable} ${jetbrains.variable} antialiased`}>
+    <html lang="fr" suppressHydrationWarning className={`${display.variable} ${manrope.variable} ${jetbrains.variable} antialiased`}>
+      <head>
+        {/* Anti-FOUC : pose la classe `dark` sur <html> AVANT l'hydratation React
+            (sinon flash clair au chargement en mode sombre). Purement client. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('cyberace-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="min-h-dvh font-sans">
         <div className="app-backdrop" />
         <div className="app-grid" />

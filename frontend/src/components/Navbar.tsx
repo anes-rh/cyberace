@@ -7,6 +7,7 @@ import { Menu, X, LogOut, Zap, Settings } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button, buttonVariants } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 
 export default function Navbar() {
@@ -56,6 +57,9 @@ export default function Navbar() {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
+          {/* Bascule de thème : toujours visible (préférence non liée à l'auth),
+              juste à côté du cluster profil/paramètres. */}
+          <ThemeToggle />
           {loading ? null : user ? (
             <>
               <Link href="/profile" className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 hover:bg-surface-2">
@@ -97,6 +101,7 @@ export default function Navbar() {
                 {l.label}
               </Link>
             ))}
+            <ThemeToggle variant="glass" size="sm" showLabel className="mt-2 w-full justify-center" />
             <div className="mt-2 flex gap-2">
               {user ? (
                 <>

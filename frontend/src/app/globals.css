@@ -35,6 +35,34 @@
   --animate-pulse-soft: pulseSoft 3.5s ease-in-out infinite;
 }
 
+/* ── DARK / EVENING ───────────────────────────────────────────────
+   Même identité apaisée, en "soir calme" : nuit douce (pas de noir pur),
+   accents de la même famille juste éclaircis pour rester lisibles. Les
+   utilitaires basés sur var(--color-*) suivent automatiquement ; seules les
+   classes à couleurs codées en dur ont un pendant sombre explicite (fin de
+   fichier). Le `@custom-variant` active aussi le préfixe `dark:` si besoin. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+.dark {
+  --color-void: #eef3f9;      /* inversé : texte clair sur accents */
+  --color-bg: #161c26;        /* nuit douce, pas un noir pur */
+  --color-surface: #1f2733;
+  --color-surface-2: #262f3d;
+  --color-line: #33404f;
+
+  --color-fg: #e4e9f2;
+  --color-muted: #9aa7bb;
+  --color-faint: #6b7789;
+
+  --color-primary: #6ea3dd;   /* éclairci pour rester lisible sur fond sombre */
+  --color-secondary: #8fbb95;
+  --color-magenta: #e3a17e;
+  --color-lavender: #a996d6;
+  --color-success: #7ab99a;
+  --color-warning: #dba766;
+  --color-danger: #de8686;
+}
+
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }
@@ -248,3 +276,68 @@ html.lenis, html.lenis body { height: auto; }
   .app-grid { animation: none; }
   .gradient-text-anim { animation: none; }
 }
+
+/* ── DARK overrides pour les classes à couleurs CODÉES EN DUR ─────────
+   Les utilitaires var(--color-*) suivent déjà `.dark` ; ici on ne traite que
+   ce qui a des rgba()/hex figés (fonds, verre, éditeur de code, badges 3D,
+   dégradés, ombres, sélection). Recensé par un grep exhaustif de globals.css. */
+
+/* Fond de page : nuit douce + halos tamisés (mêmes teintes, assombries). */
+.dark .app-backdrop {
+  background:
+    linear-gradient(180deg, #141a24 0%, #161c26 42%, #1c2129 100%),
+    radial-gradient(48rem 40rem at 12% 0%, rgba(110, 163, 221, 0.12), transparent 60%),
+    radial-gradient(44rem 40rem at 100% 8%, rgba(169, 150, 214, 0.10), transparent 58%),
+    radial-gradient(40rem 36rem at 60% 100%, rgba(143, 187, 149, 0.10), transparent 60%);
+}
+/* Nuages/halos : lumière de lune très discrète (blancs à faible opacité). */
+.dark .app-grid {
+  background:
+    radial-gradient(22rem 12rem at 20% 18%, rgba(255, 255, 255, 0.04), transparent 70%),
+    radial-gradient(26rem 14rem at 78% 26%, rgba(255, 255, 255, 0.03), transparent 72%),
+    radial-gradient(18rem 10rem at 55% 8%, rgba(255, 246, 235, 0.03), transparent 70%);
+}
+/* Verre dépoli sombre. */
+.dark .glass {
+  background: linear-gradient(160deg, rgba(38, 47, 61, 0.85), rgba(31, 39, 51, 0.7));
+  border: 1px solid var(--color-line);
+  box-shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.5);
+}
+
+/* Ombres & lueurs (rgba figés côté clair). */
+.dark .soft-shadow { box-shadow: 0 14px 40px -22px rgba(0, 0, 0, 0.55); }
+.dark .neon-border { box-shadow: 0 0 0 1px rgba(110, 163, 221, 0.30), 0 8px 26px -12px rgba(110, 163, 221, 0.42); }
+.dark .text-glow { text-shadow: 0 2px 18px rgba(110, 163, 221, 0.30); }
+
+/* Titres en dégradé (hex figés → accents sombres de la même famille). */
+.dark .gradient-text {
+  background: linear-gradient(100deg, #6ea3dd, #a996d6 48%, #e3a17e 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Badges flottants de la route 3D (fond blanc + hairline clair figés). */
+.dark .roadmap-badge {
+  background: rgba(31, 39, 51, 0.92);
+  border-color: color-mix(in srgb, var(--acc) 45%, #33404f);
+  box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--acc) 70%, transparent);
+}
+.dark .roadmap-badge-state { color: color-mix(in srgb, var(--acc) 70%, #9aa7bb); }
+
+/* Éditeur de code : passe en sombre (sinon reste blanc, très visible). */
+.dark .code-editor { background: #1b222d; }
+.dark .code-editor-gutter { background: #161c26; color: #6b7789; }
+.dark .code-editor-highlight { color: #d7deea; }
+.dark .code-editor-body textarea { caret-color: #d7deea; }
+.dark .code-editor-body textarea::placeholder { color: #6b7789; }
+/* Coloration syntaxique : mêmes teintes, éclaircies pour le fond sombre. */
+.dark .tok-kw { color: #b79be8; }
+.dark .tok-str { color: #7fc59d; }
+.dark .tok-num { color: #e0a56a; }
+.dark .tok-com { color: #7c899d; }
+.dark .tok-pre { color: #5bb3c9; }
+.dark .tok-arrow { color: #e58a9c; }
+
+/* Sélection de texte : surbrillance bleutée + texte clair. */
+.dark ::selection { background: rgba(110, 163, 221, 0.30); color: #eef3f9; }
