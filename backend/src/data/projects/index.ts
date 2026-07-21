@@ -3,6 +3,7 @@ import { operationSentinelle } from "./operationSentinelle";
 import { shadowdomain } from "./shadowdomain";
 import { pipelineFantome } from "./pipelineFantome";
 import { overflow } from "./overflow";
+import { socSilencieux } from "./socSilencieux";
 
 /** Tous les projets (checkpoint « Cybersécurité — Projets »). */
-export const allProjects: ProjectSeed[] = [operationSentinelle, shadowdomain, pipelineFantome, overflow];
+export const allProjects: ProjectSeed[] = [operationSentinelle, shadowdomain, pipelineFantome, overflow, socSilencieux];

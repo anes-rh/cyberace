@@ -1,0 +1,7 @@
+#!/bin/sh
+# nightly backup helper (legitimate)
+DEST="/var/backups"
+while :; do
+  tar czf "$DEST/home-$(date +%F).tgz" /home 2>/dev/null
+  sleep 86400
+done

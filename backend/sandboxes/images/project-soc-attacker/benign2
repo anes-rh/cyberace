@@ -1,0 +1,9 @@
+#!/bin/sh
+# service health probe (legitimate)
+URL="http://127.0.0.1:8080/health"
+while :; do
+  if ! curl -sf "$URL" >/dev/null 2>&1; then
+    logger "health check failed"
+  fi
+  sleep 30
+done

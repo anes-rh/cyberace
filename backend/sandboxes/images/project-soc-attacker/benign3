@@ -1,0 +1,8 @@
+#!/bin/sh
+# log rotation utility (legitimate)
+LOGDIR="/var/log/app"
+for f in "$LOGDIR"/*.log; do
+  [ -f "$f" ] || continue
+  mv "$f" "$f.1"
+  : > "$f"
+done
