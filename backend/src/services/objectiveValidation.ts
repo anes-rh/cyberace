@@ -1,5 +1,5 @@
 import type { ProjectTopology } from "../types";
-import { execInNode, resolveNodeIp } from "./dockerTopology";
+import { execInNode, resolveNodeIp, copyTextToNode } from "./dockerTopology";
 import { normalizeText } from "../utils/answer";
 
 /**
@@ -367,6 +367,62 @@ async function validateRegistryProbe(spec: RegistryProbeSpec, ctx: ValidationCon
   };
 }
 
+interface YaraCheckSpec {
+  /** Nœud d'analyse (a `yara` + le dossier d'échantillons ; ex. "attacker"). */
+  execNode: string;
+  /** Dossier d'échantillons à scanner (malveillants + légitimes pour piéger les
+   *  faux positifs), ex. "/opt/samples". */
+  fixtureDir: string;
+  /** Basenames des SEULS fichiers que la règle doit matcher (les malveillants). */
+  expectedMatchFiles: string[];
+}
+
+/**
+ * Valide une règle YARA SOUMISE : on l'écrit dans le conteneur d'analyse via
+ * putArchive (jamais par interpolation shell → aucune injection possible même
+ * avec une règle piégée), puis on exécute `yara` sur un dossier d'échantillons
+ * mêlant binaires malveillants ET légitimes. La règle n'est acceptée que si elle
+ * matche EXACTEMENT les échantillons attendus : ni faux négatif (trop stricte),
+ * ni faux positif (trop large). Entièrement server-side.
+ */
+async function validateYaraCheck(spec: YaraCheckSpec, submitted: unknown, ctx: ValidationContext): Promise<ValidationResult> {
+  const dockerId = ctx.containerIdByNode[spec.execNode];
+  if (!dockerId) return { ok: false, detail: `Nœud « ${spec.execNode} » introuvable — la session est-elle active ?` };
+  const rule = submitted && typeof submitted === "object" ? String((submitted as { rule?: unknown }).rule ?? "") : String(submitted ?? "");
+  if (!rule.trim()) return { ok: false, detail: "Aucune règle YARA soumise — colle le texte de ta règle (rule … { strings: … condition: … })." };
+
+  try {
+    await copyTextToNode(dockerId, "/tmp", "rule.yar", rule);
+  } catch {
+    return { ok: false, detail: "Impossible de déposer la règle sur le nœud d'analyse — réessaie." };
+  }
+
+  const { exitCode, output } = await execWithRetry(dockerId, ["yara", "-w", "/tmp/rule.yar", spec.fixtureDir]);
+  // Règle invalide : yara écrit "error:" sur stderr et sort en code non nul, sans ligne de match.
+  if (/error:/i.test(output) && exitCode !== 0) {
+    return { ok: false, detail: "Ta règle YARA ne compile pas — vérifie la structure `rule nom { strings: $s = \"…\" condition: $s }`." };
+  }
+
+  // Sortie yara : "<rule_id> <chemin>" par ligne → on isole le basename du fichier.
+  const matched = new Set(
+    output.split("\n").map((l) => l.trim()).filter(Boolean)
+      .map((l) => l.split(/\s+/).slice(1).join(" "))
+      .map((p) => p.split("/").pop() ?? p)
+      .filter(Boolean)
+  );
+  const expected = new Set(spec.expectedMatchFiles.map((f) => f.split("/").pop() ?? f));
+  const missing = [...expected].filter((f) => !matched.has(f));
+  const extra = [...matched].filter((f) => !expected.has(f));
+
+  if (missing.length === 0 && extra.length === 0) {
+    return { ok: true, detail: `Ta règle matche exactement les ${expected.size} échantillon(s) malveillant(s) attendu(s), sans faux positif.` };
+  }
+  if (extra.length) {
+    return { ok: false, detail: `Règle trop LARGE : elle matche aussi ${extra.length} fichier(s) légitime(s) (faux positifs). Cible une chaîne ou une séquence d'octets PROPRE au binaire malveillant.` };
+  }
+  return { ok: false, detail: `Règle trop STRICTE : elle ne matche que ${matched.size}/${expected.size} des échantillons malveillants — ta condition est trop spécifique (ou vise une chaîne absente d'une variante).` };
+}
+
 /** Point d'entrée : valide un objectif selon sa stratégie. */
 export async function validateObjective(
   strategy: string,
@@ -393,6 +449,8 @@ export async function validateObjective(
       return validateCredCheck(spec as unknown as CredCheckSpec, submitted, ctx);
     case "registry_probe":
       return validateRegistryProbe(spec as unknown as RegistryProbeSpec, ctx);
+    case "yara_check":
+      return validateYaraCheck(spec as unknown as YaraCheckSpec, submitted, ctx);
     default:
       return { ok: false, detail: `stratégie inconnue: ${strategy}` };
   }

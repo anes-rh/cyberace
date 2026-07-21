@@ -1,4 +1,6 @@
+/// <reference path="../tar-stream.d.ts" />
 import Docker from "dockerode";
+import { pack as tarPack } from "tar-stream";
 import { Types } from "mongoose";
 import { HttpError } from "../middleware/error";
 import type { ProjectTopology, TopologyNode } from "../types";
@@ -71,6 +73,25 @@ export async function execInNode(
   // sur le code de sortie).
   const output = Buffer.concat(chunks).toString("utf8").replace(/[\x00-\x08\x0e-\x1f]/g, "");
   return { exitCode, output };
+}
+
+/**
+ * Écrit un contenu texte dans un fichier d'un conteneur via l'API `putArchive`
+ * de Docker (tar construit EN MÉMOIRE) — jamais par concaténation dans une
+ * commande shell. Sert à déposer une entrée soumise par le joueur (ex. règle
+ * YARA) sans le moindre risque d'injection, même si le texte contient des
+ * métacaractères shell, guillemets, `$`, sauts de ligne, etc.
+ */
+export async function copyTextToNode(
+  dockerId: string,
+  destDir: string,
+  filename: string,
+  content: string
+): Promise<void> {
+  const pack = tarPack();
+  pack.entry({ name: filename, mode: 0o644 }, content);
+  pack.finalize();
+  await docker.getContainer(dockerId).putArchive(pack as unknown as NodeJS.ReadableStream, { path: destDir });
 }
 
 /** IP « de service » d'un nœud (son IP sur son réseau primaire). */

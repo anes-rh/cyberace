@@ -279,7 +279,8 @@ export type ValidationStrategy =
   | "log_forensics"
   | "cred_check"
   | "registry_probe"
-  | "dynamic_text_compare";
+  | "dynamic_text_compare"
+  | "yara_check";
 
 /** Bloc de validation — JAMAIS exposé au client (select:false côté modèle). */
 export interface ProjectObjectiveValidation {
