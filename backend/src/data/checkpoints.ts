@@ -143,11 +143,12 @@ export const allCheckpoints: CheckpointSeed[] = [
     slug: "defense",
     title: "Défense",
     order: 2,
-    status: "empty",
+    status: "active",
     parent: "cybersecurite-pratique",
     icon: "ShieldCheck",
     accent: "#6fae8b",
-    description: "Le volet défensif du parcours pratique — à venir.",
+    description:
+      "Le volet défensif du parcours pratique : analyse de journaux, capture réseau, durcissement, réponse à incident et confinement. On passe de la détection passive à l'action concrète.",
     tagline: "Défensif",
   },
 

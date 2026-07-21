@@ -117,6 +117,16 @@ import { module37XxeInjection } from "./cyber-pratique/module37XxeInjection";
 import { module38CorsMisconfig } from "./cyber-pratique/module38CorsMisconfig";
 import { module39MemcachedNoauth } from "./cyber-pratique/module39MemcachedNoauth";
 import { module40CapstoneSsrfChain } from "./cyber-pratique/module40CapstoneSsrfChain";
+import { module41SshBruteforceLog } from "./cyber-pratique/module41SshBruteforceLog";
+import { module42PortscanBlock } from "./cyber-pratique/module42PortscanBlock";
+import { module43PcapExfilAnalysis } from "./cyber-pratique/module43PcapExfilAnalysis";
+import { module44SshHardening } from "./cyber-pratique/module44SshHardening";
+import { module45WeblogInjection } from "./cyber-pratique/module45WeblogInjection";
+import { module46HashIntegrity } from "./cyber-pratique/module46HashIntegrity";
+import { module47HostContainment } from "./cyber-pratique/module47HostContainment";
+import { module48AuditLogPrivescReview } from "./cyber-pratique/module48AuditLogPrivescReview";
+import { module49TlsAudit } from "./cyber-pratique/module49TlsAudit";
+import { module50CapstoneDefense } from "./cyber-pratique/module50CapstoneDefense";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -272,6 +282,20 @@ export const cyberPratiqueCourses: CourseSeed[] = [
   ...module40CapstoneSsrfChain,
 ];
 
+/** Courses of the "Défense" mini-checkpoint (série 41-50, réponse à incident). */
+export const cyberDefenseCourses: CourseSeed[] = [
+  ...module41SshBruteforceLog,
+  ...module42PortscanBlock,
+  ...module43PcapExfilAnalysis,
+  ...module44SshHardening,
+  ...module45WeblogInjection,
+  ...module46HashIntegrity,
+  ...module47HostContainment,
+  ...module48AuditLogPrivescReview,
+  ...module49TlsAudit,
+  ...module50CapstoneDefense,
+];
+
 /** Every course, in display order. */
 export const allCourses: CourseSeed[] = [
   ...algoCourses,
@@ -283,4 +307,5 @@ export const allCourses: CourseSeed[] = [
   ...cyberReseauxCourses,
   ...cyberSystemeCourses,
   ...cyberPratiqueCourses,
+  ...cyberDefenseCourses,
 ];

@@ -3,6 +3,7 @@ import {
   Ghost, Fingerprint, Cloud, Brain, Bug, Trophy, Flag, Shield, ShieldCheck, Cpu, Route,
   Terminal, HardDrive, FolderTree, Cog, Boxes, Layers, Server, MemoryStick, Monitor, GitFork,
   Radar, Globe, Waves, ArrowUpCircle, ServerCog, Swords,
+  ScrollText, ShieldAlert, Lock, AlertTriangle, FileCheck, Ban, History, FileKey,
   type LucideProps,
 } from "lucide-react";
 import type { ComponentType } from "react";
@@ -12,6 +13,7 @@ const MAP: Record<string, ComponentType<LucideProps>> = {
   Ghost, Fingerprint, Cloud, Brain, Bug, Trophy, Flag, Shield, ShieldCheck, Cpu, Route,
   Terminal, HardDrive, FolderTree, Cog, Boxes, Layers, Server, MemoryStick, Monitor, GitFork,
   Radar, Globe, Waves, ArrowUpCircle, ServerCog, Swords,
+  ScrollText, ShieldAlert, Lock, AlertTriangle, FileCheck, Ban, History, FileKey,
 };
 
 /** Renders a lucide icon by its string name (used for course/badge icons). */
