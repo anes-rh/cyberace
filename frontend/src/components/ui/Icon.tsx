@@ -4,6 +4,7 @@ import {
   Terminal, HardDrive, FolderTree, Cog, Boxes, Layers, Server, MemoryStick, Monitor, GitFork,
   Radar, Globe, Waves, ArrowUpCircle, ServerCog, Swords,
   ScrollText, ShieldAlert, Lock, AlertTriangle, FileCheck, Ban, History, FileKey,
+  ShieldOff, Timer, Gauge,
   type LucideProps,
 } from "lucide-react";
 import type { ComponentType } from "react";
@@ -14,6 +15,7 @@ const MAP: Record<string, ComponentType<LucideProps>> = {
   Terminal, HardDrive, FolderTree, Cog, Boxes, Layers, Server, MemoryStick, Monitor, GitFork,
   Radar, Globe, Waves, ArrowUpCircle, ServerCog, Swords,
   ScrollText, ShieldAlert, Lock, AlertTriangle, FileCheck, Ban, History, FileKey,
+  ShieldOff, Timer, Gauge,
 };
 
 /** Renders a lucide icon by its string name (used for course/badge icons). */

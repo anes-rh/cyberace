@@ -127,6 +127,16 @@ import { module47HostContainment } from "./cyber-pratique/module47HostContainmen
 import { module48AuditLogPrivescReview } from "./cyber-pratique/module48AuditLogPrivescReview";
 import { module49TlsAudit } from "./cyber-pratique/module49TlsAudit";
 import { module50CapstoneDefense } from "./cyber-pratique/module50CapstoneDefense";
+import { module51WebshellHunt } from "./cyber-pratique/module51WebshellHunt";
+import { module52IcmpBlock } from "./cyber-pratique/module52IcmpBlock";
+import { module53SshKeyAudit } from "./cyber-pratique/module53SshKeyAudit";
+import { module54CronPersistenceHunt } from "./cyber-pratique/module54CronPersistenceHunt";
+import { module55ProcessMasquerading } from "./cyber-pratique/module55ProcessMasquerading";
+import { module56LdpreloadPersistence } from "./cyber-pratique/module56LdpreloadPersistence";
+import { module57ActiveConnectionsInvestigation } from "./cyber-pratique/module57ActiveConnectionsInvestigation";
+import { module58RatelimitMacflood } from "./cyber-pratique/module58RatelimitMacflood";
+import { module59PathPoisoning } from "./cyber-pratique/module59PathPoisoning";
+import { module60CapstoneDefense2 } from "./cyber-pratique/module60CapstoneDefense2";
 
 /** Courses of the "Algorithmique" checkpoint (L1 fundamentals → L2 ASD). */
 export const algoCourses: CourseSeed[] = [
@@ -294,6 +304,16 @@ export const cyberDefenseCourses: CourseSeed[] = [
   ...module48AuditLogPrivescReview,
   ...module49TlsAudit,
   ...module50CapstoneDefense,
+  ...module51WebshellHunt,
+  ...module52IcmpBlock,
+  ...module53SshKeyAudit,
+  ...module54CronPersistenceHunt,
+  ...module55ProcessMasquerading,
+  ...module56LdpreloadPersistence,
+  ...module57ActiveConnectionsInvestigation,
+  ...module58RatelimitMacflood,
+  ...module59PathPoisoning,
+  ...module60CapstoneDefense2,
 ];
 
 /** Every course, in display order. */
